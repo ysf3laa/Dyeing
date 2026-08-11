@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#171B26">
+<title>متابعة الصباغة</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Tajawal',system-ui,sans-serif;background:#171B26;color:#EDEFF5;min-height:100vh}
+input,select,textarea,button{font-family:inherit}
+button{cursor:pointer}
+.spin{animation:spin 1s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-left:6px;animation:pulse 2s infinite}
+.dot-on{background:#4FB0A5}
+.dot-off{background:#E0616F}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.syncing-bar{position:fixed;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#C97A4A,#4FB0A5,#C97A4A);background-size:200% 100%;animation:sync 1.5s linear infinite;z-index:9999;display:none}
+.syncing-bar.active{display:block}
+@keyframes sync{0%{background-position:200% 0}100%{background-position:-200% 0}}
+</style>
+</head>
+<body>
+<div id="syncBar" class="syncing-bar"></div>
+<div id="root">
+  <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:16px">
+    <div style="font-size:40px">🏭</div>
+    <div style="color:#9AA4BD">جاري التحميل...</div>
+  </div>
+</div>
+
+<script>
+window.onerror = function(msg, url, line) {
+  document.getElementById("root").innerHTML = '<div style="padding:20px;color:#E0616F;text-align:center"><h3>حدث خطأ</h3><p style="color:#9AA4BD;margin-top:10px;font-size:13px">'+msg+'</p></div>';
+};
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+
+<!-- Firebase compat -->
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDCoUtI2X-_QDQWgPXUSusVhoKnviQuwiQ",
+  authDomain: "dyeing-tracker.firebaseapp.com",
+  projectId: "dyeing-tracker",
+  storageBucket: "dyeing-tracker.firebasestorage.app",
+  messagingSenderId: "318924381635",
+  appId: "1:318924381635:web:94571bb4147175707df176",
+  measurementId: "G-Q50HW7LHSW"
+};
+
+let db = null, auth = null, fbReady = false;
+try {
+  firebase.initializeApp(firebaseConfig);
+  auth = firebase.auth();
+  db = firebase.firestore();
+  // تفعيل وضع الأوفلاين - البيانات تُحفظ محلياً وتُرفع عند الاتصال
+  db.enablePersistence({ synchronizeTabs: true }).catch(err => {
+    console.warn("Persistence failed:", err.code);
+    // إذا فشل، التطبيق سيظل يعمل لكن بدون مزامنة لاحقة
+  });
+  fbReady = true;
+} catch(e) { console.error(e); }
+
+const DEFAULT_STAGES = ["جيتات","صباغة","تجهيز","لف","الصالة"];
+const DEFAULT_MACHINES = ["1","2","3","4","5","6","7","8","9","10"];
+const STAGE_COLORS = ["#C97A4A","#4FB0A5","#8B7FD6","#D6A24F","#5E8FD6","#D66B7F","#6FBF73","#B98FD6"];
+
+const DICT = {
+  ar: {
+    appName:"متابعة الصباغة", search:"بحث في كل الكروت...", settings:"الإعدادات",
+    dailyLog:"السجل اليومي", addStage:"إضافة مرحلة", stageNamePlaceholder:"اسم المرحلة الجديدة",
+    add:"إضافة", cardsPlural:"كروت", lastActivity:"آخر نشاط",
+    distribution:"توزيع الشغل", lateOnly:"المتأخر فقط", all:"الكل",
+    newCard:"كرت جديد", importImage:"استيراد من صورة", code:"كود", customer:"عميل",
+    message:"رسالة", category:"صنف", color:"لون", quantity:"كمية", barcode:"باركود",
+    machine:"ماكينة", prepare:"تجهيز", dye:"صباغة", time:"وقت", notes:"ملاحظة",
+    phone:"تليفون العميل", urgent:"مستعجل", save:"حفظ", cancel:"إلغاء",
+    duplicateWarning:"يوجد كرت بنفس البيانات. تريد الحفظ برضه؟",
+    saveAnyway:"حفظ برضه", edit:"تعديل", copyCard:"نسخ الكرت", moveCard:"نقل الكرت",
+    finished:"خلصت المرحلة", showQr:"عرض QR", delete:"حذف",
+    openWhatsapp:"واتساب", call:"اتصال", pinCard:"تثبيت", unpin:"إلغاء التثبيت",
+    yourName:"اسمك", enterNameHint:"هيتسجل مرة واحدة على هذا الجهاز", confirmName:"تأكيد",
+    language:"اللغة", darkMode:"الوضع الداكن", noResults:"لا توجد نتائج",
+    machineOptional:"اختياري", addMachine:"إضافة رقم ماكينة",
+    linkedCards:"كروت مرتبطة", aged1:"متأخر يوم", aged2:"متأخر يومين+",
+    noCardsHere:"لا يوجد كروت هنا",
+    online:"🟢 متصل", offline:"🔴 بدون إنترنت - البيانات محفوظة محلياً",
+    syncing:"⏳ جاري المزامنة مع السحابة...", synced:"✅ تمت المزامنة",
+  },
+  en: {
+    appName:"Dyeing Tracker", search:"Search all cards...", settings:"Settings",
+    dailyLog:"Daily Log", addStage:"Add Stage", stageNamePlaceholder:"New stage name",
+    add:"Add", cardsPlural:"cards", lastActivity:"Last Activity",
+    distribution:"Work Distribution", lateOnly:"Late only", all:"All",
+    newCard:"New Card", importImage:"Import from Image", code:"Code", customer:"Customer",
+    message:"Batch #", category:"Category", color:"Color", quantity:"Qty", barcode:"Barcode",
+    machine:"Machine", prepare:"Prepare", dye:"Dye", time:"Time", notes:"Notes",
+    phone:"Customer Phone", urgent:"Urgent", save:"Save", cancel:"Cancel",
+    duplicateWarning:"Duplicate exists. Save anyway?", saveAnyway:"Save Anyway",
+    edit:"Edit", copyCard:"Copy Card", moveCard:"Move Card", finished:"Stage Finished",
+    showQr:"Show QR", delete:"Delete", openWhatsapp:"WhatsApp", call:"Call",
+    pinCard:"Pin", unpin:"Unpin", yourName:"Your name",
+    enterNameHint:"Saved once on this device", confirmName:"Confirm",
+    language:"Language", darkMode:"Dark Mode", noResults:"No results",
+    machineOptional:"optional", addMachine:"Add machine number",
+    linkedCards:"Linked cards", aged1:"1 day old", aged2:"2+ days old",
+    noCardsHere:"No cards here",
+    online:"🟢 Online", offline:"🔴 Offline - Data saved locally",
+    syncing:"⏳ Syncing with cloud...", synced:"✅ Synced",
+  }
+};
+
+const FIELD_KEYS = ["code","customer","message","category","color","quantity","barcode","machine","prepare","dye","time","notes","phone"];
+
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
+function nowISO(){return new Date().toISOString();}
+function toMs(v){if(!v)return 0;if(typeof v==="number")return v;if(v.toDate)return v.toDate().getTime();const d=new Date(v);return isNaN(d.getTime())?0:d.getTime();}
+function fmtTime(v,lang){const ms=toMs(v);if(!ms)return "";return new Date(ms).toLocaleString(lang==="ar"?"ar-EG":"en-GB",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});}
+function daysSince(v){const ms=toMs(v);if(!ms)return 0;return(Date.now()-ms)/86400000;}
+
+function App(){
+  const [ready,setReady]=useState(false);
+  const [firebaseOk,setFirebaseOk]=useState(false);
+  const [ownerName,setOwnerName]=useState(null);
+  const [nameInput,setNameInput]=useState("");
+  const [userId,setUserId]=useState(null);
+  const [isOnline,setIsOnline]=useState(navigator.onLine);
+  const [syncStatus,setSyncStatus]=useState("idle"); // idle, syncing, synced
+  const [lang,setLang]=useState(()=>localStorage.getItem("pref_lang")||"ar");
+  const [dark,setDark]=useState(()=>localStorage.getItem("pref_dark")!=="false");
+  const [stages,setStages]=useState(DEFAULT_STAGES);
+  const [machines,setMachines]=useState(DEFAULT_MACHINES);
+  const [cards,setCards]=useState([]);
+  const [log,setLog]=useState([]);
+  const [screen,setScreen]=useState("home");
+  const [activeStage,setActiveStage]=useState(null);
+  const [lateOnly,setLateOnly]=useState(false);
+  const [showSettings,setShowSettings]=useState(false);
+  const [showSearch,setShowSearch]=useState(false);
+  const [showAddStage,setShowAddStage]=useState(false);
+  const [newStageName,setNewStageName]=useState("");
+  const [editingCard,setEditingCard]=useState(null);
+  const [actionCard,setActionCard]=useState(null);
+  const [moveCard_,setMoveCard]=useState(null);
+  const [copyCard_,setCopyCard]=useState(null);
+  const [qrCard,setQrCard]=useState(null);
+  const [toast,setToast]=useState(null);
+  const fileInputRef=useRef(null);
+
+  const t=DICT[lang];
+  const dir=lang==="ar"?"rtl":"ltr";
+  const theme=dark?{
+    bg:"#171B26",panel:"#1F2635",panelAlt:"#242C3E",border:"#323C52",
+    text:"#EDEFF5",textDim:"#9AA4BD",accent:"#C97A4A",accent2:"#4FB0A5",
+    danger:"#E0616F",warn:"#D6A24F",input:"#242C3E",
+  }:{
+    bg:"#F4F1EA",panel:"#FFFFFF",panelAlt:"#F0ECE3",border:"#DFD9CB",
+    text:"#232016",textDim:"#77705F",accent:"#C97A4A",accent2:"#3F8F86",
+    danger:"#C6414F",warn:"#B5822F",input:"#FBF9F4",
+  };
+
+  // مراقبة حالة الإنترنت
+  useEffect(()=>{
+    const onOn=()=>{setIsOnline(true);setSyncStatus("syncing");setTimeout(()=>{setSyncStatus("synced");setTimeout(()=>setSyncStatus("idle"),2000);},1500);};
+    const onOff=()=>{setIsOnline(false);setSyncStatus("idle");};
+    window.addEventListener("online",onOn);
+    window.addEventListener("offline",onOff);
+    return ()=>{window.removeEventListener("online",onOn);window.removeEventListener("offline",onOff);};
+  },[]);
+
+  // شريط المزامنة العلوي
+  useEffect(()=>{
+    const bar=document.getElementById("syncBar");
+    if(bar)bar.classList.toggle("active",syncStatus==="syncing");
+  },[syncStatus]);
+
+  // Firebase auth + listeners
+  useEffect(()=>{
+    if(!fbReady||!auth||!db)return;
+    const unsubAuth=auth.onAuthStateChanged(async user=>{
+      if(user){
+        setUserId(user.uid);
+        const saved=localStorage.getItem("owner_name_"+user.uid);
+        if(saved)setOwnerName(saved);
+        // استماع لحظي للكروت
+        db.collection("cards").onSnapshot(snap=>{
+          setCards(snap.docs.map(d=>({id:d.id,...d.data()})));
+        },err=>console.error("cards:",err));
+        // استماع للسجل
+        db.collection("logs").onSnapshot(snap=>{
+          setLog(snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>toMs(b.time)-toMs(a.time)));
+        });
+        // استماع للإعدادات
+        db.collection("config").onSnapshot(snap=>{
+          const s=snap.docs.find(d=>d.id==="stages");
+          const m=snap.docs.find(d=>d.id==="machines");
+          if(s)setStages(s.data().list||DEFAULT_STAGES);
+          if(m)setMachines(m.data().list||DEFAULT_MACHINES);
+        });
+        setFirebaseOk(true);
+        setReady(true);
+      }else{
+        try{await auth.signInAnonymously();}catch(e){console.error(e);setReady(true);}
+      }
+    });
+    return ()=>unsubAuth&&unsubAuth();
+  },[]);
+
+  const showToast=(msg,kind="ok")=>{setToast({msg,kind});setTimeout(()=>setToast(null),2600);};
+
+  const confirmName=()=>{
+    if(!nameInput.trim())return;
+    const n=nameInput.trim();
+    setOwnerName(n);
+    if(userId)localStorage.setItem("owner_name_"+userId,n);
+  };
+
+  // العمليات على Firestore
+  const addLog=async(action,card,details="")=>{
+    if(!db)return;
+    try{
+      await db.collection("logs").doc(uid()).set({
+        action,cardCode:card?.code||"",person:ownerName||"—",details,
+        time:firebase.firestore.FieldValue.serverTimestamp(),
+        timeLocal:Date.now(),date:new Date().toISOString().slice(0,10)
+      });
+    }catch(e){console.warn(e);}
+  };
+
+  const saveCard=async(card,skipDup=false)=>{
+    if(!db)return;
+    if(!skipDup){
+      const dup=cards.find(c=>c.id!==card.id&&c.stage===card.stage&&c.code===card.code&&c.customer===card.customer&&c.color===card.color&&c.quantity===card.quantity);
+      if(dup){setEditingCard({...card,__dupWarning:true});return;}
+    }
+    const exists=cards.some(c=>c.id===card.id);
+    try{
+      if(exists){
+        await db.collection("cards").doc(card.id).set({...card,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedBy:ownerName,updatedLocal:Date.now()},{merge:true});
+        await addLog("تعديل كرت",card);
+      }else{
+        const newId=card.id||uid();
+        await db.collection("cards").doc(newId).set({
+          ...card,id:newId,
+          createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+          updatedAt:firebase.firestore.FieldValue.serverTimestamp(),
+          createdLocal:Date.now(),
+          createdBy:ownerName,history:[{stage:card.stage,by:ownerName,at:nowISO()}]
+        });
+        await addLog("إضافة كرت",card);
+      }
+      setEditingCard(null);
+      showToast(lang==="ar"?(isOnline?"تم الحفظ ✅":"تم الحفظ محلياً 📱"):"Saved");
+    }catch(e){console.error(e);showToast(lang==="ar"?"فشل الحفظ":"Failed","danger");}
+  };
+
+  const deleteCard=async(card)=>{
+    if(!db)return;
+    try{
+      await db.collection("cards").doc(card.id).delete();
+      await addLog("حذف كرت",card);
+      setActionCard(null);
+      showToast(lang==="ar"?"تم الحذف":"Deleted","danger");
+    }catch(e){console.error(e);}
+  };
+
+  const moveCardTo=async(card,dest)=>{
+    if(!db)return;
+    dest=dest||"الصالة";
+    try{
+      await db.collection("cards").doc(card.id).set({
+        stage:dest,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedBy:ownerName,
+        history:firebase.firestore.FieldValue.arrayUnion({stage:dest,by:ownerName,at:nowISO()})
+      },{merge:true});
+      await addLog("نقل كرت",card,`→ ${dest}`);
+      setMoveCard(null);setActionCard(null);
+      showToast(lang==="ar"?`اتنقل إلى ${dest}`:`Moved`);
+    }catch(e){console.error(e);}
+  };
+
+  const copyCardTo=async(card,dest)=>{
+    if(!db)return;
+    try{
+      const newId=uid();
+      await db.collection("cards").doc(newId).set({
+        ...card,id:newId,stage:dest,pinned:false,
+        createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt:firebase.firestore.FieldValue.serverTimestamp(),
+        createdLocal:Date.now(),
+        createdBy:ownerName,history:[{stage:dest,by:ownerName,at:nowISO()}]
+      });
+      await addLog("نسخ كرت",card);
+      setCopyCard(null);setActionCard(null);
+      showToast(lang==="ar"?"تم النسخ":"Copied");
+    }catch(e){console.error(e);}
+  };
+
+  const togglePin=async(card)=>{
+    if(!db)return;
+    try{
+      await db.collection("cards").doc(card.id).set({pinned:!card.pinned,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+      setActionCard(null);
+    }catch(e){console.error(e);}
+  };
+
+  const addStage=async()=>{
+    if(!db)return;
+    const name=newStageName.trim();
+    if(!name||stages.includes(name))return;
+    try{
+      await db.collection("config").doc("stages").set({list:[...stages,name]});
+      setNewStageName("");setShowAddStage(false);
+    }catch(e){console.error(e);}
+  };
+
+  const addMachine=async(name)=>{
+    if(!db||!name||machines.includes(name))return;
+    try{
+      await db.collection("config").doc("machines").set({list:[...machines,name]});
+    }catch(e){console.error(e);}
+  };
+
+  const handleImportFile=(e)=>{
+    const file=e.target.files?.[0];if(!file)return;
+    showToast(lang==="ar"?"جاري التحليل...":"Analyzing...");
+    setTimeout(async()=>{
+      const mock=[
+        {code:"101",customer:"أحمد علي",message:"رسالة 1",category:"قطن",color:"أزرق",quantity:"50",barcode:"12345",machine:"1",prepare:"نعم",dye:"نعم",time:"10:00",notes:""},
+        {code:"102",customer:"شركة النور",message:"رسالة 2",category:"بوليستر",color:"أحمر",quantity:"120",barcode:"67890",machine:"3",prepare:"نعم",dye:"نعم",time:"14:00",notes:""}
+      ];
+      for(const r of mock){
+        await saveCard({id:uid(),stage:activeStage||stages[0],...r,phone:"",urgent:false,pinned:false});
+      }
+      await addLog("استيراد من صورة",{code:mock.map(m=>m.code).join(",")},`${mock.length} كرت`);
+      showToast(lang==="ar"?"تم إضافة الكروت ✅":"Cards added ✅");
+      if(fileInputRef.current)fileInputRef.current.value="";
+    },1200);
+  };
+
+  const isLate=(c)=>daysSince(c.updatedAt||c.createdAt)>=1;
+  const cardsToShow=activeStage?cards.filter(c=>c.stage===activeStage).filter(c=>!lateOnly||isLate(c)).sort((a,b)=>{
+    const ap=a.pinned?1:0,bp=b.pinned?1:0;
+    if(bp!==ap)return bp-ap;
+    return toMs(b.updatedAt)-toMs(a.updatedAt);
+  }):[];
+
+  // رسالة حالة الاتصال
+  const statusMsg=syncStatus==="syncing"?t.syncing:syncStatus==="synced"?t.synced:(isOnline?t.online:t.offline);
+  const statusColor=syncStatus==="syncing"?theme.warn:syncStatus==="synced"?theme.accent2:(isOnline?theme.accent2:theme.danger);
+
+  if(!ready)return(
+    <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:theme.bg,color:theme.text,flexDirection:"column",gap:16}}>
+      <div style={{fontSize:48}}>🏭</div>
+      <div className="spin" style={{fontSize:24}}>⚙️</div>
+      <div style={{color:theme.textDim,fontSize:13}}>جاري الاتصال...</div>
+    </div>
+  );
+
+  if(!ownerName)return(
+    <div dir={dir} style={{minHeight:"100vh",background:theme.bg,color:theme.text,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+      <div style={{background:theme.panel,border:`1px solid ${theme.border}`,borderRadius:20,padding:32,width:"100%",maxWidth:380,textAlign:"center"}}>
+        <div style={{width:56,height:56,borderRadius:16,background:theme.accent,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px",fontSize:28}}>🏭</div>
+        <h2 style={{margin:"0 0 6px",fontSize:20}}>{t.appName}</h2>
+        <p style={{color:theme.textDim,fontSize:13,marginBottom:18}}>{t.yourName} — {t.enterNameHint}</p>
+        <input autoFocus value={nameInput} onChange={e=>setNameInput(e.target.value)} placeholder={t.yourName}
+          style={{width:"100%",padding:"12px 14px",borderRadius:12,border:`1px solid ${theme.border}`,background:theme.input,color:theme.text,fontSize:16,marginBottom:14,textAlign:"center"}}
+          onKeyDown={e=>e.key==="Enter"&&confirmName()}/>
+        <button onClick={confirmName} style={{width:"100%",padding:"12px 16px",borderRadius:12,border:"none",background:theme.accent,color:"#fff",fontWeight:700,fontSize:15}}>{t.confirmName}</button>
+      </div>
+    </div>
+  );
+
+  const inputStyle={width:"100%",boxSizing:"border-box",padding:"11px 12px",borderRadius:10,border:`1px solid ${theme.border}`,background:theme.input,color:theme.text,fontSize:15,marginBottom:10};
+  const btnPrimary={flex:1,padding:"12px 16px",borderRadius:12,border:"none",background:theme.accent,color:"#fff",fontWeight:700,fontSize:15};
+  const btnGhost={flex:1,padding:"12px 16px",borderRadius:12,border:`1px solid ${theme.border}`,background:"transparent",color:theme.text,fontWeight:600,fontSize:15};
+
+  return(
+    <div dir={dir} style={{minHeight:"100vh",background:theme.bg,color:theme.text}}>
+      {/* شارة حالة الاتصال */}
+      <div style={{position:"fixed",top:0,left:0,right:0,padding:"6px 12px",background:theme.panelAlt,borderBottom:`1px solid ${theme.border}`,fontSize:12,color:statusColor,zIndex:100,textAlign:"center",fontWeight:600}}>
+        {statusMsg}
+      </div>
+
+      {screen==="home"&&(
+        <div style={{maxWidth:640,margin:"0 auto",padding:"40px 16px 40px"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+            <div>
+              <div style={{fontSize:12,color:theme.textDim}}>{ownerName}</div>
+              <h1 style={{margin:"2px 0 0",fontSize:22,fontWeight:900}}>{t.appName}</h1>
+            </div>
+            <div style={{display:"flex",gap:8}}>
+              <button onClick={()=>setScreen("log")} style={{width:40,height:40,borderRadius:12,border:`1px solid ${theme.border}`,background:theme.panel,color:theme.text,display:"flex",alignItems:"center",justifyContent:"center"}}>📋</button>
+              <button onClick={()=>setShowSettings(true)} style={{width:40,height:40,borderRadius:12,border:`1px solid ${theme.border}`,background:theme.panel,color:theme.text,display:"flex",alignItems:"center",justifyContent:"center"}}>⚙️</button>
+            </div>
+          </div>
+
+          <button onClick={()=>setShowSearch(true)} style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:"13px 16px",borderRadius:14,border:`1px solid ${theme.border}`,background:theme.panel,color:theme.textDim,marginBottom:20,fontSize:14}}>
+            🔍 {t.search}
+          </button>
+
+          <div style={{marginBottom:22}}>
+            <div style={{fontSize:12,color:theme.textDim,marginBottom:6,fontWeight:700}}>{t.distribution}</div>
+            <div style={{display:"flex",height:10,borderRadius:6,overflow:"hidden",background:theme.panelAlt}}>
+              {stages.map((s,i)=>{const count=cards.filter(c=>c.stage===s).length;const pct=(count/(cards.length||1))*100;return count>0?<div key={s} style={{width:`${pct}%`,background:STAGE_COLORS[i%STAGE_COLORS.length]}}/>:null;})}
+            </div>
+          </div>
+
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+            {stages.map((s,i)=>{
+              const count=cards.filter(c=>c.stage===s).length;
+              const lateCount=cards.filter(c=>c.stage===s&&daysSince(c.updatedAt||c.createdAt)>=2).length;
+              const color=STAGE_COLORS[i%STAGE_COLORS.length];
+              return(
+                <div key={s} onClick={()=>{setActiveStage(s);setScreen("stage");}} style={{cursor:"pointer",borderRadius:16,padding:"18px 14px",background:theme.panel,border:`1px solid ${theme.border}`,borderInlineStart:`5px solid ${color}`,position:"relative"}}>
+                  {lateCount>0&&<div style={{position:"absolute",top:10,insetInlineEnd:10,background:theme.danger,color:"#fff",fontSize:11,fontWeight:700,borderRadius:20,padding:"2px 7px"}}>{lateCount}</div>}
+                  <div style={{fontSize:15,fontWeight:700,marginBottom:6}}>{s}</div>
+                  <div style={{fontSize:26,fontWeight:900,color}}>{count}</div>
+                  <div style={{fontSize:11,color:theme.textDim}}>{t.cardsPlural}</div>
+                </div>
+              );
+            })}
+            <div onClick={()=>setShowAddStage(true)} style={{cursor:"pointer",borderRadius:16,padding:"18px 14px",background:"transparent",border:`2px dashed ${theme.border}`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",color:theme.textDim,minHeight:92}}>
+              <span style={{fontSize:22}}>➕</span>
+              <div style={{fontSize:12,marginTop:6}}>{t.addStage}</div>
+            </div>
+          </div>
+
+          {log.slice(0,6).length>0&&(
+            <div style={{marginTop:26}}>
+              <div style={{fontSize:13,fontWeight:700,color:theme.textDim,marginBottom:10}}>{t.lastActivity}</div>
+              <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                {log.slice(0,6).map(e=>(
+                  <div key={e.id} style={{display:"flex",justifyContent:"space-between",fontSize:13,background:theme.panel,border:`1px solid ${theme.border}`,borderRadius:10,padding:"9px 12px"}}>
+                    <span>{e.action} {e.cardCode?`— ${e.cardCode}`:""}</span>
+                    <span style={{color:theme.textDim}}>{e.person} · {fmtTime(e.time||e.timeLocal,lang)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {screen==="stage"&&(
+        <div style={{maxWidth:640,margin:"0 auto",padding:"40px 16px 100px"}}>
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+            <button onClick={()=>setScreen("home")} style={{background:"none",border:"none",color:theme.text,fontSize:20}}>{lang==="ar"?"→":"←"}</button>
+            <h2 style={{margin:0,fontSize:19,fontWeight:800,flex:1}}>{activeStage}</h2>
+            <button onClick={()=>setLateOnly(!lateOnly)} style={{fontSize:12,padding:"7px 12px",borderRadius:20,border:`1px solid ${lateOnly?theme.danger:theme.border}`,background:lateOnly?theme.danger:"transparent",color:lateOnly?"#fff":theme.textDim,fontWeight:700}}>
+              {lateOnly?t.lateOnly:t.all}
+            </button>
+          </div>
+
+          {cardsToShow.length===0&&<div style={{textAlign:"center",padding:"50px 10px",color:theme.textDim}}><p>{t.noCardsHere}</p></div>}
+
+          <div style={{display:"flex",flexDirection:"column",gap:10}}>
+            {cardsToShow.map(c=>{
+              const days=daysSince(c.updatedAt||c.createdAt);
+              const late1=days>=1&&days<2;const late2=days>=2;
+              const linked=cards.filter(x=>x.message&&x.message===c.message&&x.id!==c.id).length;
+              const borderColor=c.urgent?theme.danger:late2?theme.danger:late1?theme.warn:theme.border;
+              return(
+                <div key={c.id} onClick={()=>setEditingCard(c)} onContextMenu={e=>{e.preventDefault();setActionCard(c);}}
+                  style={{userSelect:"none",cursor:"pointer",background:theme.panel,border:`1px solid ${theme.border}`,borderInlineStart:`4px solid ${borderColor}`,borderRadius:12,padding:"12px 14px"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <div style={{fontWeight:800,fontSize:15}}>{c.customer||"—"} {c.pinned&&"📌"}</div>
+                    <div style={{fontSize:12,color:theme.textDim}}>{c.time||fmtTime(c.updatedAt,lang)}</div>
+                  </div>
+                  <div style={{display:"flex",flexWrap:"wrap",gap:"4px 12px",fontSize:12.5,color:theme.textDim,marginTop:5}}>
+                    <span>{t.code}: <b style={{color:theme.text}}>{c.code||"—"}</b></span>
+                    <span>{t.color}: <b style={{color:theme.text}}>{c.color||"—"}</b></span>
+                    <span>{t.category}: <b style={{color:theme.text}}>{c.category||"—"}</b></span>
+                    <span>{t.quantity}: <b style={{color:theme.text}}>{c.quantity||"—"}</b></span>
+                    {c.machine&&<span>{t.machine}: <b style={{color:theme.text}}>{c.machine}</b></span>}
+                  </div>
+                  {(c.urgent||late2||late1||linked>0)&&(
+                    <div style={{display:"flex",gap:6,marginTop:8,flexWrap:"wrap"}}>
+                      {c.urgent&&<span style={{fontSize:10.5,fontWeight:700,color:"#fff",background:theme.danger,borderRadius:20,padding:"3px 9px"}}>{t.urgent}</span>}
+                      {late2&&<span style={{fontSize:10.5,fontWeight:700,color:"#fff",background:theme.danger,borderRadius:20,padding:"3px 9px"}}>{t.aged2}</span>}
+                      {!late2&&late1&&<span style={{fontSize:10.5,fontWeight:700,color:"#fff",background:theme.warn,borderRadius:20,padding:"3px 9px"}}>{t.aged1}</span>}
+                      {linked>0&&<span style={{fontSize:10.5,fontWeight:700,color:"#fff",background:theme.accent2,borderRadius:20,padding:"3px 9px"}}>{t.linkedCards}: {linked}</span>}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <div style={{position:"fixed",bottom:20,insetInlineEnd:20,display:"flex",flexDirection:"column",gap:10}}>
+            <button onClick={()=>fileInputRef.current?.click()} style={{width:52,height:52,borderRadius:26,border:"none",background:theme.accent2,boxShadow:"0 8px 20px rgba(0,0,0,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,color:"#fff"}}>📷</button>
+            <button onClick={()=>setEditingCard({id:uid(),stage:activeStage,code:"",customer:"",message:"",category:"",color:"",quantity:"",barcode:"",machine:"",prepare:"",dye:"",time:"",notes:"",phone:"",urgent:false,pinned:false})} style={{width:52,height:52,borderRadius:26,border:"none",background:theme.accent,boxShadow:"0 8px 20px rgba(0,0,0,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,color:"#fff"}}>➕</button>
+          </div>
+        </div>
+      )}
+
+      {screen==="log"&&(
+        <div style={{maxWidth:640,margin:"0 auto",padding:"40px 16px 40px"}}>
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
+            <button onClick={()=>setScreen("home")} style={{background:"none",border:"none",color:theme.text,fontSize:20}}>{lang==="ar"?"→":"←"}</button>
+            <h2 style={{margin:0,fontSize:19}}>{t.dailyLog}</h2>
+          </div>
+          {(()=>{const groups={};log.forEach(e=>{(groups[e.date]=groups[e.date]||[]).push(e)});const dates=Object.keys(groups).sort((a,b)=>b.localeCompare(a));
+            return dates.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noResults}</p>:dates.map(d=>(
+              <div key={d} style={{marginBottom:18}}>
+                <div style={{fontSize:13,fontWeight:800,color:theme.accent,marginBottom:8}}>{d}</div>
+                <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                  {groups[d].map(e=>(
+                    <div key={e.id} style={{background:theme.panel,border:`1px solid ${theme.border}`,borderRadius:10,padding:"9px 12px",fontSize:13}}>
+                      <div style={{display:"flex",justifyContent:"space-between"}}><b>{e.action}</b><span style={{color:theme.textDim}}>{fmtTime(e.time||e.timeLocal,lang)}</span></div>
+                      <div style={{color:theme.textDim,fontSize:12,marginTop:2}}>👤 {e.person} {e.cardCode&&`· ${e.cardCode}`} {e.details&&`· ${e.details}`}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ));
+          })()}
+        </div>
+      )}
+
+      <input ref={fileInputRef} type="file" accept="image/*" capture="environment" style={{display:"none"}} onChange={handleImportFile}/>
+
+      {editingCard&&(
+        <div onClick={()=>setEditingCard(null)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:theme.panel,borderRadius:18,padding:20,width:"100%",maxWidth:480,maxHeight:"88vh",overflowY:"auto",border:`1px solid ${theme.border}`}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+              <h3 style={{margin:0,fontSize:17}}>{cards.some(c=>c.id===editingCard.id)?t.edit:t.newCard}</h3>
+              <button onClick={()=>setEditingCard(null)} style={{background:"none",border:"none",color:theme.textDim,fontSize:20}}>✕</button>
+            </div>
+            {editingCard.__dupWarning&&<div style={{background:"rgba(224,97,111,.12)",border:`1px solid ${theme.danger}`,borderRadius:10,padding:12,marginBottom:12,fontSize:13.5}}>⚠️ {t.duplicateWarning}</div>}
+            <div style={{fontSize:12,fontWeight:700,marginBottom:4,opacity:.75}}>{t.customer}</div>
+            <input style={inputStyle} value={editingCard.customer} onChange={e=>setEditingCard({...editingCard,customer:e.target.value})}/>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+              <div><div style={{fontSize:12,fontWeight:700,marginBottom:4,opacity:.75}}>{t.code}</div><input style={inputStyle} value={editingCard.code} onChange={e=>setEditingCard({...editingCard,code:e.target.value})}/></div>
+              <div><div style={{fontSize:12,fontWeight:700,marginBottom:4,opacity:.75}}>{t.message}</div><input style={inputStyle} value={editingCard.message} onChange={e=>setEditingCard({...editingCard,message:e.target.value})}/></div>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+              <div><div style={{fontSize:12,fontWeight:700,marginBottom:4,opacity:.75}}>{t.category}</div><input style={inputStyle} value={editingCard.category} onChange={e=>setEditingCard({...editingCard,category:e.target.value})}/></div>
+              <div><div style={{fontSize:12,fontWeight:700,marginBottom:4,opacity:.75}}>{t.color}</div><input style={inputStyle} value={editingCard.color} onChange={e=>setEditingCard({...editingCard,color:e.target.value})}/></div>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+              <div><div style={{fontSize:12,fontWeight:700,marginBottom:4,opacity:.75}}>{t.quantity}</div><input style={inputStyle} value={editingCard.quantity} onChange={e=>setEditingCard({...editingCard,quantity:e.target.value})}/></div>
+              <div><div style={{fontSize:12,fontWeight:700,marginBottom:4,opacity:.75}}>{t.barcode}</div><input style={inputStyle} value={editingCard.barcode} onChange={e=>setEditingCard({...editingCard,barcode:e.target.value})}/></div>
+            </div>
+            <div style={{fontSize:12,fontWeight:700,marginBottom:4,opacity:.75}}>{t.machine} ({t.machineOptional})</div>
+            <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>
+              {machines.map(m=><button key={m} onClick={()=>setEditingCard({...editingCard,machine:m})} style={{padding:"6px 12px",borderRadius:20,border:`1px solid ${editingCard.machine===m?theme.accent:theme.border}`,background:editingCard.machine===m?theme.accent:"transparent",color:editingCard.machine===m?"#fff":theme.text,fontSize:13}}>{m}</button>)}
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginTop:10}}>
+              <div><div style={{fontSize:12,fontWeight:700,marginBottom:4,opacity:.75}}>{t.prepare}</div><input style={inputStyle} value={editingCard.prepare} onChange={e=>setEditingCard({...editingCard,prepare:e.target.value})}/></div>
+              <div><div style={{fontSize:12,fontWeight:700,marginBottom:4,opacity:.75}}>{t.dye}</div><input style={inputStyle} value={editingCard.dye} onChange={e=>setEditingCard({...editingCard,dye:e.target.value})}/></div>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+              <div><div style={{fontSize:12,fontWeight:700,marginBottom:4,opacity:.75}}>{t.time}</div><input style={inputStyle} value={editingCard.time} onChange={e=>setEditingCard({...editingCard,time:e.target.value})}/></div>
+              <div><div style={{fontSize:12,fontWeight:700,marginBottom:4,opacity:.75}}>{t.phone}</div><input style={inputStyle} value={editingCard.phone} onChange={e=>setEditingCard({...editingCard,phone:e.target.value})}/></div>
+            </div>
+            <div style={{fontSize:12,fontWeight:700,marginBottom:4,opacity:.75}}>{t.notes}</div>
+            <textarea rows={2} style={{...inputStyle,resize:"vertical"}} value={editingCard.notes} onChange={e=>setEditingCard({...editingCard,notes:e.target.value})}/>
+            <label style={{display:"flex",alignItems:"center",gap:8,marginBottom:14,fontSize:14,cursor:"pointer"}}>
+              <input type="checkbox" checked={!!editingCard.urgent} onChange={e=>setEditingCard({...editingCard,urgent:e.target.checked})}/> ⚠️ {t.urgent}
+            </label>
+            <div style={{display:"flex",gap:8}}>
+              <button onClick={()=>saveCard({...editingCard,__dupWarning:undefined},!!editingCard.__dupWarning)} style={btnPrimary}>{editingCard.__dupWarning?t.saveAnyway:t.save}</button>
+              <button onClick={()=>setEditingCard(null)} style={btnGhost}>{t.cancel}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {actionCard&&(
+        <div onClick={()=>setActionCard(null)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:theme.panel,borderRadius:18,padding:10,width:"100%",maxWidth:340,border:`1px solid ${theme.border}`}}>
+            <div style={{padding:"8px 10px 12px",fontWeight:800,fontSize:14}}>{actionCard.customer} · {actionCard.code}</div>
+            {[
+              {icon:"✏️",label:t.edit,fn:()=>{setEditingCard(actionCard);setActionCard(null);}},
+              {icon:"📋",label:t.copyCard,fn:()=>{setCopyCard(actionCard);setActionCard(null);}},
+              {icon:"🔄",label:t.moveCard,fn:()=>{setMoveCard(actionCard);setActionCard(null);}},
+              {icon:"⭐",label:actionCard.pinned?t.unpin:t.pinCard,fn:()=>togglePin(actionCard)},
+              {icon:"📱",label:t.showQr,fn:()=>{setQrCard(actionCard);setActionCard(null);}},
+            ].map((it,i)=>(
+              <button key={i} onClick={it.fn} style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:"12px 10px",background:"transparent",border:"none",borderTop:`1px solid ${theme.border}`,color:theme.text,fontSize:14.5,textAlign:"start"}}>{it.icon} {it.label}</button>
+            ))}
+            <button onClick={()=>deleteCard(actionCard)} style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:"12px 10px",background:"transparent",border:"none",borderTop:`1px solid ${theme.border}`,color:theme.danger,fontSize:14.5,textAlign:"start"}}>🗑️ {t.delete}</button>
+          </div>
+        </div>
+      )}
+
+      {moveCard_&&(
+        <div onClick={()=>setMoveCard(null)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:theme.panel,borderRadius:18,padding:20,width:"100%",maxWidth:340,border:`1px solid ${theme.border}`}}>
+            <h3 style={{margin:"0 0 14px"}}>{t.moveCard}</h3>
+            {[...stages,"الصالة"].filter((v,i,a)=>a.indexOf(v)===i).map(s=>(
+              <button key={s} onClick={()=>moveCardTo(moveCard_,s)} style={{width:"100%",padding:"12px 10px",background:theme.panelAlt,border:"none",borderRadius:10,color:theme.text,fontSize:14.5,textAlign:"start",marginBottom:8}}>{s}</button>
+            ))}
+            <button onClick={()=>moveCardTo(moveCard_,"الصالة")} style={{...btnGhost,width:"100%",marginTop:12}}>{t.finished} → الصالة</button>
+          </div>
+        </div>
+      )}
+
+      {copyCard_&&(
+        <div onClick={()=>setCopyCard(null)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:theme.panel,borderRadius:18,padding:20,width:"100%",maxWidth:340,border:`1px solid ${theme.border}`}}>
+            <h3 style={{margin:"0 0 14px"}}>{t.copyCard}</h3>
+            {stages.map(s=>(
+              <button key={s} onClick={()=>copyCardTo(copyCard_,s)} style={{width:"100%",padding:"12px 10px",background:theme.panelAlt,border:"none",borderRadius:10,color:theme.text,fontSize:14.5,textAlign:"start",marginBottom:8}}>{s}</button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {qrCard&&(
+        <div onClick={()=>setQrCard(null)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:theme.panel,borderRadius:18,padding:20,width:"100%",maxWidth:340,textAlign:"center",border:`1px solid ${theme.border}`}}>
+            <h3>{t.showQr}</h3>
+            <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(JSON.stringify({id:qrCard.id,code:qrCard.code,stage:qrCard.stage}))}`} style={{borderRadius:12,border:`1px solid ${theme.border}`}}/>
+            <p style={{fontSize:13,color:theme.textDim,marginTop:10}}>{qrCard.customer} · {qrCard.code}</p>
+          </div>
+        </div>
+      )}
+
+      {showSearch&&(
+        <div onClick={()=>setShowSearch(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:theme.panel,borderRadius:18,padding:20,width:"100%",maxWidth:480,maxHeight:"88vh",overflowY:"auto",border:`1px solid ${theme.border}`}}>
+            <h3 style={{margin:"0 0 14px"}}>{t.search}</h3>
+            <SearchModal theme={theme} t={t} cards={cards} onPick={c=>{setShowSearch(false);setEditingCard(c);}} inputStyle={inputStyle}/>
+          </div>
+        </div>
+      )}
+
+      {showSettings&&(
+        <div onClick={()=>setShowSettings(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:theme.panel,borderRadius:18,padding:20,width:"100%",maxWidth:380,border:`1px solid ${theme.border}`}}>
+            <h3 style={{margin:"0 0 14px"}}>{t.settings}</h3>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 4px",borderBottom:`1px solid ${theme.border}`}}>
+              <span>🌐 {t.language}</span>
+              <button onClick={()=>{const nl=lang==="ar"?"en":"ar";setLang(nl);localStorage.setItem("pref_lang",nl);}} style={{padding:"8px 14px",borderRadius:20,border:`1px solid ${theme.border}`,background:theme.panelAlt,color:theme.text,fontSize:13,fontWeight:700}}>{lang==="ar"?"العربية":"English"}</button>
+            </div>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 4px",borderBottom:`1px solid ${theme.border}`}}>
+              <span>{dark?"🌙":"☀️"} {t.darkMode}</span>
+              <div onClick={()=>{const nd=!dark;setDark(nd);localStorage.setItem("pref_dark",nd);}} style={{width:44,height:24,borderRadius:20,background:dark?theme.accent:theme.border,position:"relative",cursor:"pointer"}}>
+                <div style={{width:18,height:18,borderRadius:"50%",background:"#fff",position:"absolute",top:3,insetInlineStart:dark?23:3}}/>
+              </div>
+            </div>
+            <div style={{padding:"16px 4px",fontSize:13,color:theme.textDim,textAlign:"center",lineHeight:1.8}}>
+              <div style={{marginBottom:8}}>☁️ <b>وضع الأوفلاين مفعّل</b></div>
+              <div style={{fontSize:11.5}}>
+                • اعمل بدون إنترنت بكل حرية<br/>
+                • البيانات تُحفظ على جهازك<br/>
+                • عند عودة الإنترنت، ترفع تلقائياً<br/>
+                • كل المستخدمين يرون التعديلات لحظياً
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAddStage&&(
+        <div onClick={()=>setShowAddStage(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:theme.panel,borderRadius:16,padding:20,width:300}}>
+            <h3 style={{marginTop:0}}>{t.addStage}</h3>
+            <input autoFocus value={newStageName} onChange={e=>setNewStageName(e.target.value)} placeholder={t.stageNamePlaceholder} style={inputStyle} onKeyDown={e=>e.key==="Enter"&&addStage()}/>
+            <div style={{display:"flex",gap:8,marginTop:12}}>
+              <button onClick={addStage} style={btnPrimary}>{t.add}</button>
+              <button onClick={()=>setShowAddStage(false)} style={btnGhost}>{t.cancel}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {toast&&(
+        <div style={{position:"fixed",bottom:24,left:"50%",transform:"translateX(-50%)",background:toast.kind==="danger"?theme.danger:theme.accent2,color:"#fff",padding:"10px 20px",borderRadius:30,fontSize:14,fontWeight:600,zIndex:999,boxShadow:"0 8px 24px rgba(0,0,0,.25)"}}>
+          {toast.msg}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SearchModal({theme,t,cards,onPick,inputStyle}){
+  const [q,setQ]=useState("");
+  const results=q.trim()?cards.filter(c=>FIELD_KEYS.some(k=>(c[k]||"").toString().toLowerCase().includes(q.toLowerCase()))).slice(0,20):[];
+  return(
+    <div>
+      <input autoFocus value={q} onChange={e=>setQ(e.target.value)} placeholder={t.search} style={inputStyle}/>
+      {q.trim()&&results.length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center"}}>{t.noResults}</p>}
+      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+        {results.map(c=>(
+          <div key={c.id} onClick={()=>onPick(c)} style={{cursor:"pointer",background:theme.panelAlt,borderRadius:10,padding:"10px 12px"}}>
+            <div style={{fontWeight:700,fontSize:14}}>{c.customer} · {c.code}</div>
+            <div style={{fontSize:12,color:theme.textDim}}>{c.stage} — {c.color} — {c.quantity}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
