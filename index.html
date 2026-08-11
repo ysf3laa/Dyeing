@@ -12,10 +12,6 @@ input,select,textarea,button{font-family:inherit}
 button{cursor:pointer}
 .spin{animation:spin 1s linear infinite;display:inline-block}
 @keyframes spin{to{transform:rotate(360deg)}}
-.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-left:6px;animation:pulse 2s infinite}
-.dot-on{background:#4FB0A5}
-.dot-off{background:#E0616F}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 .syncing-bar{position:fixed;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#C97A4A,#4FB0A5,#C97A4A);background-size:200% 100%;animation:sync 1.5s linear infinite;z-index:9999;display:none}
 .syncing-bar.active{display:block}
 @keyframes sync{0%{background-position:200% 0}100%{background-position:-200% 0}}
@@ -32,30 +28,29 @@ button{cursor:pointer}
 
 <script>
 window.onerror = function(msg, url, line) {
-  document.getElementById("root").innerHTML = '<div style="padding:20px;color:#E0616F;text-align:center"><h3>حدث خطأ</h3><p style="color:#9AA4BD;margin-top:10px;font-size:13px">'+msg+'</p></div>';
+  document.getElementById("root").innerHTML = '<div style="padding:20px;color:#E0616F;text-align:center"><h3>خطأ</h3><p style="color:#9AA4BD;margin-top:10px;font-size:13px">'+msg+'</p></div>';
 };
 </script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.23.5/babel.min.js"></script>
 
-<!-- Firebase compat -->
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
 
-<script type="text/babel">
+<script type="text/babel" data-presets="react">
 const { useState, useEffect, useRef } = React;
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDCoUtI2X-_QDQWgPXUSusVhoKnviQuwiQ",
-  authDomain: "dyeing-tracker.firebaseapp.com",
-  projectId: "dyeing-tracker",
-  storageBucket: "dyeing-tracker.firebasestorage.app",
-  messagingSenderId: "318924381635",
-  appId: "1:318924381635:web:94571bb4147175707df176",
-  measurementId: "G-Q50HW7LHSW"
+  apiKey: "AIzaSyBEplMzCUPbZ33vpctAegDvCLFLB2d_Psc",
+  authDomain: "dyeing-tracker-cc789.firebaseapp.com",
+  projectId: "dyeing-tracker-cc789",
+  storageBucket: "dyeing-tracker-cc789.firebasestorage.app",
+  messagingSenderId: "407184511418",
+  appId: "1:407184511418:web:16512177012e5a6ded0d83",
+  measurementId: "G-V3ST7W6VVN"
 };
 
 let db = null, auth = null, fbReady = false;
@@ -63,11 +58,7 @@ try {
   firebase.initializeApp(firebaseConfig);
   auth = firebase.auth();
   db = firebase.firestore();
-  // تفعيل وضع الأوفلاين - البيانات تُحفظ محلياً وتُرفع عند الاتصال
-  db.enablePersistence({ synchronizeTabs: true }).catch(err => {
-    console.warn("Persistence failed:", err.code);
-    // إذا فشل، التطبيق سيظل يعمل لكن بدون مزامنة لاحقة
-  });
+  db.enablePersistence({ synchronizeTabs: true }).catch(err => console.warn("Persistence:", err.code));
   fbReady = true;
 } catch(e) { console.error(e); }
 
@@ -135,7 +126,7 @@ function App(){
   const [nameInput,setNameInput]=useState("");
   const [userId,setUserId]=useState(null);
   const [isOnline,setIsOnline]=useState(navigator.onLine);
-  const [syncStatus,setSyncStatus]=useState("idle"); // idle, syncing, synced
+  const [syncStatus,setSyncStatus]=useState("idle");
   const [lang,setLang]=useState(()=>localStorage.getItem("pref_lang")||"ar");
   const [dark,setDark]=useState(()=>localStorage.getItem("pref_dark")!=="false");
   const [stages,setStages]=useState(DEFAULT_STAGES);
@@ -169,7 +160,6 @@ function App(){
     danger:"#C6414F",warn:"#B5822F",input:"#FBF9F4",
   };
 
-  // مراقبة حالة الإنترنت
   useEffect(()=>{
     const onOn=()=>{setIsOnline(true);setSyncStatus("syncing");setTimeout(()=>{setSyncStatus("synced");setTimeout(()=>setSyncStatus("idle"),2000);},1500);};
     const onOff=()=>{setIsOnline(false);setSyncStatus("idle");};
@@ -178,13 +168,11 @@ function App(){
     return ()=>{window.removeEventListener("online",onOn);window.removeEventListener("offline",onOff);};
   },[]);
 
-  // شريط المزامنة العلوي
   useEffect(()=>{
     const bar=document.getElementById("syncBar");
     if(bar)bar.classList.toggle("active",syncStatus==="syncing");
   },[syncStatus]);
 
-  // Firebase auth + listeners
   useEffect(()=>{
     if(!fbReady||!auth||!db)return;
     const unsubAuth=auth.onAuthStateChanged(async user=>{
@@ -192,15 +180,12 @@ function App(){
         setUserId(user.uid);
         const saved=localStorage.getItem("owner_name_"+user.uid);
         if(saved)setOwnerName(saved);
-        // استماع لحظي للكروت
         db.collection("cards").onSnapshot(snap=>{
           setCards(snap.docs.map(d=>({id:d.id,...d.data()})));
         },err=>console.error("cards:",err));
-        // استماع للسجل
         db.collection("logs").onSnapshot(snap=>{
           setLog(snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>toMs(b.time)-toMs(a.time)));
         });
-        // استماع للإعدادات
         db.collection("config").onSnapshot(snap=>{
           const s=snap.docs.find(d=>d.id==="stages");
           const m=snap.docs.find(d=>d.id==="machines");
@@ -225,7 +210,6 @@ function App(){
     if(userId)localStorage.setItem("owner_name_"+userId,n);
   };
 
-  // العمليات على Firestore
   const addLog=async(action,card,details="")=>{
     if(!db)return;
     try{
@@ -354,7 +338,6 @@ function App(){
     return toMs(b.updatedAt)-toMs(a.updatedAt);
   }):[];
 
-  // رسالة حالة الاتصال
   const statusMsg=syncStatus==="syncing"?t.syncing:syncStatus==="synced"?t.synced:(isOnline?t.online:t.offline);
   const statusColor=syncStatus==="syncing"?theme.warn:syncStatus==="synced"?theme.accent2:(isOnline?theme.accent2:theme.danger);
 
@@ -386,7 +369,6 @@ function App(){
 
   return(
     <div dir={dir} style={{minHeight:"100vh",background:theme.bg,color:theme.text}}>
-      {/* شارة حالة الاتصال */}
       <div style={{position:"fixed",top:0,left:0,right:0,padding:"6px 12px",background:theme.panelAlt,borderBottom:`1px solid ${theme.border}`,fontSize:12,color:statusColor,zIndex:100,textAlign:"center",fontWeight:600}}>
         {statusMsg}
       </div>
