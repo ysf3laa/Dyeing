@@ -87,6 +87,10 @@ const DICT = {
     noCardsHere:"لا يوجد كروت هنا",
     online:"🟢 متصل", offline:"🔴 بدون إنترنت - البيانات محفوظة محلياً",
     syncing:"⏳ جاري المزامنة مع السحابة...", synced:"✅ تمت المزامنة",
+    allCards:"كل الكروت - اضغط للانتقال لمكان الكرت", home:"الرئيسية", stagesLabel:"المراحل",
+    history:"تاريخ الحركة", nextStage:"المرحلة الجاية", report:"تقرير اليوم",
+    copy:"نسخ", exportImage:"تصدير كصورة", onlineNow:"متصلين دلوقتي",
+    backup:"نسخة احتياطية (Excel)", qtyTotal:"الكمية",
   },
   en: {
     appName:"Dyeing Tracker", search:"Search all cards...", settings:"Settings",
@@ -108,6 +112,10 @@ const DICT = {
     noCardsHere:"No cards here",
     online:"🟢 Online", offline:"🔴 Offline - Data saved locally",
     syncing:"⏳ Syncing with cloud...", synced:"✅ Synced",
+    allCards:"All cards - tap to jump to location", home:"Home", stagesLabel:"Stages",
+    history:"History", nextStage:"Next stage", report:"Daily report",
+    copy:"Copy", exportImage:"Export as image", onlineNow:"Online now",
+    backup:"Backup (CSV)", qtyTotal:"Qty",
   }
 };
 
@@ -118,6 +126,11 @@ function nowISO(){return new Date().toISOString();}
 function toMs(v){if(!v)return 0;if(typeof v==="number")return v;if(v.toDate)return v.toDate().getTime();const d=new Date(v);return isNaN(d.getTime())?0:d.getTime();}
 function fmtTime(v,lang){const ms=toMs(v);if(!ms)return "";return new Date(ms).toLocaleString(lang==="ar"?"ar-EG":"en-GB",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});}
 function daysSince(v){const ms=toMs(v);if(!ms)return 0;return(Date.now()-ms)/86400000;}
+function localDate(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+
+function MenuBtn({children,onClick,theme,active}){
+  return <button onClick={onClick} style={{width:"100%",display:"flex",alignItems:"center",gap:8,padding:"11px 10px",borderRadius:10,border:"none",background:active?theme.panelAlt:"transparent",color:theme.text,fontSize:14,fontWeight:600,textAlign:"start",marginBottom:2}}>{children}</button>;
+}
 
 function App(){
   const [ready,setReady]=useState(false);
@@ -127,6 +140,8 @@ function App(){
   const [userId,setUserId]=useState(null);
   const [isOnline,setIsOnline]=useState(navigator.onLine);
   const [syncStatus,setSyncStatus]=useState("idle");
+  const [onlineUsers,setOnlineUsers]=useState([]);
+  const [reportText,setReportText]=useState(null);
   const [lang,setLang]=useState(()=>localStorage.getItem("pref_lang")||"ar");
   const [dark,setDark]=useState(()=>localStorage.getItem("pref_dark")!=="false");
   const [stages,setStages]=useState(DEFAULT_STAGES);
@@ -139,6 +154,7 @@ function App(){
   const [showSettings,setShowSettings]=useState(false);
   const [showSearch,setShowSearch]=useState(false);
   const [showAddStage,setShowAddStage]=useState(false);
+  const [showMenu,setShowMenu]=useState(false);
   const [newStageName,setNewStageName]=useState("");
   const [editingCard,setEditingCard]=useState(null);
   const [actionCard,setActionCard]=useState(null);
@@ -148,7 +164,7 @@ function App(){
   const [toast,setToast]=useState(null);
   const fileInputRef=useRef(null);
   const uiRef=useRef({});
-  uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showAddStage};
+  uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showAddStage,showMenu,reportText};
 
   const t=DICT[lang];
   const dir=lang==="ar"?"rtl":"ltr";
@@ -162,12 +178,23 @@ function App(){
     danger:"#C6414F",warn:"#B5822F",input:"#FBF9F4",
   };
 
-  // زرار الرجوع: يقفل النافذة / يرجع للرئيسية / يطلع
+  const hdrBtn={width:40,height:40,borderRadius:12,border:`1px solid ${theme.border}`,background:theme.panel,color:theme.text,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0};
+  const Burger=()=>(
+    <span style={{display:"flex",flexDirection:"column",gap:3}}>
+      <span style={{width:18,height:2,background:theme.text,borderRadius:2}}></span>
+      <span style={{width:18,height:2,background:theme.text,borderRadius:2}}></span>
+      <span style={{width:18,height:2,background:theme.text,borderRadius:2}}></span>
+    </span>
+  );
+
+  // زرار الرجوع
   useEffect(()=>{
     history.pushState({guard:1},"");
     const onPop=()=>{
       const ui=uiRef.current;
-      if(ui.editingCard)setEditingCard(null);
+      if(ui.reportText)setReportText(null);
+      else if(ui.showMenu)setShowMenu(false);
+      else if(ui.editingCard)setEditingCard(null);
       else if(ui.actionCard)setActionCard(null);
       else if(ui.moveCard_)setMoveCard(null);
       else if(ui.copyCard_)setCopyCard(null);
@@ -225,6 +252,19 @@ function App(){
     return ()=>unsubAuth&&unsubAuth();
   },[]);
 
+  // مين متصل دلوقتي (presence)
+  useEffect(()=>{
+    if(!firebaseOk||!userId||!ownerName||!db)return;
+    const beat=()=>{try{db.collection("presence").doc(userId).set({name:ownerName,last:Date.now()});}catch(e){}};
+    beat();
+    const iv=setInterval(beat,20000);
+    const unsub=db.collection("presence").onSnapshot(snap=>{
+      const now=Date.now();
+      setOnlineUsers(snap.docs.map(d=>d.data()).filter(p=>now-(p.last||0)<60000));
+    });
+    return ()=>{clearInterval(iv);unsub&&unsub();};
+  },[firebaseOk,userId,ownerName]);
+
   const showToast=(msg,kind="ok")=>{setToast({msg,kind});setTimeout(()=>setToast(null),2600);};
 
   const confirmName=()=>{
@@ -232,6 +272,71 @@ function App(){
     const n=nameInput.trim();
     setOwnerName(n);
     if(userId)localStorage.setItem("owner_name_"+userId,n);
+  };
+
+  const jumpToCard=(c)=>{setActiveStage(c.stage);setScreen("stage");setEditingCard(c);};
+  const nextStageOf=(s)=>{const i=stages.indexOf(s);if(i===-1)return null;return i<stages.length-1?stages[i+1]:null;};
+  const qtySum=(list)=>list.reduce((a,c)=>a+(parseFloat(c.quantity)||0),0);
+
+  const knownCustomers=(()=>{const m={};cards.forEach(c=>{if(c.customer)m[c.customer]=c.phone||m[c.customer]||"";});return Object.keys(m).map(k=>({name:k,phone:m[k]}));})();
+
+  const onCustomerChange=(v)=>{
+    const k=knownCustomers.find(x=>x.name===v);
+    setEditingCard({...editingCard,customer:v,phone:(k&&k.phone)?k.phone:editingCard.phone});
+  };
+
+  // تقرير اليوم
+  const buildReport=()=>{
+    const today=localDate(new Date());
+    const addToday=cards.filter(c=>localDate(new Date(toMs(c.createdAt)))===today).length;
+    const movesToday=log.filter(e=>localDate(new Date(toMs(e.time||e.timeLocal)))===today).length;
+    const late=cards.filter(c=>daysSince(c.updatedAt||c.createdAt)>=2).length;
+    let txt="📊 "+t.report+" — "+today+"\n🏭 "+t.appName+"\n\n";
+    txt+="🃏 "+t.cardsPlural+": "+cards.length+"\n";
+    txt+="➕ "+(lang==="ar"?"إضافات اليوم":"Added today")+": "+addToday+"\n";
+    txt+="🔄 "+(lang==="ar"?"حركات اليوم":"Moves today")+": "+movesToday+"\n";
+    txt+="⚠️ "+t.aged2+": "+late+"\n\n";
+    stages.forEach(s=>{
+      const cs=cards.filter(c=>c.stage===s);
+      const q=qtySum(cs);
+      txt+="• "+s+": "+cs.length+" "+t.cardsPlural+(q?" ("+t.qtyTotal+": "+q+")":"")+"\n";
+    });
+    return txt;
+  };
+
+  // نسخة احتياطية CSV
+  const exportCSV=()=>{
+    const head=["code","customer","message","category","color","quantity","barcode","machine","prepare","dye","time","notes","phone","stage"];
+    const rows=cards.map(c=>head.map(h=>'"'+String(c[h]??"" ).replace(/"/g,'""')+'"').join(","));
+    const csv="\uFEFF"+head.join(",")+"\n"+rows.join("\n");
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
+    a.download="dyeing-cards.csv";
+    a.click();
+    showToast("💾 "+(lang==="ar"?"تم تنزيل النسخة الاحتياطية":"Backup downloaded"));
+  };
+
+  // تصدير الكرت كصورة
+  const exportCardImage=(card)=>{
+    const canvas=document.createElement("canvas");
+    canvas.width=640;canvas.height=760;
+    const ctx=canvas.getContext("2d");
+    ctx.fillStyle="#FFFFFF";ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.strokeStyle="#C97A4A";ctx.lineWidth=6;ctx.strokeRect(3,3,canvas.width-6,canvas.height-6);
+    ctx.fillStyle="#232016";ctx.font="bold 30px sans-serif";ctx.textAlign="center";
+    ctx.fillText(card.stage||"",canvas.width/2,60);
+    ctx.font="20px sans-serif";ctx.textAlign="right";
+    const rows=[[t.code,card.code],[t.customer,card.customer],[t.message,card.message],[t.category,card.category],[t.color,card.color],[t.quantity,card.quantity],[t.barcode,card.barcode],[t.machine,card.machine],[t.prepare,card.prepare],[t.dye,card.dye],[t.time,card.time],[t.notes,card.notes]];
+    let y=120;
+    rows.forEach(([label,val])=>{
+      ctx.fillStyle="#77705F";ctx.font="18px sans-serif";ctx.fillText(label+" :",canvas.width-40,y);
+      ctx.fillStyle="#232016";ctx.font="bold 20px sans-serif";ctx.fillText(String(val||"—"),canvas.width-180,y);
+      y+=48;
+    });
+    const link=document.createElement("a");
+    link.download=`card-${card.code||card.id}.png`;
+    link.href=canvas.toDataURL("image/png");
+    link.click();
   };
 
   const addLog=async(action,card,details="")=>{
@@ -392,6 +497,8 @@ function App(){
   const btnPrimary={flex:1,padding:"12px 16px",borderRadius:12,border:"none",background:theme.accent,color:"#fff",fontWeight:700,fontSize:15};
   const btnGhost={flex:1,padding:"12px 16px",borderRadius:12,border:`1px solid ${theme.border}`,background:"transparent",color:theme.text,fontWeight:600,fontSize:15};
 
+  const onlineNames=[...new Set(onlineUsers.map(u=>u.name))];
+
   return(
     <div dir={dir} style={{minHeight:"100vh",background:theme.bg,color:theme.text}}>
       <div style={{position:"fixed",top:0,left:0,right:0,padding:"6px 12px",background:theme.panelAlt,borderBottom:`1px solid ${theme.border}`,fontSize:12,color:statusColor,zIndex:100,textAlign:"center",fontWeight:600}}>
@@ -400,15 +507,16 @@ function App(){
 
       {screen==="home"&&(
         <div style={{maxWidth:640,margin:"0 auto",padding:"40px 16px 40px"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-            <div>
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
+            <button onClick={()=>setShowMenu(true)} style={hdrBtn}><Burger/></button>
+            <div style={{flex:1}}>
               <div style={{fontSize:12,color:theme.textDim}}>{ownerName}</div>
               <h1 style={{margin:"2px 0 0",fontSize:22,fontWeight:900}}>{t.appName}</h1>
+              {onlineNames.length>0&&<div style={{fontSize:11,color:theme.accent2,marginTop:2}}>🟢 {t.onlineNow}: {onlineNames.join("، ")}</div>}
             </div>
-            <div style={{display:"flex",gap:8}}>
-              <button onClick={()=>setScreen("log")} style={{width:40,height:40,borderRadius:12,border:`1px solid ${theme.border}`,background:theme.panel,color:theme.text,display:"flex",alignItems:"center",justifyContent:"center"}}>📋</button>
-              <button onClick={()=>setShowSettings(true)} style={{width:40,height:40,borderRadius:12,border:`1px solid ${theme.border}`,background:theme.panel,color:theme.text,display:"flex",alignItems:"center",justifyContent:"center"}}>⚙️</button>
-            </div>
+            <button onClick={()=>setReportText(buildReport())} style={hdrBtn}>📊</button>
+            <button onClick={()=>setScreen("log")} style={hdrBtn}>📋</button>
+            <button onClick={()=>setShowSettings(true)} style={hdrBtn}>⚙️</button>
           </div>
 
           <button onClick={()=>setShowSearch(true)} style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:"13px 16px",borderRadius:14,border:`1px solid ${theme.border}`,background:theme.panel,color:theme.textDim,marginBottom:20,fontSize:14}}>
@@ -424,15 +532,17 @@ function App(){
 
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
             {stages.map((s,i)=>{
-              const count=cards.filter(c=>c.stage===s).length;
-              const lateCount=cards.filter(c=>c.stage===s&&daysSince(c.updatedAt||c.createdAt)>=2).length;
+              const list=cards.filter(c=>c.stage===s);
+              const count=list.length;
+              const lateCount=list.filter(c=>daysSince(c.updatedAt||c.createdAt)>=2).length;
+              const q=qtySum(list);
               const color=STAGE_COLORS[i%STAGE_COLORS.length];
               return(
                 <div key={s} onClick={()=>{setActiveStage(s);setScreen("stage");}} style={{cursor:"pointer",borderRadius:16,padding:"18px 14px",background:theme.panel,border:`1px solid ${theme.border}`,borderInlineStart:`5px solid ${color}`,position:"relative"}}>
                   {lateCount>0&&<div style={{position:"absolute",top:10,insetInlineEnd:10,background:theme.danger,color:"#fff",fontSize:11,fontWeight:700,borderRadius:20,padding:"2px 7px"}}>{lateCount}</div>}
                   <div style={{fontSize:15,fontWeight:700,marginBottom:6}}>{s}</div>
                   <div style={{fontSize:26,fontWeight:900,color}}>{count}</div>
-                  <div style={{fontSize:11,color:theme.textDim}}>{t.cardsPlural}</div>
+                  <div style={{fontSize:11,color:theme.textDim}}>{t.cardsPlural}{q?` · ${t.qtyTotal}: ${q}`:""}</div>
                 </div>
               );
             })}
@@ -441,6 +551,27 @@ function App(){
               <div style={{fontSize:12,marginTop:6}}>{t.addStage}</div>
             </div>
           </div>
+
+          {cards.length>0&&(
+            <div style={{marginTop:26}}>
+              <div style={{fontSize:13,fontWeight:700,color:theme.textDim,marginBottom:10}}>🗂️ {t.allCards}</div>
+              <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                {[...cards].sort((a,b)=>toMs(b.updatedAt)-toMs(a.updatedAt)).slice(0,30).map(c=>{
+                  const si=stages.indexOf(c.stage);
+                  const sc=STAGE_COLORS[(si>=0?si:0)%STAGE_COLORS.length];
+                  return(
+                    <div key={c.id} onClick={()=>jumpToCard(c)} style={{cursor:"pointer",background:theme.panel,border:`1px solid ${theme.border}`,borderInlineStart:`4px solid ${sc}`,borderRadius:10,padding:"10px 12px"}}>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:8}}>
+                        <b style={{fontSize:14}}>{c.customer||"—"} · {c.code||"—"}</b>
+                        <span style={{fontSize:10.5,fontWeight:700,color:"#fff",background:sc,borderRadius:20,padding:"3px 9px",flexShrink:0}}>{c.stage}</span>
+                      </div>
+                      <div style={{fontSize:12,color:theme.textDim,marginTop:4}}>{c.color} — {c.quantity} · {fmtTime(c.updatedAt,lang)}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {log.slice(0,6).length>0&&(
             <div style={{marginTop:26}}>
@@ -461,6 +592,7 @@ function App(){
       {screen==="stage"&&(
         <div style={{maxWidth:640,margin:"0 auto",padding:"40px 16px 100px"}}>
           <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+            <button onClick={()=>setShowMenu(true)} style={hdrBtn}><Burger/></button>
             <button onClick={()=>setScreen("home")} style={{background:"none",border:"none",color:theme.text,fontSize:20}}>{lang==="ar"?"→":"←"}</button>
             <h2 style={{margin:0,fontSize:19,fontWeight:800,flex:1}}>{activeStage}</h2>
             <button onClick={()=>setLateOnly(!lateOnly)} style={{fontSize:12,padding:"7px 12px",borderRadius:20,border:`1px solid ${lateOnly?theme.danger:theme.border}`,background:lateOnly?theme.danger:"transparent",color:lateOnly?"#fff":theme.textDim,fontWeight:700}}>
@@ -513,8 +645,9 @@ function App(){
       {screen==="log"&&(
         <div style={{maxWidth:640,margin:"0 auto",padding:"40px 16px 40px"}}>
           <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
+            <button onClick={()=>setShowMenu(true)} style={hdrBtn}><Burger/></button>
             <button onClick={()=>setScreen("home")} style={{background:"none",border:"none",color:theme.text,fontSize:20}}>{lang==="ar"?"→":"←"}</button>
-            <h2 style={{margin:0,fontSize:19}}>{t.dailyLog}</h2>
+            <h2 style={{margin:0,fontSize:19,flex:1}}>{t.dailyLog}</h2>
           </div>
           {(()=>{const groups={};log.forEach(e=>{(groups[e.date]=groups[e.date]||[]).push(e)});const dates=Object.keys(groups).sort((a,b)=>b.localeCompare(a));
             return dates.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noResults}</p>:dates.map(d=>(
@@ -536,6 +669,45 @@ function App(){
 
       <input ref={fileInputRef} type="file" accept="image/*" capture="environment" style={{display:"none"}} onChange={handleImportFile}/>
 
+      {/* القائمة الجانبية */}
+      {showMenu&&(
+        <div onClick={()=>setShowMenu(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",zIndex:300}}>
+          <div onClick={e=>e.stopPropagation()} style={{position:"absolute",top:0,bottom:0,insetInlineStart:0,width:270,background:theme.panel,borderInlineEnd:`1px solid ${theme.border}`,padding:16,overflowY:"auto"}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16}}>
+              <span style={{fontSize:22}}>🏭</span>
+              <b style={{fontSize:16}}>{t.appName}</b>
+            </div>
+            <MenuBtn onClick={()=>{setScreen("home");setShowMenu(false);}} theme={theme} active={screen==="home"}>🏠 {t.home}</MenuBtn>
+            <div style={{fontSize:11,color:theme.textDim,margin:"10px 4px 6px",fontWeight:700}}>{t.stagesLabel}</div>
+            {stages.map((s,i)=>(
+              <MenuBtn key={s} onClick={()=>{setActiveStage(s);setScreen("stage");setShowMenu(false);}} theme={theme} active={screen==="stage"&&activeStage===s}>
+                <span style={{color:STAGE_COLORS[i%STAGE_COLORS.length]}}>●</span> {s}
+                <span style={{marginInlineStart:"auto",fontSize:11,color:theme.textDim}}>{cards.filter(c=>c.stage===s).length}</span>
+              </MenuBtn>
+            ))}
+            <div style={{height:1,background:theme.border,margin:"10px 0"}}/>
+            <MenuBtn onClick={()=>{setReportText(buildReport());setShowMenu(false);}} theme={theme}>📊 {t.report}</MenuBtn>
+            <MenuBtn onClick={()=>{exportCSV();setShowMenu(false);}} theme={theme}>💾 {t.backup}</MenuBtn>
+            <MenuBtn onClick={()=>{setScreen("log");setShowMenu(false);}} theme={theme} active={screen==="log"}>📋 {t.dailyLog}</MenuBtn>
+            <MenuBtn onClick={()=>{setShowSettings(true);setShowMenu(false);}} theme={theme}>⚙️ {t.settings}</MenuBtn>
+          </div>
+        </div>
+      )}
+
+      {/* تقرير اليوم */}
+      {reportText&&(
+        <div onClick={()=>setReportText(null)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:theme.panel,borderRadius:18,padding:20,width:"100%",maxWidth:420,border:`1px solid ${theme.border}`}}>
+            <h3 style={{margin:"0 0 12px"}}>📊 {t.report}</h3>
+            <pre style={{whiteSpace:"pre-wrap",background:theme.panelAlt,borderRadius:10,padding:12,fontSize:13,maxHeight:"50vh",overflowY:"auto",color:theme.text,fontFamily:"inherit"}}>{reportText}</pre>
+            <div style={{display:"flex",gap:8,marginTop:12}}>
+              <button onClick={()=>{try{navigator.clipboard.writeText(reportText);showToast("✅ "+t.copy);}catch(e){}}} style={btnGhost}>{t.copy}</button>
+              <a href={"https://wa.me/?text="+encodeURIComponent(reportText)} target="_blank" rel="noreferrer" style={{...btnPrimary,textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>💬 {t.openWhatsapp}</a>
+            </div>
+          </div>
+        </div>
+      )}
+
       {editingCard&&(
         <div onClick={()=>setEditingCard(null)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
           <div onClick={e=>e.stopPropagation()} style={{background:theme.panel,borderRadius:18,padding:20,width:"100%",maxWidth:480,maxHeight:"88vh",overflowY:"auto",border:`1px solid ${theme.border}`}}>
@@ -545,7 +717,10 @@ function App(){
             </div>
             {editingCard.__dupWarning&&<div style={{background:"rgba(224,97,111,.12)",border:`1px solid ${theme.danger}`,borderRadius:10,padding:12,marginBottom:12,fontSize:13.5}}>⚠️ {t.duplicateWarning}</div>}
             <div style={{fontSize:12,fontWeight:700,marginBottom:4,opacity:.75}}>{t.customer}</div>
-            <input style={inputStyle} value={editingCard.customer} onChange={e=>setEditingCard({...editingCard,customer:e.target.value})}/>
+            <input style={inputStyle} list="customersList" value={editingCard.customer} onChange={e=>onCustomerChange(e.target.value)}/>
+            <datalist id="customersList">
+              {knownCustomers.slice(0,50).map(k=><option key={k.name} value={k.name}/>)}
+            </datalist>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
               <div><div style={{fontSize:12,fontWeight:700,marginBottom:4,opacity:.75}}>{t.code}</div><input style={inputStyle} value={editingCard.code} onChange={e=>setEditingCard({...editingCard,code:e.target.value})}/></div>
               <div><div style={{fontSize:12,fontWeight:700,marginBottom:4,opacity:.75}}>{t.message}</div><input style={inputStyle} value={editingCard.message} onChange={e=>setEditingCard({...editingCard,message:e.target.value})}/></div>
@@ -570,15 +745,36 @@ function App(){
               <div><div style={{fontSize:12,fontWeight:700,marginBottom:4,opacity:.75}}>{t.time}</div><input style={inputStyle} value={editingCard.time} onChange={e=>setEditingCard({...editingCard,time:e.target.value})}/></div>
               <div><div style={{fontSize:12,fontWeight:700,marginBottom:4,opacity:.75}}>{t.phone}</div><input style={inputStyle} value={editingCard.phone} onChange={e=>setEditingCard({...editingCard,phone:e.target.value})}/></div>
             </div>
+            {editingCard.phone&&(
+              <div style={{display:"flex",gap:8,marginBottom:10}}>
+                <a href={`tel:${editingCard.phone}`} style={{...btnGhost,textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>📞 {t.call}</a>
+                <a href={`https://wa.me/${editingCard.phone.replace(/\D/g,"")}`} target="_blank" rel="noreferrer" style={{...btnGhost,textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>💬 {t.openWhatsapp}</a>
+              </div>
+            )}
             <div style={{fontSize:12,fontWeight:700,marginBottom:4,opacity:.75}}>{t.notes}</div>
             <textarea rows={2} style={{...inputStyle,resize:"vertical"}} value={editingCard.notes} onChange={e=>setEditingCard({...editingCard,notes:e.target.value})}/>
             <label style={{display:"flex",alignItems:"center",gap:8,marginBottom:14,fontSize:14,cursor:"pointer"}}>
               <input type="checkbox" checked={!!editingCard.urgent} onChange={e=>setEditingCard({...editingCard,urgent:e.target.checked})}/> ⚠️ {t.urgent}
             </label>
+
+            {Array.isArray(editingCard.history)&&editingCard.history.length>0&&(
+              <div style={{marginBottom:14}}>
+                <div style={{fontSize:12,fontWeight:700,marginBottom:6,opacity:.75}}>📜 {t.history}</div>
+                {[...editingCard.history].reverse().map((h,i)=>(
+                  <div key={i} style={{display:"flex",gap:8,flexWrap:"wrap",fontSize:12,color:theme.textDim,padding:"4px 10px",marginBottom:4,borderInlineStart:`2px solid ${theme.accent}`,background:theme.panelAlt,borderRadius:6}}>
+                    <span>📍 {h.stage}</span><span>· {h.by}</span><span>· {fmtTime(h.at,lang)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div style={{display:"flex",gap:8}}>
               <button onClick={()=>saveCard({...editingCard,__dupWarning:undefined},!!editingCard.__dupWarning)} style={btnPrimary}>{editingCard.__dupWarning?t.saveAnyway:t.save}</button>
               <button onClick={()=>setEditingCard(null)} style={btnGhost}>{t.cancel}</button>
             </div>
+            {cards.some(c=>c.id===editingCard.id)&&nextStageOf(editingCard.stage)&&(
+              <button onClick={()=>{const n=nextStageOf(editingCard.stage);const c=editingCard;setEditingCard(null);moveCardTo(c,n);}} style={{...btnGhost,width:"100%",marginTop:8}}>⏭️ {t.nextStage} → {nextStageOf(editingCard.stage)}</button>
+            )}
           </div>
         </div>
       )}
@@ -589,10 +785,12 @@ function App(){
             <div style={{padding:"8px 10px 12px",fontWeight:800,fontSize:14}}>{actionCard.customer} · {actionCard.code}</div>
             {[
               {icon:"✏️",label:t.edit,fn:()=>{setEditingCard(actionCard);setActionCard(null);}},
+              ...(nextStageOf(actionCard.stage)?[{icon:"⏭️",label:t.nextStage+" → "+nextStageOf(actionCard.stage),fn:()=>moveCardTo(actionCard,nextStageOf(actionCard.stage))}]:[]),
               {icon:"📋",label:t.copyCard,fn:()=>{setCopyCard(actionCard);setActionCard(null);}},
               {icon:"🔄",label:t.moveCard,fn:()=>{setMoveCard(actionCard);setActionCard(null);}},
               {icon:"⭐",label:actionCard.pinned?t.unpin:t.pinCard,fn:()=>togglePin(actionCard)},
               {icon:"📱",label:t.showQr,fn:()=>{setQrCard(actionCard);setActionCard(null);}},
+              {icon:"🖼️",label:t.exportImage,fn:()=>{exportCardImage(actionCard);setActionCard(null);}},
             ].map((it,i)=>(
               <button key={i} onClick={it.fn} style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:"12px 10px",background:"transparent",border:"none",borderTop:`1px solid ${theme.border}`,color:theme.text,fontSize:14.5,textAlign:"start"}}>{it.icon} {it.label}</button>
             ))}
@@ -638,7 +836,7 @@ function App(){
         <div onClick={()=>setShowSearch(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
           <div onClick={e=>e.stopPropagation()} style={{background:theme.panel,borderRadius:18,padding:20,width:"100%",maxWidth:480,maxHeight:"88vh",overflowY:"auto",border:`1px solid ${theme.border}`}}>
             <h3 style={{margin:"0 0 14px"}}>{t.search}</h3>
-            <SearchModal theme={theme} t={t} cards={cards} onPick={c=>{setShowSearch(false);setEditingCard(c);}} inputStyle={inputStyle}/>
+            <SearchModal theme={theme} t={t} cards={cards} onPick={c=>{setShowSearch(false);jumpToCard(c);}} inputStyle={inputStyle}/>
           </div>
         </div>
       )}
