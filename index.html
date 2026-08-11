@@ -146,7 +146,9 @@ function App(){
   const [copyCard_,setCopyCard]=useState(null);
   const [qrCard,setQrCard]=useState(null);
   const [toast,setToast]=useState(null);
-  const fileInputRef=useRef(null);
+const fileInputRef=useRef(null);
+const uiRef=useRef({});
+uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showAddStage};
 
   const t=DICT[lang];
   const dir=lang==="ar"?"rtl":"ltr";
@@ -161,7 +163,22 @@ function App(){
   };
 
   useEffect(()=>{
-    const onOn=()=>{setIsOnline(true);setSyncStatus("syncing");setTimeout(()=>{setSyncStatus("synced");setTimeout(()=>setSyncStatus("idle"),2000);},1500);};
+    history.pushState({guard:1},"");
+    const onPop=()=>{const ui=uiRef.current;
+      if(ui.editingCard)setEditingCard(null);
+      else if(ui.actionCard)setActionCard(null);
+      else if(ui.moveCard_)setMoveCard(null);
+      else if(ui.copyCard_)setCopyCard(null);
+      else if(ui.qrCard)setQrCard(null);
+      else if(ui.showSearch)setShowSearch(false);
+      else if(ui.showSettings)setShowSettings(false);
+      else if(ui.showAddStage)setShowAddStage(false);
+      else if(ui.screen==="stage")setScreen("home");
+      else if(ui.screen==="log")setScreen("home");
+      else{history.back();return;}
+      history.pushState({guard:1},"");};
+    window.addEventListener("popstate",onPop);
+    const onOn=()=>{setIsOnline(true); setSyncStatus("syncing");setTimeout(()=>{setSyncStatus("synced");setTimeout(()=>setSyncStatus("idle"),2000);},1500);};
     const onOff=()=>{setIsOnline(false);setSyncStatus("idle");};
     window.addEventListener("online",onOn);
     window.addEventListener("offline",onOff);
