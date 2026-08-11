@@ -221,7 +221,7 @@ function App(){
     }catch(e){console.warn(e);}
   };
 
-  const saveCard=async(card,skipDup=false)=>{
+const saveCard=async(card,skipDup=false)=>{card={...card};delete card.__dupWarning;
     if(!db)return;
     if(!skipDup){
       const dup=cards.find(c=>c.id!==card.id&&c.stage===card.stage&&c.code===card.code&&c.customer===card.customer&&c.color===card.color&&c.quantity===card.quantity);
@@ -245,7 +245,7 @@ function App(){
       }
       setEditingCard(null);
       showToast(lang==="ar"?(isOnline?"تم الحفظ ✅":"تم الحفظ محلياً 📱"):"Saved");
-    }catch(e){console.error(e);showToast(lang==="ar"?"فشل الحفظ":"Failed","danger");}
+    }catch(e){console.error(e);showToast("خطأ: "+(e.code||e.message),"danger");}
   };
 
   const deleteCard=async(card)=>{
