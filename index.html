@@ -32,7 +32,7 @@ window.onerror=function(msg,url,line){document.getElementById("root").innerHTML=
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.min.js"></script>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script type="text/babel" data-presets="react">
 const {useState,useEffect,useRef}=React;
 const firebaseConfig={apiKey:"AIzaSyBEplMzCUPbZ33vpctAegDvCLFLB2d_Psc",authDomain:"dyeing-tracker-cc789.firebaseapp.com",projectId:"dyeing-tracker-cc789",storageBucket:"dyeing-tracker-cc789.firebasestorage.app",messagingSenderId:"407184511418",appId:"1:407184511418:web:16512177012e5a6ded0d83",measurementId:"G-V3ST7W6VVN"};
@@ -56,7 +56,7 @@ function localDate(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart
 function readCompressed(file,cb){const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>{const sc=Math.min(1,700/Math.max(img.width,img.height));const c=document.createElement("canvas");c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);c.getContext("2d").drawImage(img,0,0,c.width,c.height);cb(c.toDataURL("image/jpeg",0.6));};img.src=r.result;};r.readAsDataURL(file);}
 function MenuBtn({children,onClick,theme,active}){return <button onClick={onClick} style={{width:"100%",display:"flex",alignItems:"center",gap:8,padding:"11px 10px",borderRadius:10,border:"none",background:active?theme.panelAlt:"transparent",color:theme.text,fontSize:14,fontWeight:600,textAlign:"start",marginBottom:2}}>{children}</button>;}
 function BarcodeView({value,h}){const ref=useRef(null);useEffect(()=>{if(ref.current&&value&&window.JsBarcode){try{JsBarcode(ref.current,value,{format:"CODE128",background:"transparent",lineColor:"#000",width:2,height:h||50,displayValue:true,fontSize:14,font:"monospace",margin:0});}catch(e){}}},[value,h]);if(!value)return null;return <svg ref={ref} style={{maxWidth:"100%"}}/>;}
-function QrView({value,size}){const ref=useRef(null);useEffect(()=>{if(ref.current&&window.QRCode&&value){QRCode.toCanvas(ref.current,String(value),{width:size||200,margin:1}).catch(()=>{});}},[value,size]);return <canvas ref={ref} style={{borderRadius:12,background:"#fff"}}/>;}
+function QrView({value,size}){const ref=useRef(null);useEffect(()=>{if(ref.current&&value&&window.QRCode){ref.current.innerHTML="";try{new QRCode(ref.current,{text:String(value),width:size||200,height:size||200,correctLevel:QRCode.CorrectLevel.M});}catch(e){}}},[value,size]);return <div ref={ref} style={{display:"inline-block",background:"#fff",borderRadius:12,padding:8}}/>;}
 function App(){
 const [ready,setReady]=useState(false);const [firebaseOk,setFirebaseOk]=useState(false);
 const [ownerName,setOwnerName]=useState(null);const [nameInput,setNameInput]=useState("");
