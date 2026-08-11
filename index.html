@@ -57,6 +57,7 @@ function readCompressed(file,cb){const r=new FileReader();r.onload=()=>{const im
 function MenuBtn({children,onClick,theme,active}){return <button onClick={onClick} style={{width:"100%",display:"flex",alignItems:"center",gap:8,padding:"11px 10px",borderRadius:10,border:"none",background:active?theme.panelAlt:"transparent",color:theme.text,fontSize:14,fontWeight:600,textAlign:"start",marginBottom:2}}>{children}</button>;}
 function BarcodeView({value,h}){const ref=useRef(null);useEffect(()=>{if(ref.current&&value&&window.JsBarcode){try{JsBarcode(ref.current,value,{format:"CODE128",background:"transparent",lineColor:"#000",width:2,height:h||50,displayValue:true,fontSize:14,font:"monospace",margin:0});}catch(e){}}},[value,h]);if(!value)return null;return <svg ref={ref} style={{maxWidth:"100%"}}/>;}
 function QrView({value,size}){const ref=useRef(null);useEffect(()=>{if(ref.current&&value&&window.QRCode){ref.current.innerHTML="";try{new QRCode(ref.current,{text:String(value),width:size||200,height:size||200,correctLevel:QRCode.CorrectLevel.M});}catch(e){}}},[value,size]);return <div ref={ref} style={{display:"inline-block",background:"#fff",borderRadius:12,padding:8}}/>;}
+function pubUrl(c){try{const j=JSON.stringify({n:c.customer||"",c:c.code||"",col:c.color||"",cat:c.category||"",q:c.quantity||""});return "https://ysf3laa.github.io/Dyeing/?d="+encodeURIComponent(btoa(unescape(encodeURIComponent(j))));}catch(e){return "https://ysf3laa.github.io/Dyeing/";}}
 function App(){
 const [ready,setReady]=useState(false);const [firebaseOk,setFirebaseOk]=useState(false);
 const [ownerName,setOwnerName]=useState(null);const [nameInput,setNameInput]=useState("");
@@ -77,7 +78,8 @@ const [newStageName,setNewStageName]=useState("");
 const [editingCard,setEditingCard]=useState(null);const [actionCard,setActionCard]=useState(null);
 const [moveCard_,setMoveCard]=useState(null);const [copyCard_,setCopyCard]=useState(null);
 const [qrCard,setQrCard]=useState(null);const [toast,setToast]=useState(null);
-const fileInputRef=useRef(null);const photoInputRef=useRef(null);const scanMode=useRef("form");
+const fileInputRef=useRef(null);const photoInputRef=useRef(null);const photoGalRef=useRef(null);
+const scanFileRef=useRef(null);const scannerRef=useRef(null);const scanMode=useRef("form");
 const uiRef=useRef({});
 uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showAddStage,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,photoView};
 const t=DICT[lang];const dir=lang==="ar"?"rtl":"ltr";
@@ -114,8 +116,9 @@ db.collection("logs").onSnapshot(snap=>{setLog(snap.docs.map(d=>({id:d.id,...d.d
 db.collection("config").onSnapshot(snap=>{const s=snap.docs.find(d=>d.id==="stages");const m=snap.docs.find(d=>d.id==="machines");if(s)setStages(s.data().list||DEFAULT_STAGES);if(m)setMachines(m.data().list||DEFAULT_MACHINES);});
 setFirebaseOk(true);setReady(true);}else{try{await auth.signInAnonymously();}catch(e){console.error(e);setReady(true);}}});return()=>unsubAuth&&unsubAuth();},[]);
 useEffect(()=>{if(!firebaseOk||!userId||!ownerName||!db)return;const beat=()=>{try{db.collection("presence").doc(userId).set({name:ownerName,last:Date.now()});}catch(e){}};beat();const iv=setInterval(beat,20000);const unsub=db.collection("presence").onSnapshot(snap=>{const now=Date.now();setOnlineUsers(snap.docs.map(d=>d.data()).filter(p=>now-(p.last||0)<60000));});return()=>{clearInterval(iv);unsub&&unsub();};},[firebaseOk,userId,ownerName]);
-useEffect(()=>{if(!showScanner||!window.Html5Qrcode)return;let done=false;const hq=new Html5Qrcode("bc-reader");
-hq.start({facingMode:"environment"},{fps:10,qrbox:{width:260,height:160}},(text)=>{if(done)return;done=true;try{hq.stop();}catch(e){}setShowScanner(false);handleScan(String(text).trim());},()=>{}).catch(()=>{setShowScanner(false);showToast(t.cameraErr,"danger");});
+useEffect(()=>{if(!showScanner||!window.Html5Qrcode)return;let done=false;const hq=new Html5Qrcode("bc-reader");scannerRef.current=hq;
+const fmts=window.Html5QrcodeSupportedFormats?[Html5QrcodeSupportedFormats.QR_CODE,Html5QrcodeSupportedFormats.CODE_128,Html5QrcodeSupportedFormats.CODE_39,Html5QrcodeSupportedFormats.EAN_13]:null;
+hq.start({facingMode:"environment"},Object.assign({fps:10,qrbox:{width:260,height:160}},fmts?{formatsToSupport:fmts}:{}),(text)=>{if(done)return;done=true;try{hq.stop();}catch(e){}setShowScanner(false);handleScan(String(text).trim());},()=>{}).catch(()=>{setShowScanner(false);showToast(t.cameraErr,"danger");});
 return()=>{done=true;try{hq.stop();hq.clear();}catch(e){}};},[showScanner]);
 const showToast=(msg,kind="ok")=>{setToast({msg,kind});setTimeout(()=>setToast(null),2600);};
 const confirmName=()=>{if(!nameInput.trim())return;const n=nameInput.trim();setOwnerName(n);if(userId)localStorage.setItem("owner_name_"+userId,n);};
@@ -124,11 +127,13 @@ const nextStageOf=(s)=>{const i=stages.indexOf(s);if(i===-1)return null;return i
 const qtySum=(list)=>list.reduce((a,c)=>a+(parseFloat(c.quantity)||0),0);
 const knownCustomers=(()=>{const m={};cards.forEach(c=>{if(c.customer)m[c.customer]=c.phone||m[c.customer]||"";});return Object.keys(m).map(k=>({name:k,phone:m[k]}));})();
 const onCustomerChange=(v)=>{const k=knownCustomers.find(x=>x.name===v);setEditingCard({...editingCard,customer:v,phone:(k&&k.phone)?k.phone:editingCard.phone});};
-const handleScan=(text)=>{if(!text)return;
-if(scanMode.current==="form"){setEditingCard(f=>f?{...f,barcode:text,code:f.code||text}:f);showToast("📷 "+text);}
-else{const found=cards.find(c=>(c.barcode&&c.barcode===text)||c.code===text);
+const parseScan=(text)=>{text=String(text).trim();if(/^https?:\/\//.test(text)){try{const d=new URL(text).searchParams.get("d");if(d){const j=JSON.parse(decodeURIComponent(escape(atob(d))));return{code:j.c||"",data:j};}}catch(e){}return{code:"",data:null};}return{code:text,data:null};};
+const handleScan=(text)=>{const p=parseScan(text);if(!p.code&&!p.data)return;
+if(scanMode.current==="form"){setEditingCard(f=>f?{...f,barcode:p.code,code:f.code||p.code,customer:f.customer||(p.data?p.data.n||"":"")}:f);showToast("📷 "+p.code);}
+else{const found=cards.find(c=>(c.barcode&&c.barcode===p.code)||c.code===p.code);
 if(found){jumpToCard(found);showToast("✅ "+t.foundIn+": "+found.stage);}
-else{showToast("❌ "+t.notFound,"danger");setEditingCard({id:uid(),stage:activeStage||stages[0],code:text,customer:"",message:"",category:"",color:"",quantity:"",barcode:text,machine:"",prepare:"",dye:"",time:"",notes:"",phone:"",urgent:false,pinned:false,due:"",photo:"",archived:false});}}};
+else{showToast("❌ "+t.notFound,"danger");setEditingCard({id:uid(),stage:activeStage||stages[0],code:p.code,customer:p.data?p.data.n||"":"",message:"",category:p.data?p.data.cat||"":"",color:p.data?p.data.col||"":"",quantity:p.data?p.data.q||"":"",barcode:p.code,machine:"",prepare:"",dye:"",time:"",notes:"",phone:"",urgent:false,pinned:false,due:"",photo:"",archived:false});}}};
+const scanFromFile=(e)=>{const f=e.target.files?.[0];if(!f||!scannerRef.current)return;scannerRef.current.scanFileV2(f,true).then(r=>{if(r&&r.decodedText){setShowScanner(false);handleScan(String(r.decodedText).trim());}}).catch(()=>showToast("❌","danger"));e.target.value="";};
 const buildReport=()=>{const today=localDate(new Date());const live=cards.filter(c=>!c.archived);
 const addToday=live.filter(c=>localDate(new Date(toMs(c.createdAt)))===today).length;
 const movesToday=log.filter(e=>localDate(new Date(toMs(e.time||e.timeLocal)))===today).length;
@@ -168,6 +173,14 @@ const cardsToShow=activeStage?liveCards.filter(c=>c.stage===activeStage).filter(
 const statusMsg=syncStatus==="syncing"?t.syncing:syncStatus==="synced"?t.synced:(isOnline?t.online:t.offline);
 const statusColor=syncStatus==="syncing"?theme.warn:syncStatus==="synced"?theme.accent2:(isOnline?theme.accent2:theme.danger);
 const onlineNames=[...new Set(onlineUsers.map(u=>u.name))];
+const pubData=(()=>{try{const d=new URLSearchParams(window.location.search).get("d");if(!d)return null;return JSON.parse(decodeURIComponent(escape(atob(d))));}catch(e){return null;}})();
+if(pubData)return(<div dir="rtl" style={{minHeight:"100vh",background:"#fff",color:"#232016",display:"flex",alignItems:"center",justifyContent:"center",padding:20,fontFamily:"system-ui,sans-serif"}}>
+<div style={{width:"100%",maxWidth:380,border:"4px solid #C97A4A",borderRadius:16,padding:24}}>
+<div style={{fontSize:22,fontWeight:900,textAlign:"center",marginBottom:4}}>🏭 متابعة الصباغة</div>
+<div style={{fontSize:12,color:"#77705F",textAlign:"center",marginBottom:18}}>بيانات بطاقة الشغل</div>
+{[["اسم العمل",pubData.n],["الكود",pubData.c],["اللون",pubData.col],["الصنف",pubData.cat],["الوزن / الكمية",pubData.q]].map(r=>r[1]?<div key={r[0]} style={{display:"flex",justifyContent:"space-between",borderBottom:"1px solid #DFD9CB",padding:"10px 4px",fontSize:15}}><b>{r[0]}</b><span>{r[1]}</span></div>:null)}
+<a href="https://ysf3laa.github.io/Dyeing/" style={{display:"block",marginTop:18,background:"#C97A4A",color:"#fff",borderRadius:12,padding:"12px",textDecoration:"none",fontWeight:700,textAlign:"center"}}>فتح التطبيق الكامل</a>
+</div></div>);
 if(!ready)return(<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:theme.bg,color:theme.text,flexDirection:"column",gap:16}}><div style={{fontSize:48}}>🏭</div><div className="spin" style={{fontSize:24}}>⚙️</div><div style={{color:theme.textDim,fontSize:13}}>جاري الاتصال...</div></div>);
 if(!ownerName)return(<div dir={dir} style={{minHeight:"100vh",background:theme.bg,color:theme.text,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}><div style={{background:theme.panel,border:`1px solid ${theme.border}`,borderRadius:20,padding:32,width:"100%",maxWidth:380,textAlign:"center"}}><div style={{width:56,height:56,borderRadius:16,background:theme.accent,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px",fontSize:28}}>🏭</div><h2 style={{margin:"0 0 6px",fontSize:20}}>{t.appName}</h2><p style={{color:theme.textDim,fontSize:13,marginBottom:18}}>{t.yourName} — {t.enterNameHint}</p><input autoFocus value={nameInput} onChange={e=>setNameInput(e.target.value)} placeholder={t.yourName} style={{width:"100%",padding:"12px 14px",borderRadius:12,border:`1px solid ${theme.border}`,background:theme.input,color:theme.text,fontSize:16,marginBottom:14,textAlign:"center"}} onKeyDown={e=>e.key==="Enter"&&confirmName()}/><button onClick={confirmName} style={{width:"100%",padding:"12px 16px",borderRadius:12,border:"none",background:theme.accent,color:"#fff",fontWeight:700,fontSize:15}}>{t.confirmName}</button></div></div>);
 const inputStyle={width:"100%",boxSizing:"border-box",padding:"11px 12px",borderRadius:10,border:`1px solid ${theme.border}`,background:theme.input,color:theme.text,fontSize:15,marginBottom:10};
@@ -282,6 +295,7 @@ return dates.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.n
 
 <input ref={fileInputRef} type="file" accept="image/*" capture="environment" style={{display:"none"}} onChange={handleImportFile}/>
 <input ref={photoInputRef} type="file" accept="image/*" capture="environment" style={{display:"none"}} onChange={handlePhotoFile}/>
+<input ref={photoGalRef} type="file" accept="image/*" style={{display:"none"}} onChange={handlePhotoFile}/>
 
 {showMenu&&(
 <div onClick={()=>setShowMenu(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",zIndex:300}}>
@@ -346,6 +360,8 @@ return dates.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.n
 <button onClick={()=>setShowScanner(false)} style={{background:"none",border:"none",color:"#fff",fontSize:22}}>✕</button>
 </div>
 <div id="bc-reader" style={{width:"100%",flex:1,overflow:"hidden"}}></div>
+<div style={{padding:14,textAlign:"center"}}><button onClick={()=>scanFileRef.current?.click()} style={{background:"#4FB0A5",color:"#fff",border:"none",borderRadius:24,padding:"12px 22px",fontSize:14,fontWeight:700}}>📁 صورة من الجهاز</button></div>
+<input ref={scanFileRef} type="file" accept="image/*" style={{display:"none"}} onChange={scanFromFile}/>
 </div>)}
 
 {photoView&&(
@@ -404,10 +420,7 @@ return dates.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.n
 <div><div style={{fontSize:12,fontWeight:700,marginBottom:4,opacity:.75}}>{t.dye}</div><input style={inputStyle} value={editingCard.dye} onChange={e=>setEditingCard({...editingCard,dye:e.target.value})}/></div>
 </div>
 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-<div>
-<div style={{fontSize:12,fontWeight:700,marginBottom:4,opacity:.75}}>{t.time}</div>
-<input style={inputStyle} value={editingCard.time} onChange={e=>setEditingCard({...editingCard,time:e.target.value})}/>
-</div>
+<div><div style={{fontSize:12,fontWeight:700,marginBottom:4,opacity:.75}}>{t.time}</div><input style={inputStyle} value={editingCard.time} onChange={e=>setEditingCard({...editingCard,time:e.target.value})}/></div>
 <div>
 <div style={{fontSize:12,fontWeight:700,marginBottom:4,opacity:.75}}>{t.due}</div>
 <input type="date" style={inputStyle} value={editingCard.due||""} onChange={e=>setEditingCard({...editingCard,due:e.target.value})}/>
@@ -418,8 +431,9 @@ return dates.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.n
 <div><div style={{fontSize:12,fontWeight:700,marginBottom:4,opacity:.75}}>{t.phone}</div><input style={inputStyle} value={editingCard.phone} onChange={e=>setEditingCard({...editingCard,phone:e.target.value})}/></div>
 <div>
 <div style={{fontSize:12,fontWeight:700,marginBottom:4,opacity:.75}}>{t.photo}</div>
-<div style={{display:"flex",gap:6,alignItems:"center"}}>
+<div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
 <button onClick={()=>photoInputRef.current?.click()} style={{...chip(false),padding:"10px 14px"}}>📷 تصوير</button>
+<button onClick={()=>photoGalRef.current?.click()} style={{...chip(false),padding:"10px 14px"}}>🖼️ من الجهاز</button>
 {editingCard.photo&&<button onClick={()=>setPhotoView(editingCard)} style={{...chip(false),padding:"10px 14px"}}>🖼️ عرض</button>}
 {editingCard.photo&&<button onClick={()=>setEditingCard({...editingCard,photo:""})} style={{...chip(false),padding:"10px 10px"}}>✕</button>}
 </div>
@@ -491,7 +505,7 @@ return dates.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.n
 <div onClick={()=>setQrCard(null)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
 <div onClick={e=>e.stopPropagation()} style={{background:theme.panel,borderRadius:18,padding:20,width:"100%",maxWidth:340,textAlign:"center",border:`1px solid ${theme.border}`}}>
 <h3>📱 {t.showQr}</h3>
-<div style={{display:"flex",justifyContent:"center",margin:"10px 0"}}><QrView value={qrCard.barcode||qrCard.code||qrCard.id} size={200}/></div>
+<div style={{display:"flex",justifyContent:"center",margin:"10px 0"}}><QrView value={pubUrl(qrCard)} size={200}/></div>
 <p style={{fontSize:13,color:theme.textDim,marginTop:10}}>{qrCard.customer} · {qrCard.barcode||qrCard.code}</p>
 </div>
 </div>)}
