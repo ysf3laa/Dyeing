@@ -19,7 +19,9 @@ fieldset{border:none;margin:0;padding:0;min-width:0}
 <body>
 <div id="syncBar" class="syncing-bar"></div>
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:16px"><div style="font-size:40px">🏭</div><div style="color:#9AA4BD">جاري التحميل...</div></div></div>
-<script>window.onerror=function(m,u,l){console.warn("ERR:",m,l);};</script>
+<script>
+window.onerror=function(m,u,l){if(m&&m!=="Script error."){var r=document.getElementById("root");if(r)r.innerHTML='<div style="padding:16px;color:#E0616F;font-size:12px;word-break:break-all;text-align:center">خطأ: '+m+'<br>سطر: '+l+'</div>';}};
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.23.5/babel.min.js"></script>
@@ -43,7 +45,7 @@ const PRESET_COLORS=["أبيض","أسود","أحمر","أزرق","أخضر","أ�
 const APP_URL="https://ysf3laa.github.io/Dyeing/";
 const DICT={
 ar:{appName:"متابعة الصباغة",search:"بحث في كل الكروت...",settings:"الإعدادات",dailyLog:"السجل اليومي",addStage:"إضافة مرحلة",add:"إضافة",cardsPlural:"كروت",lastActivity:"آخر نشاط",distribution:"توزيع الشغل",lateOnly:"المتأخر فقط",all:"الكل",newCard:"كرت جديد",code:"كود",customer:"عميل",message:"رسالة",category:"صنف",color:"لون",quantity:"كمية",barcode:"باركود",machine:"ماكينة",prepare:"تجهيز",dye:"صباغة",time:"تاريخ",notes:"ملاحظة",phone:"تليفون العميل",urgent:"مستعجل",save:"حفظ",cancel:"إلغاء",duplicateWarning:"يوجد كرت بنفس البيانات. تحفظ برضه؟",saveAnyway:"حفظ برضه",edit:"تعديل",copyCard:"نسخ الكرت",moveCard:"نقل الكرت",showQr:"عرض QR",delete:"حذف",openWhatsapp:"واتساب",call:"اتصال",pinCard:"تثبيت",unpin:"إلغاء التثبيت",yourName:"اسمك",enterNameHint:"هيتسجل مرة واحدة على الجهاز",confirmName:"تأكيد",language:"اللغة",darkMode:"الوضع الداكن",noResults:"لا توجد نتائج",machineOptional:"اختياري",linkedCards:"كروت مرتبطة",aged1:"متأخر يوم",aged2:"متأخر",noCardsHere:"لا يوجد كروت هنا",online:"🟢 متصل",offline:"🔴 أوفلاين - محفوظ محلياً",syncing:"⏳ مزامنة...",synced:"✅ اتزامن",allCards:"كل الكروت - اضغط تروح له",home:"الرئيسية",stagesLabel:"المراحل",history:"تاريخ الحركة",nextStage:"المرحلة الجاية",report:"تقرير اليوم",copy:"نسخ",onlineNow:"متصلين دلوقتي",backup:"نسخة Excel",qtyTotal:"الكمية",scanBarcode:"مسح باركود",showBarcode:"عرض الباركود",cameraErr:"مش قادر أفتح الكاميرا",photo:"صورة الأمر",viewPhoto:"عرض الصورة",shareCard:"مشاركة واتساب",statement:"كشف حساب عميل",due:"موعد التسليم",overdue:"عدّى الميعاد",dueSoon:"قرب الميعاد",archive:"الأرشيف",archiveCard:"أرشفة",unarchive:"رجوع",printCard:"طباعة",workers:"لوحة العمال",notFound:"مش موجود",foundIn:"موجود في",colorsLabel:"ألوان سريعة",factoryName:"اسم المصنع",waNumber:"رقم واتساب المصنع",unit:"وحدة الوزن",lateDays:"يعتبر متأخر بعد (يوم)",printSize:"مقاس الطباعة",manageStages:"إدارة المراحل",manageMachines:"إدارة الماكينات",manageColors:"ألوان إضافية",appQr:"QR التطبيق",backupFull:"نسخة كاملة JSON",restore:"استعادة نسخة",wipe:"تصفير البيانات",wipeSure:"متأكد؟ كل البيانات هتتمسح!",rename:"تعديل",yourNameEdit:"تعديل اسمك",scanAny:"امسح باركود أو QR",unlockTitle:"كود التفعيل",unlockHint:"الكود بتستلمه من المدير مرة واحدة — وبعدها الجهاز يشتغل بالتعديل دايماً",viewOnly:"🔒 اطلاع فقط — اطلب كود التفعيل للتعديل",unlockedMsg:"تم تفعيل الجهاز ✅",lockedNote:"🔒 اطلاع فقط",importImage:"استيراد من صورة",reading:"جاري قراءة الصورة",extracted:"راجع البيانات المستخرجة وظبط الغلط",chooseImport:"اختار مصدر صورة الأمر",camera:"تصوير",gallery:"من الجهاز",saveFactoryBtn:"حفظ بيانات المصنع"},
-en:{appName:"Dyeing Tracker",search:"Search...",settings:"Settings",dailyLog:"Daily Log",addStage:"Add Stage",add:"Add",cardsPlural:"cards",lastActivity:"Last Activity",distribution:"Distribution",lateOnly:"Late",all:"All",newCard:"New Card",code:"Code",customer:"Customer",message:"Batch",category:"Category",color:"Color",quantity:"Qty",barcode:"Barcode",machine:"Machine",prepare:"Prepare",dye:"Dye",time:"Date",notes:"Notes",phone:"Phone",urgent:"Urgent",save:"Save",cancel:"Cancel",duplicateWarning:"Duplicate. Save?",saveAnyway:"Save",edit:"Edit",copyCard:"Copy",moveCard:"Move",showQr:"QR",delete:"Delete",openWhatsapp:"WhatsApp",call:"Call",pinCard:"Pin",unpin:"Unpin",yourName:"Name",enterNameHint:"Saved once",confirmName:"OK",language:"Lang",darkMode:"Dark",noResults:"None",machineOptional:"opt",linkedCards:"Linked",aged1:"1d",aged2:"Late",noCardsHere:"Empty",online:"🟢",offline:"🔴",syncing:"⏳",synced:"✅",allCards:"All cards",home:"Home",stagesLabel:"Stages",history:"History",nextStage:"Next",report:"Report",copy:"Copy",onlineNow:"Online",backup:"CSV",qtyTotal:"Qty",scanBarcode:"Scan",showBarcode:"Barcode",cameraErr:"Camera error",photo:"Photo",viewPhoto:"View",shareCard:"Share",statement:"Statement",due:"Due",overdue:"Overdue",dueSoon:"Soon",archive:"Archive",archiveCard:"Archive",unarchive:"Restore",printCard:"Print",workers:"Workers",notFound:"Not found",foundIn:"In",colorsLabel:"Colors",factoryName:"Factory name",waNumber:"Factory WhatsApp",unit:"Unit",lateDays:"Late after (days)",printSize:"Print size",manageStages:"Stages",manageMachines:"Machines",manageColors:"Colors",appQr:"App QR",backupFull:"JSON backup",restore:"Restore",wipe:"Wipe",wipeSure:"Sure?!",rename:"Rename",yourNameEdit:"Edit name",scanAny:"Scan",unlockTitle:"Activation code",unlockHint:"From manager - once per device",viewOnly:"🔒 View only",unlockedMsg:"Activated ✅",lockedNote:"🔒 View only",importImage:"Import from image",reading:"Reading image",extracted:"Review extracted data",chooseImport:"Choose image source",camera:"Camera",gallery:"Gallery",saveFactoryBtn:"Save factory data"}
+en:{appName:"Dyeing Tracker",search:"Search...",settings:"Settings",dailyLog:"Daily Log",addStage:"Add Stage",add:"Add",cardsPlural:"cards",lastActivity:"Last Activity",distribution:"Distribution",lateOnly:"Late",all:"All",newCard:"New Card",code:"Code",customer:"Customer",message:"Batch",category:"Category",color:"Color",quantity:"Qty",barcode:"Barcode",machine:"Machine",prepare:"Prepare",dye:"Dye",time:"Date",notes:"Notes",phone:"Phone",urgent:"Urgent",save:"Save",cancel:"Cancel",duplicateWarning:"Duplicate. Save?",saveAnyway:"Save",edit:"Edit",copyCard:"Copy",moveCard:"Move",showQr:"QR",delete:"Delete",openWhatsapp:"WhatsApp",call:"Call",pinCard:"Pin",unpin:"Unpin",yourName:"Name",enterNameHint:"Saved once",confirmName:"OK",language:"Lang",darkMode:"Dark",noResults:"None",machineOptional:"opt",linkedCards:"Linked",aged1:"1d",aged2:"Late",noCardsHere:"Empty",online:"🟢",offline:"🔴",syncing:"⏳",synced:"✅",allCards:"All cards",home:"Home",stagesLabel:"Stages",history:"History",nextStage:"Next",report:"Report",copy:"Copy",onlineNow:"Online",backup:"CSV",qtyTotal:"Qty",scanBarcode:"Scan",showBarcode:"Barcode",cameraErr:"Camera error",photo:"Photo",viewPhoto:"View",shareCard:"Share",statement:"Statement",due:"Due",overdue:"Overdue",dueSoon:"Soon",archive:"Archive",archiveCard:"Archive",unarchive:"Restore",printCard:"Print",workers:"Workers",notFound:"Not found",foundIn:"In",colorsLabel:"Colors",factoryName:"Factory name",waNumber:"Factory WhatsApp",unit:"Unit",lateDays:"Late after (days)",printSize:"Print size",manageStages:"Stages",manageMachines:"Machines",manageColors:"Colors",appQr:"App QR",backupFull:"JSON backup",restore:"Restore",wipe:"Wipe",wipeSure:"Sure?!",rename:"Rename",yourNameEdit:"Edit name",scanAny:"Scan",unlockTitle:"Activation code",unlockHint:"From manager - once per device",viewOnly:"🔒 View only",unlockedMsg:"Activated ✅",lockedNote:"🔒 View only",importImage:"Import from image",reading:"Reading image",extracted:"Review extracted data",chooseImport:"Choose source",camera:"Camera",gallery:"Gallery",saveFactoryBtn:"Save factory data"}
 };
 const FIELD_KEYS=["code","customer","message","category","color","quantity","barcode","machine","prepare","dye","time","notes","phone"];
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
@@ -110,9 +112,9 @@ uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSear
 const t=DICT[lang];const dir=lang==="ar"?"rtl":"ltr";
 const can=unlocked;
 const theme=dark?{bg:"#171B26",panel:"#1F2635",panelAlt:"#242C3E",border:"#323C52",text:"#EDEFF5",textDim:"#9AA4BD",accent:"#C97A4A",accent2:"#4FB0A5",danger:"#E0616F",warn:"#D6A24F",input:"#242C3E"}:{bg:"#F4F1EA",panel:"#FFFFFF",panelAlt:"#F0ECE3",border:"#DFD9CB",text:"#232016",textDim:"#77705F",accent:"#C97A4A",accent2:"#3F8F86",danger:"#C6414F",warn:"#B5822F",input:"#FBF9F4"};
-const hdrBtn={width:40,height:40,borderRadius:12,border:`1px solid ${theme.border}`,background:theme.panel,color:theme.text,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0};
+const hdrBtn={width:40,height:40,borderRadius:12,border:"1px solid "+theme.border,background:theme.panel,color:theme.text,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0};
 const LD=+factory.lateDays||2;
-const allColors=[...PRESET_COLORS,...customColors];
+const allColors=PRESET_COLORS.concat(customColors);
 const Burger=()=>(<span style={{display:"flex",flexDirection:"column",gap:3}}><span style={{width:18,height:2,background:theme.text,borderRadius:2}}></span><span style={{width:18,height:2,background:theme.text,borderRadius:2}}></span><span style={{width:18,height:2,background:theme.text,borderRadius:2}}></span></span>);
 useEffect(()=>{setFnameDraft(factory.fname);setWaDraft(factory.wa);setLateDraft(factory.lateDays);},[factory.fname,factory.wa,factory.lateDays]);
 useEffect(()=>{history.pushState({guard:1},"");const onPop=()=>{const u=uiRef.current;
@@ -139,14 +141,14 @@ if(f)setFactory({fname:f.fname||"متابعة الصباغة",wa:f.wa||"",unit:f
 if(cl)setCustomColors(cl.list||[]);});
 setFirebaseOk(true);setReady(true);}else{try{await auth.signInAnonymously();}catch(e){setReady(true);}}});return()=>un&&un();},[]);
 useEffect(()=>{if(!firebaseOk||!userId||!ownerName||!db)return;const beat=()=>{try{db.collection("presence").doc(userId).set({name:ownerName,last:Date.now()});}catch(e){}};beat();const iv=setInterval(beat,20000);const un=db.collection("presence").onSnapshot(sn=>{const n=Date.now();setOnlineUsers(sn.docs.map(d=>d.data()).filter(p=>n-(p.last||0)<60000));});return()=>{clearInterval(iv);un&&un();};},[firebaseOk,userId,ownerName]);
-useEffect(()=>{if(!ready||gotoDone.current)return;const g=new URLSearchParams(window.location.search).get("goto");if(!g)return;let p=null;try{p=b64d(g);}catch(e){}if(!p||!p.c)return;
+useEffect(()=>{if(!ready||gotoDone.current)return;const g=new URLSearchParams(window.location.search).get("goto");if(!g)return;let p=null;try{p=b64d(g);}catch(e){return;}if(!p||!p.c)return;
 const f=cards.find(c=>(c.barcode&&c.barcode===p.c)||c.code===p.c);
 if(f){gotoDone.current=true;jumpToCard(f);showToast("📍 "+t.foundIn+": "+f.stage);}},[ready,cards]);
 useEffect(()=>{if(!showScanner||!window.Html5Qrcode)return;let done=false;const hq=new Html5Qrcode("bc-reader");scannerRef.current=hq;
 const fm=window.Html5QrcodeSupportedFormats?[Html5QrcodeSupportedFormats.QR_CODE,Html5QrcodeSupportedFormats.CODE_128,Html5QrcodeSupportedFormats.CODE_39,Html5QrcodeSupportedFormats.EAN_13]:null;
 hq.start({facingMode:"environment"},Object.assign({fps:10,qrbox:{width:250,height:190}},fm?{formatsToSupport:fm}:{}),(txt)=>{if(done)return;done=true;try{hq.stop();}catch(e){}setShowScanner(false);handleScan(String(txt).trim());},()=>{}).catch(()=>{setShowScanner(false);showToast(t.cameraErr,"danger");});
 return()=>{done=true;try{hq.stop();hq.clear();}catch(e){}};},[showScanner]);
-const showToast=(m,k="ok")=>{setToast({msg:m,kind:k});setTimeout(()=>setToast(null),2600);};
+const showToast=(m,k)=>{setToast({msg:m,kind:k||"ok"});setTimeout(()=>setToast(null),2600);};
 const confirmName=()=>{if(!nameInput.trim())return;setOwnerName(nameInput.trim());if(userId)localStorage.setItem("owner_name_"+userId,nameInput.trim());};
 const tryUnlock=()=>{if(codeInput.trim()===UNLOCK_CODE){localStorage.setItem("dye_unlock","1");setUnlocked(true);showToast(t.unlockedMsg);}else showToast("❌","danger");};
 const jumpToCard=c=>{setActiveStage(c.stage);setScreen("stage");setEditingCard(c);};
@@ -155,7 +157,7 @@ const qtySum=l=>l.reduce((a,c)=>a+(parseFloat(c.quantity)||0),0);
 const knownCustomers=(()=>{const m={};cards.forEach(c=>{if(c.customer)m[c.customer]=c.phone||m[c.customer]||"";});return Object.keys(m).map(k=>({name:k,phone:m[k]}));})();
 const onCustomerChange=v=>{const k=knownCustomers.find(x=>x.name===v);setEditingCard({...editingCard,customer:v,phone:k&&k.phone?k.phone:editingCard.phone});};
 const waLink=txt=>"https://wa.me/"+(factory.wa?factory.wa.replace(/\D/g,"")+"?":"?")+"text="+encodeURIComponent(txt);
-const parseScan=txt=>{txt=String(txt).trim();if(/^https?:\/\//.test(txt)){try{const d=new URL(txt).searchParams.get("d")||new URL(txt).searchParams.get("goto");if(d){const j=b64d(d);return{code:j.c||"",data:j};}}catch(e){}return{code:"",data:null};}return{code:txt,data:null};};
+const parseScan=txt=>{txt=String(txt).trim();if(/^https?:\/\//.test(txt)){try{const u=new URL(txt);const d=u.searchParams.get("d")||u.searchParams.get("goto");if(d){const j=b64d(d);return{code:j.c||"",data:j};}}catch(e){}return{code:"",data:null};}return{code:txt,data:null};};
 const handleScan=txt=>{const p=parseScan(txt);if(!p.code&&!p.data)return;
 if(scanMode.current==="form"){if(!can){showToast(t.viewOnly,"danger");return;}setEditingCard(f=>f?{...f,barcode:p.code,code:f.code||p.code,customer:f.customer||(p.data?p.data.n||"":"")}:f);showToast("📷 "+p.code);}
 else{const f=cards.find(c=>(c.barcode&&c.barcode===p.code)||c.code===p.code);
@@ -196,3 +198,351 @@ const w=window.open("","_blank");if(!w)return;const pw=factory.printSize==="A4"?
 const rows=[[t.customer,card.customer],[t.code,card.code],[t.message,card.message],[t.category,card.category],[t.color,card.color],[t.quantity,card.quantity],[t.machine,card.machine],[t.due,card.due],[t.phone,card.phone],[t.notes,card.notes]];
 w.document.write('<html dir="rtl"><head><meta charset="utf-8"><style>body{font-family:sans-serif;padding:8mm;width:'+pw+'}h2{text-align:center;font-size:16px}table{width:100%;border-collapse:collapse;font-size:12px}td{border:1px solid #000;padding:4px 6px}.c{text-align:center;margin-top:6px}</style></head><body><h2>🏭 '+factory.fname+' — '+(card.stage||"")+'</h2><table>'+rows.map(r=>'<tr><td style="width:30%"><b>'+r[0]+'</b></td><td>'+(r[1]||"—")+'</td></tr>').join("")+'</table><div class="c">'+(bc.outerHTML||"")+'</div>'+(qr?'<div class="c"><img src="'+qr+'" style="width:35mm"/></div>':"")+'<scr'+'ipt>window.onload=function(){window.print()}<\/scr'+'ipt></body></html>');w.document.close();};
 const handlePhotoFile=e=>{const f=e.target.files?.[0];if(!f||!can)return;readCompressed(f,d=>{setEditingCard(c=>c?{...c,photo:d}:c);showToast("🖼️ ✅");});e.target.value="";};
+const addLog=async(a,c,d="")=>{if(!db)return;try{await db.collection("logs").doc(uid()).set({action:a,cardCode:c?.code||"",person:ownerName||"—",details:d,time:firebase.firestore.FieldValue.serverTimestamp(),timeLocal:Date.now(),date:new Date().toISOString().slice(0,10)});}catch(e){}};
+const saveCard=async(card,skip=false)=>{if(!can)return;card={...card};delete card.__dupWarning;if(!db)return;
+if(!skip){const d=cards.find(c=>c.id!==card.id&&c.stage===card.stage&&c.code===card.code&&c.customer===card.customer&&c.color===card.color&&c.quantity===card.quantity);if(d){setEditingCard({...card,__dupWarning:true});return;}}
+const ex=cards.some(c=>c.id===card.id);
+try{if(ex){await db.collection("cards").doc(card.id).set({...card,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedBy:ownerName,updatedLocal:Date.now()},{merge:true});await addLog("تعديل",card);}
+else{const id=card.id||uid();await db.collection("cards").doc(id).set({...card,id,createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp(),createdBy:ownerName,history:[{stage:card.stage,by:ownerName,at:nowISO()}]});await addLog("إضافة",card);}
+setEditingCard(null);showToast(isOnline?"✅":"📱");}catch(e){showToast("خطأ: "+(e.code||e.message),"danger");}};
+const deleteCard=async c=>{if(!can||!db)return;try{await db.collection("cards").doc(c.id).delete();await addLog("حذف",c);setActionCard(null);showToast("🗑️","danger");}catch(e){}};
+const moveCardTo=async(c,d)=>{if(!can||!db)return;d=d||"الصالة";try{await db.collection("cards").doc(c.id).set({stage:d,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),history:firebase.firestore.FieldValue.arrayUnion({stage:d,by:ownerName,at:nowISO()})},{merge:true});await addLog("نقل",c,"→ "+d);setMoveCard(null);setActionCard(null);showToast("→ "+d);}catch(e){}};
+const copyCardTo=async(c,d)=>{if(!can||!db)return;try{const id=uid();await db.collection("cards").doc(id).set({...c,id,stage:d,pinned:false,createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp(),createdBy:ownerName,history:[{stage:d,by:ownerName,at:nowISO()}]});await addLog("نسخ",c);setCopyCard(null);setActionCard(null);showToast("📋 ✅");}catch(e){}};
+const togglePin=async c=>{if(!can||!db)return;try{await db.collection("cards").doc(c.id).set({pinned:!c.pinned},{merge:true});setActionCard(null);}catch(e){}};
+const toggleArchive=async c=>{if(!can||!db)return;try{await db.collection("cards").doc(c.id).set({archived:!c.archived},{merge:true});await addLog(c.archived?"رجوع":"أرشفة",c);setActionCard(null);}catch(e){}};
+const isLate=c=>daysSince(c.updatedAt||c.createdAt)>=1;
+const dueInfo=c=>{if(!c.due)return null;const today=localDate(new Date());if(c.due<today)return{txt:t.overdue,col:theme.danger};if((new Date(c.due).getTime()-new Date(today).getTime())/86400000<=1)return{txt:t.dueSoon,col:theme.warn};return null;};
+const liveCards=cards.filter(c=>!c.archived);
+const archivedCards=cards.filter(c=>c.archived);
+const cardsToShow=activeStage?liveCards.filter(c=>c.stage===activeStage).filter(c=>!lateOnly||isLate(c)).sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||toMs(b.updatedAt)-toMs(a.updatedAt)):[];
+const statusMsg=syncStatus==="syncing"?t.syncing:syncStatus==="synced"?t.synced:(isOnline?t.online:t.offline);
+const statusColor=syncStatus==="syncing"?theme.warn:syncStatus==="synced"?theme.accent2:(isOnline?theme.accent2:theme.danger);
+const onlineNames=[...new Set(onlineUsers.map(u=>u.name))];
+const rawD=(()=>{try{return new URLSearchParams(window.location.search).get("d");}catch(e){return null;}})();
+const pubData=(()=>{if(!rawD)return null;try{return b64d(rawD);}catch(e){return null;}})();
+if(pubData&&!new URLSearchParams(window.location.search).get("goto"))return(<div dir="rtl" style={{minHeight:"100vh",background:"#fff",color:"#232016",display:"flex",alignItems:"center",justifyContent:"center",padding:20,fontFamily:"system-ui,sans-serif"}}>
+<div style={{width:"100%",maxWidth:380,border:"4px solid #C97A4A",borderRadius:16,padding:24}}>
+<div style={{fontSize:22,fontWeight:900,textAlign:"center",marginBottom:4}}>🏭 متابعة الصباغة</div>
+<div style={{fontSize:12,color:"#77705F",textAlign:"center",marginBottom:18}}>بيانات بطاقة الشغل</div>
+{[["اسم العمل",pubData.n],["الكود",pubData.c],["اللون",pubData.col],["الصنف",pubData.cat],["الوزن",pubData.q]].map(r=>r[1]?<div key={r[0]} style={{display:"flex",justifyContent:"space-between",borderBottom:"1px solid #DFD9CB",padding:"10px 4px",fontSize:15}}><b>{r[0]}</b><span>{r[1]}</span></div>:null)}
+<a href={APP_URL+"?goto="+encodeURIComponent(rawD)} style={{display:"block",marginTop:18,background:"#C97A4A",color:"#fff",borderRadius:12,padding:"12px",textDecoration:"none",fontWeight:700,textAlign:"center"}}>فتح التطبيق الكامل → مكان الكرت</a>
+<div style={{fontSize:11,color:"#77705F",textAlign:"center",marginTop:10}}>🔒 التعديل للعاملين فقط بكود التفعيل</div>
+</div></div>);
+if(!ready)return(<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:theme.bg,color:theme.text,flexDirection:"column",gap:16}}><div style={{fontSize:48}}>🏭</div><div className="spin" style={{fontSize:24}}>⚙️</div></div>);
+if(!ownerName)return(<div dir={dir} style={{minHeight:"100vh",background:theme.bg,color:theme.text,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}><div style={{background:theme.panel,border:"1px solid "+theme.border,borderRadius:20,padding:32,width:"100%",maxWidth:380,textAlign:"center"}}><div style={{width:56,height:56,borderRadius:16,background:theme.accent,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px",fontSize:28}}>🏭</div><h2 style={{margin:"0 0 6px",fontSize:20}}>{factory.fname}</h2><p style={{color:theme.textDim,fontSize:13,marginBottom:18}}>{t.yourName} — {t.enterNameHint}</p><input autoFocus value={nameInput} onChange={e=>setNameInput(e.target.value)} placeholder={t.yourName} style={{width:"100%",padding:"12px 14px",borderRadius:12,border:"1px solid "+theme.border,background:theme.input,color:theme.text,fontSize:16,marginBottom:14,textAlign:"center"}} onKeyDown={e=>e.key==="Enter"&&confirmName()}/><button onClick={confirmName} style={{width:"100%",padding:"12px 16px",borderRadius:12,border:"none",background:theme.accent,color:"#fff",fontWeight:700,fontSize:15}}>{t.confirmName}</button></div></div>);
+const inputStyle={width:"100%",boxSizing:"border-box",padding:"11px 12px",borderRadius:10,border:"1px solid "+theme.border,background:theme.input,color:theme.text,fontSize:15,marginBottom:10};
+const btnPrimary={flex:1,padding:"12px 16px",borderRadius:12,border:"none",background:theme.accent,color:"#fff",fontWeight:700,fontSize:15};
+const btnGhost={flex:1,padding:"12px 16px",borderRadius:12,border:"1px solid "+theme.border,background:"transparent",color:theme.text,fontWeight:600,fontSize:15};
+const fabS=bg=>({width:52,height:52,borderRadius:26,border:"none",background:bg,boxShadow:"0 8px 20px rgba(0,0,0,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,color:"#fff"});
+const chip=on=>({padding:"6px 10px",borderRadius:20,border:"1px solid "+(on?theme.accent:theme.border),background:on?theme.accent:"transparent",color:on?"#fff":theme.text,fontSize:12});
+const badge=(c,x)=>(<span style={{fontSize:10.5,fontWeight:700,color:"#fff",background:c,borderRadius:20,padding:"3px 9px"}}>{x}</span>);
+const lbl=x=><div style={{fontSize:12,fontWeight:700,marginBottom:4,opacity:.75}}>{x}</div>;
+return(
+<div dir={dir} style={{minHeight:"100vh",background:theme.bg,color:theme.text}}>
+<div style={{position:"fixed",top:0,left:0,right:0,padding:"6px 12px",background:theme.panelAlt,borderBottom:"1px solid "+theme.border,fontSize:12,color:statusColor,zIndex:100,textAlign:"center",fontWeight:600}}>{statusMsg}{!can&&<span style={{color:theme.warn}}> · {t.lockedNote}</span>}</div>
+{screen==="home"&&(
+<div style={{maxWidth:640,margin:"0 auto",padding:"40px 16px 90px"}}>
+<div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
+<button onClick={()=>setShowMenu(true)} style={hdrBtn}><Burger/></button>
+<div style={{flex:1}}><div style={{fontSize:12,color:theme.textDim}}>{ownerName}</div><h1 style={{margin:"2px 0 0",fontSize:22,fontWeight:900}}>{factory.fname}</h1>{onlineNames.length>0&&<div style={{fontSize:11,color:theme.accent2,marginTop:2}}>🟢 {onlineNames.join("، ")}</div>}</div>
+<button onClick={()=>setReportText(buildReport())} style={hdrBtn}>📊</button>
+<button onClick={()=>setScreen("log")} style={hdrBtn}>📋</button>
+<button onClick={()=>{setNameDraft(ownerName);setShowSettings(true);}} style={hdrBtn}>⚙️</button>
+</div>
+<button onClick={()=>setShowSearch(true)} style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:"13px 16px",borderRadius:14,border:"1px solid "+theme.border,background:theme.panel,color:theme.textDim,marginBottom:20,fontSize:14}}>🔍 {t.search}</button>
+<div style={{marginBottom:22}}>{lbl(t.distribution)}<div style={{display:"flex",height:10,borderRadius:6,overflow:"hidden",background:theme.panelAlt}}>{stages.map((s,i)=>{const n=liveCards.filter(c=>c.stage===s).length;return n>0?<div key={s} style={{width:(n/(liveCards.length||1))*100+"%",background:STAGE_COLORS[i%8]}}/>:null;})}</div></div>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+{stages.map((s,i)=>{const l=liveCards.filter(c=>c.stage===s);const late=l.filter(c=>daysSince(c.updatedAt||c.createdAt)>=LD).length;const q=qtySum(l);const col=STAGE_COLORS[i%8];
+return(<div key={s} onClick={()=>{setActiveStage(s);setScreen("stage");}} style={{cursor:"pointer",borderRadius:16,padding:"18px 14px",background:theme.panel,border:"1px solid "+theme.border,borderInlineStart:"5px solid "+col,position:"relative"}}>
+{late>0&&<div style={{position:"absolute",top:10,insetInlineEnd:10,background:theme.danger,color:"#fff",fontSize:11,fontWeight:700,borderRadius:20,padding:"2px 7px"}}>{late}</div>}
+<div style={{fontSize:15,fontWeight:700,marginBottom:6}}>{s}</div>
+<div style={{fontSize:26,fontWeight:900,color:col}}>{l.length}</div>
+<div style={{fontSize:11,color:theme.textDim}}>{t.cardsPlural}{q?" · "+q+" "+factory.unit:""}</div>
+</div>);})}
+{can&&<div onClick={()=>{const n=prompt(t.addStage);if(n&&n.trim()&&!stages.includes(n.trim()))saveStages(stages.concat([n.trim()]));}} style={{cursor:"pointer",borderRadius:16,padding:"18px 14px",border:"2px dashed "+theme.border,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",color:theme.textDim,minHeight:92}}><span style={{fontSize:22}}>➕</span><div style={{fontSize:12,marginTop:6}}>{t.addStage}</div></div>}
+</div>
+{liveCards.length>0&&(<div style={{marginTop:26}}>{lbl("🗂️ "+t.allCards)}<div style={{display:"flex",flexDirection:"column",gap:8}}>
+{liveCards.slice().sort((a,b)=>toMs(b.updatedAt)-toMs(a.updatedAt)).slice(0,30).map(c=>{const si=stages.indexOf(c.stage);const sc=STAGE_COLORS[(si>=0?si:0)%8];const di=dueInfo(c);
+return(<div key={c.id} onClick={()=>jumpToCard(c)} style={{cursor:"pointer",background:theme.panel,border:"1px solid "+theme.border,borderInlineStart:"4px solid "+sc,borderRadius:10,padding:"10px 12px"}}>
+<div style={{display:"flex",justifyContent:"space-between",gap:8}}><b style={{fontSize:14}}>{c.customer||"—"} · {c.code||"—"}</b><span style={{fontSize:10.5,fontWeight:700,color:"#fff",background:sc,borderRadius:20,padding:"3px 9px"}}>{c.stage}</span></div>
+<div style={{display:"flex",gap:6,flexWrap:"wrap",fontSize:12,color:theme.textDim,marginTop:4}}><span>{c.color} — {c.quantity}</span>{di&&badge(di.col,di.txt)}</div>
+</div>);})}</div></div>)}
+{log.slice(0,6).length>0&&(<div style={{marginTop:26}}>{lbl(t.lastActivity)}<div style={{display:"flex",flexDirection:"column",gap:8}}>{log.slice(0,6).map(e=>(<div key={e.id} style={{display:"flex",justifyContent:"space-between",fontSize:13,background:theme.panel,border:"1px solid "+theme.border,borderRadius:10,padding:"9px 12px"}}><span>{e.action} {e.cardCode||""}</span><span style={{color:theme.textDim}}>{e.person}</span></div>))}</div></div>)}
+<button onClick={()=>{scanMode.current="quick";setShowScanner(true);}} style={{position:"fixed",bottom:20,insetInlineEnd:20,width:46,height:46,borderRadius:23,border:"none",background:theme.warn,boxShadow:"0 8px 20px rgba(0,0,0,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,zIndex:50}}>📷</button>
+</div>)}
+{screen==="stage"&&(
+<div style={{maxWidth:640,margin:"0 auto",padding:"40px 16px 110px"}}>
+<div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+<button onClick={()=>setShowMenu(true)} style={hdrBtn}><Burger/></button>
+<button onClick={()=>setScreen("home")} style={{background:"none",border:"none",color:theme.text,fontSize:20}}>{lang==="ar"?"→":"←"}</button>
+<h2 style={{margin:0,fontSize:19,fontWeight:800,flex:1}}>{activeStage}</h2>
+<button onClick={()=>setLateOnly(!lateOnly)} style={{fontSize:12,padding:"7px 12px",borderRadius:20,border:"1px solid "+(lateOnly?theme.danger:theme.border),background:lateOnly?theme.danger:"transparent",color:lateOnly?"#fff":theme.textDim,fontWeight:700}}>{lateOnly?t.lateOnly:t.all}</button>
+</div>
+{cardsToShow.length===0&&<p style={{textAlign:"center",padding:"50px 10px",color:theme.textDim}}>{t.noCardsHere}</p>}
+<div style={{display:"flex",flexDirection:"column",gap:10}}>
+{cardsToShow.map(c=>{const d=daysSince(c.updatedAt||c.createdAt);const l1=d>=1&&d<LD;const l2=d>=LD;const lk=liveCards.filter(x=>x.message&&x.message===c.message&&x.id!==c.id).length;const di=dueInfo(c);const bc=c.urgent?theme.danger:l2?theme.danger:l1?theme.warn:di?di.col:theme.border;
+return(<div key={c.id} onClick={()=>setEditingCard(c)} onContextMenu={e=>{e.preventDefault();setActionCard(c);}} style={{userSelect:"none",cursor:"pointer",background:theme.panel,border:"1px solid "+theme.border,borderInlineStart:"4px solid "+bc,borderRadius:12,padding:"12px 14px"}}>
+<div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:15}}>{c.customer||"—"} {c.pinned&&"📌"}</b><span style={{fontSize:11,color:theme.textDim}}>{c.time||fmtTime(c.updatedAt,lang)}</span></div>
+<div style={{display:"flex",flexWrap:"wrap",gap:"4px 12px",fontSize:12.5,color:theme.textDim,marginTop:5}}>
+<span>{t.code}: <b style={{color:theme.text}}>{c.code||"—"}</b></span>
+<span>{t.color}: <b style={{color:theme.text}}>{c.color||"—"}</b></span>
+<span>{t.quantity}: <b style={{color:theme.text}}>{c.quantity||"—"}</b></span>
+{c.machine&&<span>{t.machine}: <b style={{color:theme.text}}>{c.machine}</b></span>}
+{c.barcode&&<span>🔳 <b style={{color:theme.text}}>{c.barcode}</b></span>}</div>
+{(c.urgent||l2||l1||lk>0||di)&&(<div style={{display:"flex",gap:6,marginTop:8,flexWrap:"wrap"}}>{c.urgent&&badge(theme.danger,t.urgent)}{l2&&badge(theme.danger,t.aged2)}{!l2&&l1&&badge(theme.warn,t.aged1)}{di&&badge(di.col,di.txt)}{lk>0&&badge(theme.accent2,t.linkedCards+": "+lk)}</div>)}
+</div>);})}</div>
+<div style={{position:"fixed",bottom:20,insetInlineEnd:20,display:"flex",flexDirection:"column",gap:10}}>
+{can&&<button onClick={()=>setImportMenu(true)} title={t.importImage} style={fabS(theme.accent2)}>📄</button>}
+<button onClick={()=>{scanMode.current="quick";setShowScanner(true);}} style={fabS(theme.warn)}>📷</button>
+{can&&<button onClick={()=>setEditingCard({id:uid(),stage:activeStage,code:"",customer:"",message:"",category:"",color:"",quantity:"",barcode:"",machine:"",prepare:"",dye:"",time:"",notes:"",phone:"",urgent:false,pinned:false,due:"",photo:"",archived:false})} style={fabS(theme.accent)}>➕</button>}
+</div></div>)}
+{screen==="log"&&(
+<div style={{maxWidth:640,margin:"0 auto",padding:"40px 16px 40px"}}>
+<div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}><button onClick={()=>setShowMenu(true)} style={hdrBtn}><Burger/></button><button onClick={()=>setScreen("home")} style={{background:"none",border:"none",color:theme.text,fontSize:20}}>{lang==="ar"?"→":"←"}</button><h2 style={{margin:0,fontSize:19,flex:1}}>{t.dailyLog}</h2></div>
+{(()=>{const g={};log.forEach(e=>{(g[e.date]=g[e.date]||[]).push(e)});const ds=Object.keys(g).sort((a,b)=>b.localeCompare(a));
+return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noResults}</p>:ds.map(d=>(<div key={d} style={{marginBottom:18}}><div style={{fontSize:13,fontWeight:800,color:theme.accent,marginBottom:8}}>{d}</div><div style={{display:"flex",flexDirection:"column",gap:6}}>{g[d].map(e=>(<div key={e.id} style={{background:theme.panel,border:"1px solid "+theme.border,borderRadius:10,padding:"9px 12px",fontSize:13}}><div style={{display:"flex",justifyContent:"space-between"}}><b>{e.action}</b><span style={{color:theme.textDim}}>{fmtTime(e.time||e.timeLocal,lang)}</span></div><div style={{color:theme.textDim,fontSize:12}}>👤 {e.person} {e.cardCode?" · "+e.cardCode:""}</div></div>))}</div></div>));})()}
+</div>)}
+{screen==="archive"&&(
+<div style={{maxWidth:640,margin:"0 auto",padding:"40px 16px 40px"}}>
+<div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}><button onClick={()=>setShowMenu(true)} style={hdrBtn}><Burger/></button><button onClick={()=>setScreen("home")} style={{background:"none",border:"none",color:theme.text,fontSize:20}}>{lang==="ar"?"→":"←"}</button><h2 style={{margin:0,fontSize:19,flex:1}}>🗄️ {t.archive} ({archivedCards.length})</h2></div>
+{archivedCards.length===0&&<p style={{color:theme.textDim,textAlign:"center"}}>{t.noResults}</p>}
+{archivedCards.map(c=>(<div key={c.id} style={{display:"flex",alignItems:"center",gap:8,background:theme.panel,border:"1px solid "+theme.border,borderRadius:10,padding:"10px 12px",marginBottom:8}}>
+<div style={{flex:1,cursor:"pointer"}} onClick={()=>setEditingCard(c)}><b>{c.customer||"—"} · {c.code||"—"}</b><div style={{fontSize:12,color:theme.textDim}}>{c.stage}</div></div>
+{can&&<button onClick={()=>toggleArchive(c)} style={chip(false)}>♻️</button>}</div>))}
+</div>)}
+<input ref={photoInputRef} type="file" accept="image/*" capture="environment" style={{display:"none"}} onChange={handlePhotoFile}/>
+<input ref={photoGalRef} type="file" accept="image/*" style={{display:"none"}} onChange={handlePhotoFile}/>
+<input ref={importCamRef} type="file" accept="image/*" capture="environment" style={{display:"none"}} onChange={handleImportFile}/>
+<input ref={importGalRef} type="file" accept="image/*" style={{display:"none"}} onChange={handleImportFile}/>
+<input ref={restoreRef} type="file" accept="application/json" style={{display:"none"}} onChange={restoreJSON}/>
+{showMenu&&(
+<div onClick={()=>setShowMenu(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",zIndex:300}}>
+<div onClick={e=>e.stopPropagation()} style={{position:"absolute",top:0,bottom:0,insetInlineStart:0,width:270,background:theme.panel,borderInlineEnd:"1px solid "+theme.border,padding:16,overflowY:"auto"}}>
+<div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16}}><span style={{fontSize:22}}>🏭</span><b>{factory.fname}</b></div>
+<MenuBtn onClick={()=>{setScreen("home");setShowMenu(false);}} theme={theme} active={screen==="home"}>🏠 {t.home}</MenuBtn>
+<div style={{fontSize:11,color:theme.textDim,margin:"8px 4px",fontWeight:700}}>{t.stagesLabel}</div>
+{stages.map((s,i)=>(<MenuBtn key={s} onClick={()=>{setActiveStage(s);setScreen("stage");setShowMenu(false);}} theme={theme} active={screen==="stage"&&activeStage===s}><span style={{color:STAGE_COLORS[i%8]}}>●</span> {s}<span style={{marginInlineStart:"auto",fontSize:11,color:theme.textDim}}>{liveCards.filter(c=>c.stage===s).length}</span></MenuBtn>))}
+<div style={{height:1,background:theme.border,margin:"8px 0"}}/>
+<MenuBtn onClick={()=>{setReportText(buildReport());setShowMenu(false);}} theme={theme}>📊 {t.report}</MenuBtn>
+<MenuBtn onClick={()=>{setStatementFor(knownCustomers[0]?knownCustomers[0].name:"");setShowMenu(false);}} theme={theme}>👥 {t.statement}</MenuBtn>
+<MenuBtn onClick={()=>{setShowWorkers(true);setShowMenu(false);}} theme={theme}>🏆 {t.workers}</MenuBtn>
+<MenuBtn onClick={()=>{exportCSV();setShowMenu(false);}} theme={theme}>💾 {t.backup}</MenuBtn>
+<MenuBtn onClick={()=>{setScreen("archive");setShowMenu(false);}} theme={theme} active={screen==="archive"}>🗄️ {t.archive}</MenuBtn>
+<MenuBtn onClick={()=>{setScreen("log");setShowMenu(false);}} theme={theme} active={screen==="log"}>📋 {t.dailyLog}</MenuBtn>
+<MenuBtn onClick={()=>{setNameDraft(ownerName);setShowSettings(true);setShowMenu(false);}} theme={theme}>⚙️ {t.settings}</MenuBtn>
+</div></div>)}
+{importMenu&&(
+<div onClick={()=>setImportMenu(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:300,padding:16}}>
+<div onClick={e=>e.stopPropagation()} style={{background:theme.panel,borderRadius:18,padding:16,width:260,border:"1px solid "+theme.border}}>
+<h3 style={{margin:"0 0 12px",fontSize:15}}>📄 {t.chooseImport}</h3>
+<button onClick={()=>importCamRef.current&&importCamRef.current.click()} style={{...btnGhost,marginBottom:8}}>📷 {t.camera}</button>
+<button onClick={()=>importGalRef.current&&importGalRef.current.click()} style={btnGhost}>🖼️ {t.gallery}</button>
+</div></div>)}
+{importBusy!==null&&(
+<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.75)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:12}}>
+<div className="spin" style={{fontSize:30}}>⏳</div>
+<div style={{color:"#fff",fontSize:14}}>{t.reading} {importBusy}%</div>
+</div>)}
+{importDraft&&(
+<div onClick={()=>setImportDraft(null)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
+<div onClick={e=>e.stopPropagation()} style={{background:theme.panel,borderRadius:18,padding:20,width:"100%",maxWidth:460,maxHeight:"88vh",overflowY:"auto",border:"1px solid "+theme.border}}>
+<h3 style={{margin:"0 0 12px"}}>📄 {t.extracted}</h3>
+{lbl(t.customer)}<input style={inputStyle} value={importDraft.customer} onChange={e=>setImportDraft({...importDraft,customer:e.target.value})}/>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+<div>{lbl(t.code)}<input style={inputStyle} value={importDraft.code} onChange={e=>setImportDraft({...importDraft,code:e.target.value})}/></div>
+<div>{lbl(t.barcode)}<input style={inputStyle} value={importDraft.barcode} onChange={e=>setImportDraft({...importDraft,barcode:e.target.value})}/></div></div>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+<div>{lbl(t.message)}<input style={inputStyle} value={importDraft.message} onChange={e=>setImportDraft({...importDraft,message:e.target.value})}/></div>
+<div>{lbl(t.machine)}<input style={inputStyle} value={importDraft.machine} onChange={e=>setImportDraft({...importDraft,machine:e.target.value})}/></div></div>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+<div>{lbl(t.category)}<input style={inputStyle} value={importDraft.category} onChange={e=>setImportDraft({...importDraft,category:e.target.value})}/></div>
+<div>{lbl(t.color)}<input style={inputStyle} value={importDraft.color} onChange={e=>setImportDraft({...importDraft,color:e.target.value})}/></div></div>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+<div>{lbl(t.quantity)}<input style={inputStyle} value={importDraft.quantity} onChange={e=>setImportDraft({...importDraft,quantity:e.target.value})}/></div>
+<div>{lbl(t.time)}<input style={inputStyle} value={importDraft.time} onChange={e=>setImportDraft({...importDraft,time:e.target.value})}/></div></div>
+{lbl(t.stagesLabel)}<select style={inputStyle} value={importDraft.stage} onChange={e=>setImportDraft({...importDraft,stage:e.target.value})}>{stages.map(s=><option key={s}>{s}</option>)}</select>
+{lbl(t.notes)}<textarea rows={2} style={{...inputStyle,resize:"vertical"}} value={importDraft.notes} onChange={e=>setImportDraft({...importDraft,notes:e.target.value})}/>
+<div style={{display:"flex",gap:8,marginTop:8}}>
+<button onClick={confirmImport} style={btnPrimary}>💾 {t.save}</button>
+<button onClick={()=>setImportDraft(null)} style={btnGhost}>{t.cancel}</button>
+</div>
+</div></div>)}
+{reportText&&(
+<div onClick={()=>setReportText(null)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
+<div onClick={e=>e.stopPropagation()} style={{background:theme.panel,borderRadius:18,padding:20,width:"100%",maxWidth:420,border:"1px solid "+theme.border}}>
+<h3 style={{margin:"0 0 12px"}}>📊 {t.report}</h3>
+<pre style={{whiteSpace:"pre-wrap",background:theme.panelAlt,borderRadius:10,padding:12,fontSize:13,maxHeight:"50vh",overflowY:"auto",color:theme.text,fontFamily:"inherit"}}>{reportText}</pre>
+<div style={{display:"flex",gap:8,marginTop:12}}><button onClick={()=>{try{navigator.clipboard.writeText(reportText);showToast("✅");}catch(e){}}} style={btnGhost}>{t.copy}</button><a href={waLink(reportText)} target="_blank" rel="noreferrer" style={{...btnPrimary,textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>💬</a></div>
+</div></div>)}
+{statementFor!==null&&(
+<div onClick={()=>setStatementFor(null)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
+<div onClick={e=>e.stopPropagation()} style={{background:theme.panel,borderRadius:18,padding:20,width:"100%",maxWidth:420,maxHeight:"85vh",overflowY:"auto",border:"1px solid "+theme.border}}>
+<h3 style={{margin:"0 0 12px"}}>👥 {t.statement}</h3>
+<select value={statementFor} onChange={e=>setStatementFor(e.target.value)} style={inputStyle}>{knownCustomers.map(k=><option key={k.name} value={k.name}>{k.name}</option>)}</select>
+{statementFor&&<pre style={{whiteSpace:"pre-wrap",background:theme.panelAlt,borderRadius:10,padding:12,fontSize:13,color:theme.text,fontFamily:"inherit"}}>{buildStatement(statementFor)}</pre>}
+<div style={{display:"flex",gap:8,marginTop:12}}><button onClick={()=>{try{navigator.clipboard.writeText(buildStatement(statementFor));showToast("✅");}catch(e){}}} style={btnGhost}>{t.copy}</button><a href={waLink(buildStatement(statementFor||""))} target="_blank" rel="noreferrer" style={{...btnPrimary,textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>💬</a></div>
+</div></div>)}
+{showWorkers&&(
+<div onClick={()=>setShowWorkers(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
+<div onClick={e=>e.stopPropagation()} style={{background:theme.panel,borderRadius:18,padding:20,width:"100%",maxWidth:340,border:"1px solid "+theme.border}}>
+<h3 style={{margin:"0 0 12px"}}>🏆 {t.workers}</h3>
+{workerStats().length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center"}}>{t.noResults}</p>}
+{workerStats().map(([n,c],i)=>(<div key={n} style={{display:"flex",justifyContent:"space-between",padding:"10px 12px",background:theme.panelAlt,borderRadius:10,marginBottom:8}}><span>{i===0?"🥇":i===1?"🥈":i===2?"🥉":""} {n}</span><b style={{color:theme.accent}}>{c}</b></div>))}
+</div></div>)}
+{appQr&&(
+<div onClick={()=>setAppQr(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
+<div onClick={e=>e.stopPropagation()} style={{background:theme.panel,borderRadius:18,padding:20,width:"100%",maxWidth:340,textAlign:"center",border:"1px solid "+theme.border}}>
+<h3>🔳 {t.appQr}</h3>
+<div style={{display:"flex",justifyContent:"center",margin:"10px 0"}}><QrView value={APP_URL} size={220}/></div>
+<p style={{fontSize:12,color:theme.textDim}}>اطبعه وعلّقه — أي عامل يصوره يفتح التطبيق</p>
+</div></div>)}
+{showScanner&&(
+<div style={{position:"fixed",inset:0,background:"#000",zIndex:400,display:"flex",flexDirection:"column"}}>
+<div style={{padding:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}><b style={{color:"#fff"}}>📷 {t.scanAny}</b><button onClick={()=>setShowScanner(false)} style={{background:"none",border:"none",color:"#fff",fontSize:22}}>✕</button></div>
+<div id="bc-reader" style={{width:"100%",flex:1,overflow:"hidden"}}></div>
+<div style={{padding:14,textAlign:"center"}}><button onClick={()=>scanFileRef.current&&scanFileRef.current.click()} style={{background:"#4FB0A5",color:"#fff",border:"none",borderRadius:24,padding:"12px 22px",fontSize:14,fontWeight:700}}>📁 صورة من الجهاز</button></div>
+<input ref={scanFileRef} type="file" accept="image/*" style={{display:"none"}} onChange={scanFromFile}/>
+</div>)}
+{photoView&&(
+<div onClick={()=>setPhotoView(null)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
+<div onClick={e=>e.stopPropagation()} style={{maxWidth:520,width:"100%",textAlign:"center"}}><img src={photoView.photo} style={{width:"100%",borderRadius:12}}/><p style={{color:"#fff",fontSize:13,marginTop:10}}>{photoView.customer} · {photoView.code}</p></div>
+</div>)}
+{bcCard&&(
+<div onClick={()=>setBcCard(null)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
+<div onClick={e=>e.stopPropagation()} style={{background:theme.panel,borderRadius:18,padding:20,width:"100%",maxWidth:340,textAlign:"center",border:"1px solid "+theme.border}}>
+<h3>🔳 {t.showBarcode}</h3>
+{bcCard.barcode?<div style={{background:"#fff",borderRadius:12,padding:10,margin:"10px 0"}}><BarcodeView value={bcCard.barcode} h={80}/></div>:<p style={{color:theme.textDim}}>—</p>}
+<p style={{fontSize:13,color:theme.textDim}}>{bcCard.customer} · {bcCard.code}</p>
+</div></div>)}
+{editingCard&&(
+<div onClick={()=>setEditingCard(null)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
+<div onClick={e=>e.stopPropagation()} style={{background:theme.panel,borderRadius:18,padding:20,width:"100%",maxWidth:480,maxHeight:"88vh",overflowY:"auto",border:"1px solid "+theme.border}}>
+<div style={{display:"flex",justifyContent:"space-between",marginBottom:14}}><h3 style={{margin:0,fontSize:17}}>{cards.some(c=>c.id===editingCard.id)?t.edit:t.newCard}{!can?" 👁️":""}</h3><button onClick={()=>setEditingCard(null)} style={{background:"none",border:"none",color:theme.textDim,fontSize:20}}>✕</button></div>
+<fieldset disabled={!can}>
+{editingCard.__dupWarning&&<div style={{background:"rgba(224,97,111,.12)",border:"1px solid "+theme.danger,borderRadius:10,padding:12,marginBottom:12,fontSize:13.5}}>⚠️ {t.duplicateWarning}</div>}
+{lbl(t.customer)}<input style={inputStyle} list="customersList" value={editingCard.customer} onChange={e=>onCustomerChange(e.target.value)}/>
+<datalist id="customersList">{knownCustomers.slice(0,50).map(k=><option key={k.name} value={k.name}/>)}</datalist>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+<div>{lbl(t.code)}<input style={inputStyle} value={editingCard.code} onChange={e=>setEditingCard({...editingCard,code:e.target.value})}/></div>
+<div>{lbl(t.message)}<input style={inputStyle} value={editingCard.message} onChange={e=>setEditingCard({...editingCard,message:e.target.value})}/></div></div>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+<div>{lbl(t.category)}<input style={inputStyle} value={editingCard.category} onChange={e=>setEditingCard({...editingCard,category:e.target.value})}/></div>
+<div>{lbl(t.color)}<input style={inputStyle} value={editingCard.color} onChange={e=>setEditingCard({...editingCard,color:e.target.value})}/></div></div>
+{lbl(t.colorsLabel)}<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{allColors.map(c=><button key={c} onClick={()=>setEditingCard({...editingCard,color:c})} style={chip(editingCard.color===c)}>{c}</button>)}</div>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+<div>{lbl(t.quantity)}<input style={inputStyle} value={editingCard.quantity} onChange={e=>setEditingCard({...editingCard,quantity:e.target.value})}/></div>
+<div>{lbl(t.barcode)}<div style={{display:"flex",gap:6}}><input style={{...inputStyle,marginBottom:6}} value={editingCard.barcode} onChange={e=>setEditingCard({...editingCard,barcode:e.target.value})}/><button onClick={()=>{scanMode.current="form";setShowScanner(true);}} style={{flex:"0 0 auto",padding:"0 12px",borderRadius:10,border:"none",background:theme.accent2,color:"#fff",fontSize:16}}>📷</button></div>
+{editingCard.barcode&&<div style={{background:"#fff",borderRadius:8,padding:"6px 4px",marginBottom:8,textAlign:"center"}}><BarcodeView value={editingCard.barcode}/></div>}</div></div>
+{lbl(t.machine)}<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{machines.map(m=><button key={m} onClick={()=>setEditingCard({...editingCard,machine:m})} style={chip(editingCard.machine===m)}>{m}</button>)}</div>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+<div>{lbl(t.prepare)}<input style={inputStyle} value={editingCard.prepare} onChange={e=>setEditingCard({...editingCard,prepare:e.target.value})}/></div>
+<div>{lbl(t.dye)}<input style={inputStyle} value={editingCard.dye} onChange={e=>setEditingCard({...editingCard,dye:e.target.value})}/></div></div>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+<div>{lbl(t.time)}<input style={inputStyle} value={editingCard.time} onChange={e=>setEditingCard({...editingCard,time:e.target.value})}/></div>
+<div>{lbl(t.due)}<input type="date" style={inputStyle} value={editingCard.due||""} onChange={e=>setEditingCard({...editingCard,due:e.target.value})}/>
+<div style={{display:"flex",gap:6,marginBottom:8}}>{[1,3,7].map(n=><button key={n} onClick={()=>setEditingCard({...editingCard,due:localDate(new Date(Date.now()+n*86400000))})} style={chip(false)}>+{n}</button>)}</div></div></div>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+<div>{lbl(t.phone)}<input style={inputStyle} value={editingCard.phone} onChange={e=>setEditingCard({...editingCard,phone:e.target.value})}/></div>
+<div>{lbl(t.photo)}<div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+<button onClick={()=>photoInputRef.current&&photoInputRef.current.click()} style={{...chip(false),padding:"10px 12px"}}>📷</button>
+<button onClick={()=>photoGalRef.current&&photoGalRef.current.click()} style={{...chip(false),padding:"10px 12px"}}>🖼️</button>
+{editingCard.photo&&<button onClick={()=>setPhotoView(editingCard)} style={{...chip(false),padding:"10px 12px"}}>👁️</button>}
+{editingCard.photo&&<button onClick={()=>setEditingCard({...editingCard,photo:""})} style={{...chip(false),padding:"10px 10px"}}>✕</button>}</div></div></div>
+{editingCard.phone&&(<div style={{display:"flex",gap:8,marginBottom:10}}><a href={"tel:"+editingCard.phone} style={{...btnGhost,textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>📞</a><a href={"https://wa.me/"+editingCard.phone.replace(/\D/g,"")} target="_blank" rel="noreferrer" style={{...btnGhost,textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>💬</a></div>)}
+{lbl(t.notes)}<textarea rows={2} style={{...inputStyle,resize:"vertical"}} value={editingCard.notes} onChange={e=>setEditingCard({...editingCard,notes:e.target.value})}/>
+<label style={{display:"flex",alignItems:"center",gap:8,marginBottom:14,fontSize:14}}><input type="checkbox" checked={!!editingCard.urgent} onChange={e=>setEditingCard({...editingCard,urgent:e.target.checked})}/> ⚠️ {t.urgent}</label>
+{Array.isArray(editingCard.history)&&editingCard.history.length>0&&(<div style={{marginBottom:14}}>{lbl("📜 "+t.history)}{editingCard.history.slice().reverse().map((h,i)=>(<div key={i} style={{display:"flex",gap:8,flexWrap:"wrap",fontSize:12,color:theme.textDim,padding:"4px 10px",marginBottom:4,borderInlineStart:"2px solid "+theme.accent,background:theme.panelAlt,borderRadius:6}}><span>📍 {h.stage}</span><span>· {h.by}</span><span>· {fmtTime(h.at,lang)}</span></div>))}</div>)}
+{can&&<div style={{display:"flex",gap:8}}><button onClick={()=>saveCard({...editingCard,__dupWarning:undefined},!!editingCard.__dupWarning)} style={btnPrimary}>{editingCard.__dupWarning?t.saveAnyway:t.save}</button><button onClick={()=>setEditingCard(null)} style={btnGhost}>{t.cancel}</button></div>}
+{can&&cards.some(c=>c.id===editingCard.id)&&nextStageOf(editingCard.stage)&&(<button onClick={()=>{const n=nextStageOf(editingCard.stage);const c=editingCard;setEditingCard(null);moveCardTo(c,n);}} style={{...btnGhost,width:"100%",marginTop:8}}>⏭️ → {nextStageOf(editingCard.stage)}</button>)}
+</fieldset>
+</div></div>)}
+{actionCard&&(
+<div onClick={()=>setActionCard(null)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
+<div onClick={e=>e.stopPropagation()} style={{background:theme.panel,borderRadius:18,padding:10,width:"100%",maxWidth:340,maxHeight:"85vh",overflowY:"auto",border:"1px solid "+theme.border}}>
+<div style={{padding:"8px 10px 12px",fontWeight:800}}>{actionCard.customer} · {actionCard.code}</div>
+{[
+...(can?[{icon:"✏️",label:t.edit,fn:()=>{setEditingCard(actionCard);setActionCard(null);}}]:[]),
+...(can&&nextStageOf(actionCard.stage)?[{icon:"⏭️",label:t.nextStage,fn:()=>moveCardTo(actionCard,nextStageOf(actionCard.stage))}]:[]),
+{icon:"💬",label:t.shareCard,fn:()=>{window.open(waLink(shareCardText(actionCard)),"_blank");setActionCard(null);}},
+...(can?[{icon:"📋",label:t.copyCard,fn:()=>{setCopyCard(actionCard);setActionCard(null);}},
+{icon:"🔄",label:t.moveCard,fn:()=>{setMoveCard(actionCard);setActionCard(null);}},
+{icon:"⭐",label:actionCard.pinned?t.unpin:t.pinCard,fn:()=>togglePin(actionCard)}]:[]),
+{icon:"🖨️",label:t.printCard,fn:()=>{printCard(actionCard);setActionCard(null);}},
+{icon:"🔳",label:t.showBarcode,fn:()=>{setBcCard(actionCard);setActionCard(null);}},
+{icon:"📱",label:t.showQr,fn:()=>{setQrCard(actionCard);setActionCard(null);}},
+...(actionCard.photo?[{icon:"🖼️",label:t.viewPhoto,fn:()=>{setPhotoView(actionCard);setActionCard(null);}}]:[]),
+...(can?[{icon:"🗄️",label:actionCard.archived?t.unarchive:t.archiveCard,fn:()=>toggleArchive(actionCard)},
+{icon:"🗑️",label:t.delete,fn:()=>deleteCard(actionCard),danger:true}]:[])
+].map((it,i)=>(<button key={i} onClick={it.fn} style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:"12px 10px",background:"transparent",border:"none",borderTop:"1px solid "+theme.border,color:it.danger?theme.danger:theme.text,fontSize:14.5,textAlign:"start"}}>{it.icon} {it.label}</button>))}
+</div></div>)}
+{moveCard_&&(
+<div onClick={()=>setMoveCard(null)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
+<div onClick={e=>e.stopPropagation()} style={{background:theme.panel,borderRadius:18,padding:20,width:"100%",maxWidth:340,border:"1px solid "+theme.border}}>
+<h3 style={{margin:"0 0 14px"}}>{t.moveCard}</h3>
+{stages.concat(["الصالة"]).filter((v,i,a)=>a.indexOf(v)===i).map(s=>(<button key={s} onClick={()=>moveCardTo(moveCard_,s)} style={{width:"100%",padding:"12px 10px",background:theme.panelAlt,border:"none",borderRadius:10,color:theme.text,fontSize:14.5,textAlign:"start",marginBottom:8}}>{s}</button>))}
+</div></div>)}
+{copyCard_&&(
+<div onClick={()=>setCopyCard(null)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
+<div onClick={e=>e.stopPropagation()} style={{background:theme.panel,borderRadius:18,padding:20,width:"100%",maxWidth:340,border:"1px solid "+theme.border}}>
+<h3 style={{margin:"0 0 14px"}}>{t.copyCard}</h3>
+{stages.map(s=>(<button key={s} onClick={()=>copyCardTo(copyCard_,s)} style={{width:"100%",padding:"12px 10px",background:theme.panelAlt,border:"none",borderRadius:10,color:theme.text,fontSize:14.5,textAlign:"start",marginBottom:8}}>{s}</button>))}
+</div></div>)}
+{qrCard&&(
+<div onClick={()=>setQrCard(null)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
+<div onClick={e=>e.stopPropagation()} style={{background:theme.panel,borderRadius:18,padding:20,width:"100%",maxWidth:340,textAlign:"center",border:"1px solid "+theme.border}}>
+<h3>📱 {t.showQr}</h3>
+<div style={{display:"flex",justifyContent:"center",margin:"10px 0"}}><QrView value={pubUrl(qrCard)} size={200}/></div>
+<p style={{fontSize:13,color:theme.textDim}}>{qrCard.customer} · {qrCard.barcode||qrCard.code}</p>
+</div></div>)}
+{showSearch&&(
+<div onClick={()=>setShowSearch(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
+<div onClick={e=>e.stopPropagation()} style={{background:theme.panel,borderRadius:18,padding:20,width:"100%",maxWidth:480,maxHeight:"88vh",overflowY:"auto",border:"1px solid "+theme.border}}>
+<h3 style={{margin:"0 0 14px"}}>{t.search}</h3>
+<SearchModal theme={theme} t={t} cards={liveCards} onPick={c=>{setShowSearch(false);jumpToCard(c);}} inputStyle={inputStyle}/>
+</div></div>)}
+{showSettings&&(
+<div onClick={()=>setShowSettings(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
+<div onClick={e=>e.stopPropagation()} style={{background:theme.panel,borderRadius:18,padding:20,width:"100%",maxWidth:400,maxHeight:"88vh",overflowY:"auto",border:"1px solid "+theme.border}}>
+<h3 style={{margin:"0 0 14px"}}>⚙️ {t.settings}</h3>
+{lbl("🌐 "+t.language)}<div style={{marginBottom:10}}><button onClick={()=>{const n=lang==="ar"?"en":"ar";setLang(n);localStorage.setItem("pref_lang",n);}} style={chip(true)}>{lang==="ar"?"العربية":"English"}</button></div>
+{lbl((dark?"🌙":"☀️ ")+" "+t.darkMode)}<div style={{marginBottom:10}} onClick={()=>{const n=!dark;setDark(n);localStorage.setItem("pref_dark",n);}}><div style={{width:44,height:24,borderRadius:20,background:dark?theme.accent:theme.border,position:"relative",cursor:"pointer"}}><div style={{width:18,height:18,borderRadius:"50%",background:"#fff",position:"absolute",top:3,insetInlineStart:dark?23:3}}/></div></div>
+{!can&&(<div style={{background:theme.panelAlt,borderRadius:12,padding:14,marginBottom:10}}>
+{lbl("🔑 "+t.unlockTitle)}
+<input style={{...inputStyle,marginBottom:6}} inputMode="numeric" value={codeInput} onChange={e=>setCodeInput(e.target.value)} placeholder="******"/>
+<button onClick={tryUnlock} style={{...btnPrimary,width:"100%"}}>🔓 {t.confirmName}</button>
+<p style={{fontSize:11,color:theme.textDim,marginTop:8}}>{t.unlockHint}</p>
+</div>)}
+{can&&(<>
+{lbl("👤 "+t.yourNameEdit)}<div style={{display:"flex",gap:6,marginBottom:10}}><input style={{...inputStyle,marginBottom:0}} value={nameDraft} onChange={e=>setNameDraft(e.target.value)}/><button onClick={()=>{if(nameDraft.trim()){setOwnerName(nameDraft.trim());localStorage.setItem("owner_name_"+userId,nameDraft.trim());showToast("✅");}}} style={{...chip(true),padding:"10px 14px"}}>{t.save}</button></div>
+{lbl("🏭 "+t.factoryName)}<input style={inputStyle} value={fnameDraft} onChange={e=>setFnameDraft(e.target.value)}/>
+{lbl("📱 "+t.waNumber)}<input style={inputStyle} inputMode="numeric" placeholder="201xxxxxxxxx" value={waDraft} onChange={e=>setWaDraft(e.target.value)}/>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+<div>{lbl("⚖️ "+t.unit)}<select style={inputStyle} value={factory.unit} onChange={e=>saveFactory({unit:e.target.value})}>{["كيلو","قطعة","متر","دستة","طن"].map(u=><option key={u}>{u}</option>)}</select></div>
+<div>{lbl("🖨️ "+t.printSize)}<select style={inputStyle} value={factory.printSize} onChange={e=>saveFactory({printSize:e.target.value})}>{["A5","A4"].map(u=><option key={u}>{u}</option>)}</select></div></div>
+{lbl("⏰ "+t.lateDays)}<input style={inputStyle} type="number" min="1" value={lateDraft} onChange={e=>setLateDraft(e.target.value)}/>
+<button onClick={saveFactoryDrafts} style={{...btnPrimary,width:"100%",marginBottom:10}}>💾 {t.saveFactoryBtn}</button>
+{lbl("🎚️ "+t.manageStages)}<div style={{marginBottom:10}}>{stages.map(s=>(<div key={s} style={{display:"flex",gap:6,alignItems:"center",marginBottom:6}}><span style={{flex:1,fontSize:13}}>{s}</span><button onClick={()=>{const n=prompt(t.rename,s);if(n&&n.trim()&&n!==s)renameStage(s,n.trim());}} style={chip(false)}>✏️</button><button onClick={()=>{if(confirm("حذف "+s+"؟"))saveStages(stages.filter(x=>x!==s));}} style={chip(false)}>🗑️</button></div>))}
+<button onClick={()=>{const n=prompt(t.addStage);if(n&&n.trim()&&!stages.includes(n.trim()))saveStages(stages.concat([n.trim()]));}} style={{...chip(false),marginTop:4}}>➕</button></div>
+{lbl("🔧 "+t.manageMachines)}<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{machines.map(m=><button key={m} onClick={()=>{if(confirm("حذف "+m+"؟"))saveMachines(machines.filter(x=>x!==m));}} style={chip(false)}>{m} ✕</button>)}<button onClick={()=>{const n=prompt(t.add);if(n&&n.trim()&&!machines.includes(n.trim()))saveMachines(machines.concat([n.trim()]));}} style={chip(true)}>➕</button></div>
+{lbl("🎨 "+t.manageColors)}<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{customColors.map(c=><button key={c} onClick={()=>saveColors(customColors.filter(x=>x!==c))} style={chip(false)}>{c} ✕</button>)}<button onClick={()=>{const n=prompt(t.add);if(n&&n.trim())saveColors(customColors.concat([n.trim()]));}} style={chip(true)}>➕</button></div>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginTop:8}}>
+<button onClick={()=>setAppQr(true)} style={btnGhost}>🔳 {t.appQr}</button>
+<button onClick={()=>backupJSON()} style={btnGhost}>💾 {t.backupFull}</button>
+<button onClick={()=>restoreRef.current&&restoreRef.current.click()} style={btnGhost}>♻️ {t.restore}</button>
+<button onClick={()=>{if(wipeConfirm){wipeAll();}else{setWipeConfirm(true);setTimeout(()=>setWipeConfirm(false),3000);}}} style={{...btnGhost,border:"1px solid "+theme.danger,color:wipeConfirm?"#fff":theme.danger,background:wipeConfirm?theme.danger:"transparent"}}>{wipeConfirm?"⚠️ "+t.wipeSure:"🗑️ "+t.wipe}</button>
+</div></>)}
+</div></div>)}
+{toast&&(<div style={{position:"fixed",bottom:24,left:"50%",transform:"translateX(-50%)",background:toast.kind==="danger"?theme.danger:theme.accent2,color:"#fff",padding:"10px 20px",borderRadius:30,fontSize:14,fontWeight:600,zIndex:999}}>{toast.msg}</div>)}
+</div>);
+}
+function SearchModal({theme,t,cards,onPick,inputStyle}){
+const [q,setQ]=useState("");
+const r=q.trim()?cards.filter(c=>FIELD_KEYS.some(k=>(c[k]||"").toString().toLowerCase().includes(q.toLowerCase()))).slice(0,20):[];
+return(<div><input autoFocus value={q} onChange={e=>setQ(e.target.value)} placeholder={t.search} style={inputStyle}/>
+{q.trim()&&r.length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center"}}>{t.noResults}</p>}
+<div style={{display:"flex",flexDirection:"column",gap:8}}>{r.map(c=>(<div key={c.id} onClick={()=>onPick(c)} style={{cursor:"pointer",background:theme.panelAlt,borderRadius:10,padding:"10px 12px"}}><b style={{fontSize:14}}>{c.customer} · {c.code}</b><div style={{fontSize:12,color:theme.textDim}}>{c.stage} — {c.color}</div></div>))}</div></div>);
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
