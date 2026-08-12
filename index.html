@@ -64,18 +64,23 @@ function QrView({value,size}){const r=useRef(null);useEffect(()=>{if(r.current&&
 function parseOrderText(txt){
 const d={customer:"",message:"",code:"",color:"",category:"",quantity:"",machine:"",barcode:"",prepare:"",dye:"",time:"",notes:""};
 const flat=(txt||"").replace(/\r/g,"").replace(/\n/g," ");
-const pick=re=>{const m=flat.match(re);return m?m[1].trim():"";};
-d.customer=pick(new RegExp("العميل\\s*[:\\-]?\\s*([\\u0600-\\u06FF][\\u0600-\\u06FF\\s]{1,25})"))||pick(new RegExp("عميل\\s*[:\\-]?\\s*([\\u0600-\\u06FF][\\u0600-\\u06FF\\s]{1,25})"));
-d.message=pick(/رقم\s*الرسالة\s*[:\-]?\s*(\d+)/)||pick(/الرسالة\s*[:\-]?\s*(\d+)/);
-d.machine=pick(/الماكينة\s*[:\-]?\s*(\d+)/)||pick(/ماكينة\s*[:\-]?\s*(\d+)/);
-d.code=pick(/كود\s*اللون\s*[:\-]?\s*(\d+)/)||pick(/الكود\s*[:\-]?\s*(\d+)/);
-d.color=pick(new RegExp("اسم\\s*اللون\\s*[:\\-]?\\s*([\\u0600-\\u06FF][\\u0600-\\u06FF\\s]{1,20})"))||pick(new RegExp("اللون\\s*[:\\-]?\\s*([\\u0600-\\u06FF][\\u0600-\\u06FF\\s]{1,20})"));
-d.category=pick(new RegExp("الخامة\\s*[:\\-]?\\s*([\\u0600-\\u06FF][\\u0600-\\u06FF\\s]{1,25})"))||pick(new RegExp("الصنف\\s*[:\\-]?\\s*([\\u0600-\\u06FF][\\u0600-\\u06FF\\s]{1,25})"));
-d.quantity=pick(/الوزن\s*[:\-]?\s*(\d+(?:[.,]\d+)?)/)||pick(/وزن\s*الرسالة\s*[:\-]?\s*([\d.,\- ]+)/);
-d.time=pick(/تاريخ\s*[:\-]?\s*([\d\/\-.]+)/);
-const bm=flat.match(/\b(\d{6,9})\b/);if(bm)d.barcode=bm[1];
-if(/تجهيز/.test(flat)){const pm=flat.match(/تجهيز[\u0600-\u06FF\s]{0,12}/);d.prepare=pm?pm[0]:"تجهيز";}
-const nm=flat.match(/طلبات\s*العميل\s*([\u0600-\u06FF\s]{2,60})/);if(nm)d.notes=nm[1].trim();
+const after=(lab,len)=>{const i=flat.indexOf(lab);if(i<0)return"";return flat.slice(i+lab.length,i+lab.length+(len||40));};
+const num=w=>{const m=w.match(/\d+(?:[.,]\d+)?/);return m?m[0]:"";};
+const arw=w=>(w||"").replace(/[^\u0600-\u06FF\s]/g," ").replace(/\s+/g," ").trim();
+const cw=after("العميل",40);
+d.customer=arw(cw).split(" ").filter(w=>w.length>1).slice(0,3).join(" ");
+d.code=num(cw)||num(after("كود اللون",15));
+d.message=num(after("رقم الرسالة",15));
+d.machine=num(after("الماكينة",10));
+d.color=arw(after("اسم اللون",30));
+d.category=arw(after("الخامة",30));
+d.quantity=num(after("الوزن",15));
+const tm=after("تاريخ",15).match(/\d{4}\/\d{1,2}\/\d{1,2}/);if(tm)d.time=tm[0];
+const nums=flat.match(/\b26\d{5}\b/g)||[];
+const shn=(after("شترك",14).match(/\b26\d{5}\b/)||[null])[0];
+d.barcode=(nums.find(n=>n!==shn)||nums[0]||"");
+if(flat.indexOf("تجهيز")>=0)d.prepare=("تجهيز "+arw(after("تجهيز",20))).replace(/\s+/g," ").trim();
+d.notes=arw(after("ملاحظات",80));
 return d;}
 function App(){
 const [ready,setReady]=useState(false);const [firebaseOk,setFirebaseOk]=useState(false);
