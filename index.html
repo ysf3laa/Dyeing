@@ -182,10 +182,10 @@ const saveMachines=l=>{if(!can||!db)return;db.collection("config").doc("machines
 const saveColors=l=>{if(!can||!db)return;db.collection("config").doc("colors").set({list:l});};
 const handleImportFile=e=>{const f=e.target.files?.[0];if(!f)return;setImportMenu(false);
 if(!window.Tesseract){showToast("❌","danger");e.target.value="";return;}
-setImportBusy(0);
-Tesseract.recognize(f,"ara+eng",{logger:m=>{if(m.progress!=null)setImportBusy(Math.round(m.progress*100));}}).then(r=>{
-setImportBusy(null);const d=parseOrderText(r.data.text||"");d.__raw=r.data.text||"";d.stage=activeStage||stages[0];setImportDraft(d);showToast("📄 ✅");
-}).catch(()=>{setImportBusy(null);showToast("❌","danger");});
+setImportBusy(0);const rr2=new FileReader();rr2.onload=()=>{const im=new Image();im.onload=()=>{const sc=Math.max(2,Math.min(4,1800/im.width));const cv=document.createElement("canvas");cv.width=Math.round(im.width*sc);cv.height=Math.round(im.height*sc);const cx=cv.getContext("2d");cx.drawImage(im,0,0,cv.width,cv.height);try{const id=cx.getImageData(0,0,cv.width,cv.height);const p=id.data;const nn=p.length/4;const g=new Float32Array(nn);let mn=255,mx=0;for(let j=0;j<nn;j++){const v=0.299*p[j*4]+0.587*p[j*4+1]+0.114*p[j*4+2];g[j]=v;if(v<mn)mn=v;if(v>mx)mx=v;}const rg=Math.max(1,mx-mn);for(let j=0;j<nn;j++){let v=((g[j]-mn)/rg)*255;v=v<145?0:255;p[j*4]=v;p[j*4+1]=v;p[j*4+2]=v;}cx.putImageData(id,0,0);}catch(err){}
+Tesseract.recognize(cv,"ara+eng",{logger:m=>{if(m.progress!=null)setImportBusy(Math.round(m.progress*100));}}).then(r=>{
+setImportBusy(null);const d=parseOrderText(r.data.text||"");d.stage=activeStage||stages[0];setImportDraft(d);showToast("📄 ✅");
+}).catch(()=>{setImportBusy(null);showToast("❌","danger");});};im.src=rr2.result;};rr2.readAsDataURL(f);
 e.target.value="";};
 const confirmImport=async()=>{const d=importDraft;if(!d)return;
 const ex=cards.find(c=>(d.barcode&&c.barcode===d.barcode)||(d.code&&c.code===d.code&&d.customer&&c.customer===d.customer));
@@ -370,7 +370,7 @@ return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noRe
 <div>{lbl(t.quantity)}<input style={inputStyle} value={importDraft.quantity} onChange={e=>setImportDraft({...importDraft,quantity:e.target.value})}/></div>
 <div>{lbl(t.time)}<input style={inputStyle} value={importDraft.time} onChange={e=>setImportDraft({...importDraft,time:e.target.value})}/></div></div>
 {lbl(t.stagesLabel)}<select style={inputStyle} value={importDraft.stage} onChange={e=>setImportDraft({...importDraft,stage:e.target.value})}>{stages.map(s=><option key={s}>{s}</option>)}</select>
-{lbl(t.notes)}<textarea rows={2} style={{...inputStyle,resize:"vertical"}} value={importDraft.notes} onChange={e=>setImportDraft({...importDraft,notes:e.target.value})}/> <div style={{fontSize:11,color:theme.textDim,marginTop:8}}>📃 النص المقروء من الصورة (للمراجعة):</div> <pre style={{maxHeight:120,overflowY:"auto",background:theme.panelAlt,borderRadius:8,padding:8,fontSize:11,whiteSpace:"pre-wrap",color:theme.textDim}}>{importDraft.__raw||"—"}</pre>
+{lbl(t.notes)}<textarea rows={2} style={{...inputStyle,resize:"vertical"}} value={importDraft.notes} onChange={e=>setImportDraft({...importDraft,notes:e.target.value})}/>
 <div style={{display:"flex",gap:8,marginTop:8}}>
 <button onClick={confirmImport} style={btnPrimary}>💾 {t.save}</button>
 <button onClick={()=>setImportDraft(null)} style={btnGhost}>{t.cancel}</button>
