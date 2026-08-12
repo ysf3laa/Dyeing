@@ -71,13 +71,14 @@ function QrView({value,size}){const r=useRef(null);useEffect(()=>{if(r.current&&
 function parseVoice(txt){
 const d={customer:"",message:"",code:"",machine:"",category:"",color:"",quantity:"",barcode:"",prepare:"",dye:"",time:"",notes:""};
 const t2=(txt||"").replace(/[٠-٩]/g,function(dd){return "٠١٣٤٥٦٧٨٩".indexOf(dd);});
-const keys=[["customer",/عميل|العميل|اسم/],["code",/كود/],["message",/رسالة/],["machine",/ماكينة/],["category",/صنف|خامة/],["color",/لون|اللون/],["quantity",/كمية|وزن/],["barcode",/باركود/],["time",/تاريخ/],["notes",/ملاحظة|ملاحظات|طلبات/]];
+const keys=[["customer",/عميل|العميل|customer|client/],["code",/كود|code/],["message",/رسالة|message|batch/],["machine",/ماكينة|machine/],["category",/صنف|خامة|category|fabric/],["color",/لون|اللون|color/],["quantity",/كمية|وزن|quantity|qty|weight/],["barcode",/باركود|barcode/],["time",/تاريخ|date/],["notes",/ملاحظ|طلبات|note/]];
 const pos=[];
 keys.forEach(function(k){const re=k[1];re.lastIndex=0;const m=re.exec(t2);if(m)pos.push([m.index,m[0].length,k[0]]);});
 pos.sort(function(a,b){return a[0]-b[0];});
 for(let i=0;i<pos.length;i++){const s=pos[i][0]+pos[i][1];const e2=i+1<pos.length?pos[i+1][0]:t2.length;let v=t2.slice(s,e2).replace(/^[\s:\-،]+/,"").replace(/[\s:\-،]+$/,"").trim();d[pos[i][2]]=v;}
 ["code","message","machine","quantity","barcode"].forEach(function(f){const m=(d[f]||"").match(/\d+(?:[.,]\d+)?/);if(m)d[f]=m[0];});
-if(!d.customer&&!d.code&&!d.quantity)d.notes=t2.trim();
+if(!d.customer&&!d.code&&!d.quantity){
+const toks=t2.split(/\s+/).filter(Boolean); const items=toks.map(function(tk){return {tk:tk,isNum:/^\d+(?:[.,]\d+)?$/.test(tk),isAr:/[\u0600-\u06FF]/.test(tk)};}); const phrases=[];let cur=null; items.forEach(function(it){const ty=it.isNum?"num":(it.isAr?"ar":"x");if(!cur||cur.type!==ty){cur={type:ty,words:[]};phrases.push(cur);}cur.words.push(it.tk);}); const ars=phrases.filter(function(p){return p.type==="ar";}).map(function(p){return p.words.join(" ");}); const nums=phrases.filter(function(p){return p.type==="num";}).map(function(p){return p.words.join(" ");}); if(ars[0])d.customer=ars[0]; if(ars[1])d.category=ars[1]; if(ars[2])d.color=ars[2]; if(ars[3])d.notes=ars.slice(3).join(" "); nums.forEach(function(v){if(/^26\d{5}$/.test(v))d.barcode=v;}); const small=nums.filter(function(v){return !/^26\d{5}$/.test(v);}); if(small[0])d.code=small[0]; if(small[1])d.message=small[1]; if(small[2])d.quantity=small[2]; if(small[3])d.machine=small[3]; if(!d.customer&&!d.barcode)d.notes=t2.trim(); }
 return d;}
 function parseOrderText(txt){
 const d={customer:"",message:"",code:"",color:"",category:"",quantity:"",machine:"",barcode:"",prepare:"",dye:"",time:"",notes:""};
@@ -195,8 +196,8 @@ else showToast("❌ "+t.notFound,"danger");}};
 const scanFromFile=e=>{const f=e.target.files?.[0];if(!f||!scannerRef.current)return;scannerRef.current.scanFileV2(f,true).then(r=>{if(r&&r.decodedText){setShowScanner(false);handleScan(String(r.decodedText).trim());}}).catch(()=>showToast("❌","danger"));e.target.value="";};
 const startMic=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){showToast("المتصفح مش داعم الإملاء","danger");return;}
 try{const rec=new SR();rec.lang=micLang;rec.interimResults=true;rec.continuous=true;
-const finals={s:micText?micText+" ":""};
-rec.onresult=e=>{let interim="";for(let i=e.resultIndex;i<e.results.length;i++){const tr=e.results[i][0].transcript;if(e.results[i].isFinal)finals.s+=tr+" ";else interim+=tr;}setMicText((finals.s+interim).trim());};
+const base=micText?micText+" ":"";
+rec.onresult=e=>{let out="";let prev="";let interim=""; for(let i=0;i<e.results.length;i++){const r=e.results[i];const tr=(r[0]&&r[0].transcript||"").trim(); if(r.isFinal){if(tr&&tr!==prev){out+=tr+" ";prev=tr;}}else{interim=tr;}} setMicText((base+out+interim).trim());};
 rec.onend=()=>setMicOn(false);
 rec.onerror=ev=>{setMicOn(false);if(ev.error&&ev.error!=="no-speech")showToast("🎙️ "+ev.error,"danger");};
 rec.start();recRef.current=rec;setMicOn(true);}catch(e){showToast("🎙️ ","danger");}};
