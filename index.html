@@ -63,28 +63,27 @@ function BarcodeView({value,h}){const r=useRef(null);useEffect(()=>{if(r.current
 function QrView({value,size}){const r=useRef(null);useEffect(()=>{if(r.current&&value&&window.QRCode){r.current.innerHTML="";try{new QRCode(r.current,{text:String(value),width:size||200,height:size||200,correctLevel:QRCode.CorrectLevel.M});}catch(e){}}},[value,size]);if(!window.QRCode)return <div style={{fontSize:12,padding:8}}>{value}</div>;return <div ref={r} style={{display:"inline-block",background:"#fff",borderRadius:12,padding:8}}/>;}
 function parseOrderText(txt){
 const d={customer:"",message:"",code:"",color:"",category:"",quantity:"",machine:"",barcode:"",prepare:"",dye:"",time:"",notes:""};
-let flat=(txt||"").replace(/\r/g,"").replace(/\n/g," ");
-flat=flat.replace(/[٠-٩]/g,function(dd){return "٠١٢٣٤٥٦٧٨٩".indexOf(dd);});
-const norm=s=>(s||"").replace(/[\u064B-\u065F\u0670]/g,"").replace(/[أإآ]/g,"ا").replace(/ة/g,"ه").replace(/ى/g,"ي").replace(/\s+/g," ").trim();
-flat=norm(flat);
-const after=(lab,len)=>{const i=flat.indexOf(lab);if(i<0)return"";return flat.slice(i+lab.length,i+lab.length+(len||40));};
-const cut=w=>{const labs=["رقم","الحافظه","وزن","الخامه","الماكينه","تاريخ","كود","اسم","العرض","الاثواب","ملاحظات","طلبات"];let m=w.length;for(let k=0;k<labs.length;k++){const i=w.indexOf(labs[k]);if(i>0&&i<m)m=i;}return w.slice(0,m);};
+const flat=(txt||"").replace(/\r/g,"").replace(/\n/g," ").replace(/[٠-٩]/g,function(dd){return "٠١٢٣٤٥٦٧٨٩".indexOf(dd);}).replace(/\s+/g," ");
+const after=(re,len)=>{re.lastIndex=0;const m=re.exec(flat);if(!m)return"";const s=m.index+m[0].length;return flat.slice(s,s+(len||40));};
+const cut=w=>{const labs=["رقم","الحافظة","الحافظه","وزن","الخامة","الخامه","الماكينة","الماكينه","تاريخ","كود","اسم","العرض","الاثواب","ملاحظات","ملاحظه","طلبات","جودة","جوده"];let m=w.length;for(let k=0;k<labs.length;k++){const i=w.indexOf(labs[k]);if(i>0&&i<m)m=i;}return w.slice(0,m);};
 const num=w=>{const m=(w||"").match(/\d+(?:[.,]\d+)?/);return m?m[0]:"";};
 const arw=w=>(w||"").replace(/[^\u0600-\u06FF\s]/g," ").replace(/\s+/g," ").trim();
-const cw=cut(after("العميل",50));
-d.customer=arw(cw).split(" ").filter(w=>w.length>1).slice(0,3).join(" ");
-d.code=num(cw)||num(after("كود اللون",15));
-d.message=num(after("رقم الرساله",15));
-d.machine=num(after("الماكينه",10));
-d.color=arw(cut(after("اسم اللون",30)));
-d.category=arw(cut(after("الخامه",30)));
-d.quantity=num(after("الوزن",15));
-const tm=after("تاريخ",15).match(/\d{4}\/\d{1,2}\/\d{1,2}/);if(tm)d.time=tm[0];
+const arwStar=w=>(w||"").replace(/[^\u0600-\u06FF\s\*]/g," ").replace(/\s+/g," ").trim();
+const cw=cut(after(/العميل/,50));
+d.customer=arwStar(cw);
+d.code=num(cw);
+d.message=num(after(/رقم\s*الرسال[ةه]/,15));
+d.machine=num(after(/الماكين[ةه]/,10));
+d.color=arw(cut(after(/اسم\s*اللون/,30)));
+d.category=arw(cut(after(/الخام[ةه]/,30)));
+d.quantity=num(after(/الوزن/,15));
+const tm=after(/تاريخ/,15).match(/\d{4}\/\d{1,2}\/\d{1,2}/);if(tm)d.time=tm[0];
 const nums=flat.match(/\b26\d{5}\b/g)||[];
-const shn=(after("شترك",14).match(/\b26\d{5}\b/)||[null])[0];
+const shn=(after(/شترك/,14).match(/\b26\d{5}\b/)||[null])[0];
 d.barcode=(nums.find(n=>n!==shn)||nums[0]||"");
-if(flat.indexOf("تجهيز")>=0)d.prepare=("تجهيز "+arw(after("تجهيز",20))).replace(/\s+/g," ").trim();
-d.notes=arw(cut(after("ملاحظات",80)));
+const n1=arw(cut(after(/ملاحظ[ةه]/,150)));
+const n2=arw(cut(after(/طلبات\s*العميل/,150)));
+d.notes=(n1+" "+n2).replace(/\s+/g," ").trim();
 return d;}
 function App(){
 const [ready,setReady]=useState(false);const [firebaseOk,setFirebaseOk]=useState(false);
