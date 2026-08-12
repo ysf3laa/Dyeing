@@ -20,7 +20,8 @@ fieldset{border:none;margin:0;padding:0;min-width:0}
 <div id="syncBar" class="syncing-bar"></div>
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:16px"><div style="font-size:40px">🏭</div><div style="color:#9AA4BD">جاري التحميل...</div></div></div>
 <script>
-window.onerror=function(m,u,l){if(m&&m!=="Script error."){var r=document.getElementById("root");if(r)r.innerHTML='<div style="padding:16px;color:#E0616F;font-size:12px;word-break:break-all;text-align:center">خطأ: '+m+'<br>سطر: '+l+'</div>';}};
+window.onerror=function(m,u,l){if(m&&m!=="Script error."&&!window.__booted){var r=document.getElementById("root");if(r)r.innerHTML='<div style="padding:16px;color:#E0616F;font-size:12px;word-break:break-all;text-align:center">خطأ: '+m+'<br>سطر: '+l+'</div>';}}; 
+window.addEventListener("unhandledrejection",function(e){e.preventDefault();console.warn(e.reason);});
 setTimeout(function(){if(!window.__booted){var r=document.getElementById("root");if(r)r.innerHTML='<div style="padding:20px;color:#E0616F;text-align:center;font-size:13px">⚠️ مكتبات التطبيق محملتش<br>اقفل الـ VPN أو غيّر الشبكة وبعدين اعمل تحديث</div>';}},9000);
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
@@ -205,10 +206,7 @@ const sum=int[(y1+1)*W+x1+1]-int[y0*W+x1+1]-int[(y1+1)*W+x0]+int[y0*W+x0];
 const v=g[y*w+x]<=(sum/cnt)*0.88?0:255;const i4=(y*w+x)*4;p[i4]=v;p[i4+1]=v;p[i4+2]=v;}}
 cx.putImageData(id,0,0);}catch(err){}
 try{
-const worker=await Tesseract.createWorker("ara+eng",1,{logger:m=>{if(m.progress!=null)setImportBusy(Math.round(m.progress*100));}});
-await worker.setParameters({tessedit_pageseg_mode:Tesseract.PSM.SINGLE_BLOCK});
-const res=await worker.recognize(cv);
-await worker.terminate();
+const res=await Tesseract.recognize(cv,"ara+eng",{logger:m=>{if(m.progress!=null)setImportBusy(Math.round(m.progress*100));}});
 setImportBusy(null);
 const d=parseOrderText(res.data.text||"");
 const filled=[d.customer,d.code,d.barcode,d.quantity,d.color,d.category].filter(x=>x).length;
@@ -225,8 +223,8 @@ rr4.onload=()=>{const im=new Image();im.onload=()=>{
 const sc=Math.min(1,1200/im.width);const cv=document.createElement("canvas");cv.width=Math.round(im.width*sc);cv.height=Math.round(im.height*sc);cv.getContext("2d").drawImage(im,0,0,cv.width,cv.height);
 const b64=cv.toDataURL("image/jpeg",0.8).split(",")[1];
 const prompt='اقرأ أمر شغل الصباغة من الصورة وأرجع JSON فقط: {"customer":"اسم العميل كما هو مكتوب","code":"الرقم بجانب اسم العميل","message":"رقم الرسالة","machine":"رقم الماكينة","category":"الخامة","color":"اسم اللون كما هو","quantity":"الوزن","barcode":"الرقم تحت الباركود أعلى اليسار","time":"التاريخ","notes":"الملاحظات مع طلبات العميل"}';
-const models=["gemini-2.5-flash","gemini-2.5-flash-lite","gemini-2.0-flash","gemini-2.0-flash-lite"];let lastErr="";
-(async()=>{for(const md of models){try{
+let models=["gemini-3-flash","gemini-2.5-flash"];let lastErr="";const modelsP=fetch("https://generativelanguage.googleapis.com/v1beta/models?key="+key).then(r=>r.json()).then(mj=>{if(mj&&mj.models){let av=mj.models.map(m=>String(m.name).replace("models/","")).filter(n=>/flash/.test(n)&&!/image|tts|embed|imagen|video/i.test(n));const nl=av.filter(n=>!n.includes("lite"));if(nl.length)av=nl;if(av.length)models=av.slice(0,3);}}).catch(()=>{});
+(async()=>{try{const mr=await fetch("https://generativelanguage.googleapis.com/v1beta/models?key="+key);const mj=await mr.json();if(mj&&mj.models){let av=mj.models.map(m=>String(m.name).replace("models/","")).filter(n=>/flash/.test(n)&&!/image|tts|embed|imagen|video/i.test(n));const nl=av.filter(n=>!n.includes("lite"));if(nl.length)av=nl;if(av.length)models=av.slice(0,3);}}catch(e){}await modelsP;for(const md of models){try{
 const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+md+":generateContent?key="+key,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{parts:[{text:prompt},{inline_data:{mime_type:"image/jpeg",data:b64}}]}]})});
 const j=await r.json();lastErr=(j.error&&j.error.message)?j.error.message:("HTTP "+r.status);let txt="";try{txt=j.candidates[0].content.parts[0].text;}catch(err){continue;}
 let o=null;try{o=JSON.parse(txt);}catch(err){const m2=txt.match(/\{[\s\S]*\}/);if(m2){try{o=JSON.parse(m2[0]);}catch(e2){}}}
