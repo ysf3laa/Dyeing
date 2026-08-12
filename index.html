@@ -21,17 +21,23 @@ fieldset{border:none;margin:0;padding:0;min-width:0}
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:16px"><div style="font-size:40px">🏭</div><div style="color:#9AA4BD">جاري التحميل...</div></div></div>
 <script>
 window.onerror=function(m,u,l){if(m&&m!=="Script error."){var r=document.getElementById("root");if(r)r.innerHTML='<div style="padding:16px;color:#E0616F;font-size:12px;word-break:break-all;text-align:center">خطأ: '+m+'<br>سطر: '+l+'</div>';}};
+setTimeout(function(){if(!window.__booted){var r=document.getElementById("root");if(r)r.innerHTML='<div style="padding:20px;color:#E0616F;text-align:center;font-size:13px">⚠️ مكتبات التطبيق محملتش<br>اقفل الـ VPN أو غيّر الشبكة وبعدين اعمل تحديث</div>';}},9000);
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script>if(!window.React)document.write('<script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"><\/script>');</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script>if(!window.ReactDOM)document.write('<script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"><\/script>');</script>
 <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.23.5/babel.min.js"></script>
+<script>if(!window.Babel)document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"><\/script>');</script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.min.js"></script>
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>if(!window.JsBarcode)document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.min.js"><\/script>');</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js"></script>
+<script>if(!window.Tesseract)document.write('<script src="https://unpkg.com/tesseract.js@5.1.0/dist/tesseract.min.js"><\/script>');</script>
 <script type="text/babel" data-presets="react">
 const {useState,useEffect,useRef}=React;
 const firebaseConfig={apiKey:"AIzaSyBEplMzCUPbZ33vpctAegDvCLFLB2d_Psc",authDomain:"dyeing-tracker-cc789.firebaseapp.com",projectId:"dyeing-tracker-cc789",storageBucket:"dyeing-tracker-cc789.firebasestorage.app",messagingSenderId:"407184511418",appId:"1:407184511418:web:16512177012e5a6ded0d83",measurementId:"G-V3ST7W6VVN"};
@@ -45,7 +51,7 @@ const PRESET_COLORS=["أبيض","أسود","أحمر","أزرق","أخضر","أ�
 const APP_URL="https://ysf3laa.github.io/Dyeing/";
 const DICT={
 ar:{appName:"متابعة الصباغة",search:"بحث في كل الكروت...",settings:"الإعدادات",dailyLog:"السجل اليومي",addStage:"إضافة مرحلة",add:"إضافة",cardsPlural:"كروت",lastActivity:"آخر نشاط",distribution:"توزيع الشغل",lateOnly:"المتأخر فقط",all:"الكل",newCard:"كرت جديد",code:"كود",customer:"عميل",message:"رسالة",category:"صنف",color:"لون",quantity:"كمية",barcode:"باركود",machine:"ماكينة",prepare:"تجهيز",dye:"صباغة",time:"تاريخ",notes:"ملاحظة",phone:"تليفون العميل",urgent:"مستعجل",save:"حفظ",cancel:"إلغاء",duplicateWarning:"يوجد كرت بنفس البيانات. تحفظ برضه؟",saveAnyway:"حفظ برضه",edit:"تعديل",copyCard:"نسخ الكرت",moveCard:"نقل الكرت",showQr:"عرض QR",delete:"حذف",openWhatsapp:"واتساب",call:"اتصال",pinCard:"تثبيت",unpin:"إلغاء التثبيت",yourName:"اسمك",enterNameHint:"هيتسجل مرة واحدة على الجهاز",confirmName:"تأكيد",language:"اللغة",darkMode:"الوضع الداكن",noResults:"لا توجد نتائج",machineOptional:"اختياري",linkedCards:"كروت مرتبطة",aged1:"متأخر يوم",aged2:"متأخر",noCardsHere:"لا يوجد كروت هنا",online:"🟢 متصل",offline:"🔴 أوفلاين - محفوظ محلياً",syncing:"⏳ مزامنة...",synced:"✅ اتزامن",allCards:"كل الكروت - اضغط تروح له",home:"الرئيسية",stagesLabel:"المراحل",history:"تاريخ الحركة",nextStage:"المرحلة الجاية",report:"تقرير اليوم",copy:"نسخ",onlineNow:"متصلين دلوقتي",backup:"نسخة Excel",qtyTotal:"الكمية",scanBarcode:"مسح باركود",showBarcode:"عرض الباركود",cameraErr:"مش قادر أفتح الكاميرا",photo:"صورة الأمر",viewPhoto:"عرض الصورة",shareCard:"مشاركة واتساب",statement:"كشف حساب عميل",due:"موعد التسليم",overdue:"عدّى الميعاد",dueSoon:"قرب الميعاد",archive:"الأرشيف",archiveCard:"أرشفة",unarchive:"رجوع",printCard:"طباعة",workers:"لوحة العمال",notFound:"مش موجود",foundIn:"موجود في",colorsLabel:"ألوان سريعة",factoryName:"اسم المصنع",waNumber:"رقم واتساب المصنع",unit:"وحدة الوزن",lateDays:"يعتبر متأخر بعد (يوم)",printSize:"مقاس الطباعة",manageStages:"إدارة المراحل",manageMachines:"إدارة الماكينات",manageColors:"ألوان إضافية",appQr:"QR التطبيق",backupFull:"نسخة كاملة JSON",restore:"استعادة نسخة",wipe:"تصفير البيانات",wipeSure:"متأكد؟ كل البيانات هتتمسح!",rename:"تعديل",yourNameEdit:"تعديل اسمك",scanAny:"امسح باركود أو QR",unlockTitle:"كود التفعيل",unlockHint:"الكود بتستلمه من المدير مرة واحدة — وبعدها الجهاز يشتغل بالتعديل دايماً",viewOnly:"🔒 اطلاع فقط — اطلب كود التفعيل للتعديل",unlockedMsg:"تم تفعيل الجهاز ✅",lockedNote:"🔒 اطلاع فقط",importImage:"استيراد من صورة",reading:"جاري قراءة الصورة",extracted:"راجع البيانات المستخرجة وظبط الغلط",chooseImport:"اختار مصدر صورة الأمر",camera:"تصوير",gallery:"من الجهاز",saveFactoryBtn:"حفظ بيانات المصنع"},
-en:{appName:"Dyeing Tracker",search:"Search...",settings:"Settings",dailyLog:"Daily Log",addStage:"Add Stage",add:"Add",cardsPlural:"cards",lastActivity:"Last Activity",distribution:"Distribution",lateOnly:"Late",all:"All",newCard:"New Card",code:"Code",customer:"Customer",message:"Batch",category:"Category",color:"Color",quantity:"Qty",barcode:"Barcode",machine:"Machine",prepare:"Prepare",dye:"Dye",time:"Date",notes:"Notes",phone:"Phone",urgent:"Urgent",save:"Save",cancel:"Cancel",duplicateWarning:"Duplicate. Save?",saveAnyway:"Save",edit:"Edit",copyCard:"Copy",moveCard:"Move",showQr:"QR",delete:"Delete",openWhatsapp:"WhatsApp",call:"Call",pinCard:"Pin",unpin:"Unpin",yourName:"Name",enterNameHint:"Saved once",confirmName:"OK",language:"Lang",darkMode:"Dark",noResults:"None",machineOptional:"opt",linkedCards:"Linked",aged1:"1d",aged2:"Late",noCardsHere:"Empty",online:"🟢",offline:"🔴",syncing:"⏳",synced:"✅",allCards:"All cards",home:"Home",stagesLabel:"Stages",history:"History",nextStage:"Next",report:"Report",copy:"Copy",onlineNow:"Online",backup:"CSV",qtyTotal:"Qty",scanBarcode:"Scan",showBarcode:"Barcode",cameraErr:"Camera error",photo:"Photo",viewPhoto:"View",shareCard:"Share",statement:"Statement",due:"Due",overdue:"Overdue",dueSoon:"Soon",archive:"Archive",archiveCard:"Archive",unarchive:"Restore",printCard:"Print",workers:"Workers",notFound:"Not found",foundIn:"In",colorsLabel:"Colors",factoryName:"Factory name",waNumber:"Factory WhatsApp",unit:"Unit",lateDays:"Late after (days)",printSize:"Print size",manageStages:"Stages",manageMachines:"Machines",manageColors:"Colors",appQr:"App QR",backupFull:"JSON backup",restore:"Restore",wipe:"Wipe",wipeSure:"Sure?!",rename:"Rename",yourNameEdit:"Edit name",scanAny:"Scan",unlockTitle:"Activation code",unlockHint:"From manager - once per device",viewOnly:"🔒 View only",unlockedMsg:"Activated ✅",lockedNote:"🔒 View only",importImage:"Import from image",reading:"Reading image",extracted:"Review extracted data",chooseImport:"Choose source",camera:"Camera",gallery:"Gallery",saveFactoryBtn:"Save factory data"}
+en:{appName:"Dyeing Tracker",search:"Search...",settings:"Settings",dailyLog:"Daily Log",addStage:"Add Stage",add:"Add",cardsPlural:"cards",lastActivity:"Last Activity",distribution:"Distribution",lateOnly:"Late",all:"All",newCard:"New Card",code:"Code",customer:"Customer",message:"Batch",category:"Category",color:"Color",quantity:"Qty",barcode:"Barcode",machine:"Machine",prepare:"Prepare",dye:"Dye",time:"Date",notes:"Notes",phone:"Phone",urgent:"Urgent",save:"Save",cancel:"Cancel",duplicateWarning:"Duplicate. Save?",saveAnyway:"Save",edit:"Edit",copyCard:"Copy",moveCard:"Move",showQr:"QR",delete:"Delete",openWhatsapp:"WhatsApp",call:"Call",pinCard:"Pin",unpin:"Unpin",yourName:"Name",enterNameHint:"Saved once",confirmName:"OK",language:"Lang",darkMode:"Dark",noResults:"None",machineOptional:"opt",linkedCards:"Linked",aged1:"1d",aged2:"Late",noCardsHere:"Empty",online:"🟢",offline:"🔴",syncing:"⏳",synced:"✅",allCards:"All cards",home:"Home",stagesLabel:"Stages",history:"History",nextStage:"Next",report:"Report",copy:"Copy",onlineNow:"Online",backup:"CSV",qtyTotal:"Qty",scanBarcode:"Scan",showBarcode:"Barcode",cameraErr:"Camera error",photo:"Photo",viewPhoto:"View",shareCard:"Share",statement:"Statement",due:"Due",overdue:"Overdue",dueSoon:"Soon",archive:"Archive",archiveCard:"Archive",unarchive:"Restore",printCard:"Print",workers:"Workers",notFound:"Not found",foundIn:"In",colorsLabel:"Colors",factoryName:"Factory name",waNumber:"Factory WhatsApp",unit:"Unit",lateDays:"Late after (days)",printSize:"Print size",manageStages:"Stages",manageMachines:"Machines",manageColors:"Colors",appQr:"App QR",backupFull:"JSON backup",restore:"Restore",wipe:"Wipe",wipeSure:"Sure?!",rename:"Rename",yourNameEdit:"Edit name",scanAny:"Scan",unlockTitle:"Activation code",unlockHint:"From manager - once per device",viewOnly:"🔒 View only",unlockedMsg:"Activated ✅",lockedNote:"🔒 View only",importImage:"Import from image",reading:"Reading",extracted:"Review data",chooseImport:"Source",camera:"Camera",gallery:"Gallery",saveFactoryBtn:"Save"}
 };
 const FIELD_KEYS=["code","customer","message","category","color","quantity","barcode","machine","prepare","dye","time","notes","phone"];
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
@@ -145,7 +151,7 @@ db.collection("logs").onSnapshot(sn=>{setLog(sn.docs.map(d=>({id:d.id,...d.data(
 db.collection("config").onSnapshot(sn=>{const g=id=>{const d=sn.docs.find(x=>x.id===id);return d?d.data():null;};
 const s=g("stages"),m=g("machines"),f=g("factory"),cl=g("colors");
 if(s)setStages(s.list||DEFAULT_STAGES);if(m)setMachines(m.list||DEFAULT_MACHINES);
-if(f)setFactory({fname:f.fname||"متابعة الصباغة",wa:f.wa||"",unit:f.unit||"كيلو",lateDays:f.lateDays||2,printSize:f.printSize||"A5"});
+if(f)setFactory({fname:f.fname||"متابعة الصباغة",wa:f.wa||"",unit:f.unit||"كيلو",lateDays:f.lateDays||2,printSize:f.printSize||"A5",gkey:f.gkey||""});
 if(cl)setCustomColors(cl.list||[]);});
 setFirebaseOk(true);setReady(true);}else{try{await auth.signInAnonymously();}catch(e){setReady(true);}}});return()=>un&&un();},[]);
 useEffect(()=>{if(!firebaseOk||!userId||!ownerName||!db)return;const beat=()=>{try{db.collection("presence").doc(userId).set({name:ownerName,last:Date.now()});}catch(e){}};beat();const iv=setInterval(beat,20000);const un=db.collection("presence").onSnapshot(sn=>{const n=Date.now();setOnlineUsers(sn.docs.map(d=>d.data()).filter(p=>n-(p.last||0)<60000));});return()=>{clearInterval(iv);un&&un();};},[firebaseOk,userId,ownerName]);
@@ -179,12 +185,57 @@ const saveStages=l=>{if(!can||!db)return;db.collection("config").doc("stages").s
 const renameStage=(o,n)=>{if(!can)return;saveStages(stages.map(s=>s===o?n:s));cards.filter(c=>c.stage===o).forEach(c=>db.collection("cards").doc(c.id).set({stage:n},{merge:true}));};
 const saveMachines=l=>{if(!can||!db)return;db.collection("config").doc("machines").set({list:l});};
 const saveColors=l=>{if(!can||!db)return;db.collection("config").doc("colors").set({list:l});};
-const handleImportFile=e=>{const f=e.target.files?.[0];if(!f)return;setImportMenu(false); const key=String(factory.gkey||localStorage.getItem("gemini_key")||"").trim(); if(!key){handleImportFile_OLD({target:{files:[f],value:""}});e.target.value="";return;} setImportBusy(0); const rr4=new FileReader(); rr4.onload=()=>{const im=new Image();im.onload=()=>{ const sc=Math.min(1,1200/im.width);const cv=document.createElement("canvas");cv.width=Math.round(im.width*sc);cv.height=Math.round(im.height*sc);cv.getContext("2d").drawImage(im,0,0,cv.width,cv.height); const b64=cv.toDataURL("image/jpeg",0.8).split(",")[1]; const prompt='اقرأ أمر شغل الصباغة من الصورة وأرجع JSON فقط: {"customer":"اسم العميل كما هو مكتوب","code":"الرقم بجانب اسم العميل","message":"رقم الرسالة","machine":"رقم الماكينة","category":"الخامة","color":"اسم اللون كما هو","quantity":"الوزن","barcode":"الرقم تحت الباركود أعلى اليسار","time":"التاريخ","notes":"الملاحظات مع طلبات العميل"}'; const models=["gemini-2.0-flash","gemini-1.5-flash","gemini-1.5-flash-latest"]; (async()=>{for(const md of models){try{ const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+md+":generateContent?key="+key,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{parts:[{text:prompt},{inline_data:{mime_type:"image/jpeg",data:b64}}]}]})}); const j=await r.json();let txt="";try{txt=j.candidates[0].content.parts[0].text;}catch(err){continue;} let o=null;try{o=JSON.parse(txt);}catch(err){const m2=txt.match(/\{[\s\S]*\}/);if(m2){try{o=JSON.parse(m2[0]);}catch(e2){}}} if(o){setImportBusy(null);const d={customer:String(o.customer||""),code:String(o.code||""),message:String(o.message||""),machine:String(o.machine||""),category:String(o.category||""),color:String(o.color||""),quantity:String(o.quantity||""),barcode:String(o.barcode||""),time:String(o.time||""),notes:String(o.notes||""),prepare:"",dye:""};d.stage=activeStage||stages[0];setImportDraft(d);showToast("🤖 ✅");return;} }catch(err){}} setImportBusy(null);showToast("🤖 ❌","danger");})(); };im.src=rr4.result;}; rr4.readAsDataURL(f); e.target.value="";}; function handleImportFile_OLD(e){const f=e.target.files?.[0];if(!f)return;setImportMenu(false); if(!window.Tesseract){showToast("❌","danger");e.target.value="";return;} setImportBusy(0); const rr3=new FileReader(); rr3.onload=()=>{const im=new Image();im.onload=async()=>{ const sc=Math.max(2,Math.min(3,1400/im.width)); const cv=document.createElement("canvas");cv.width=Math.round(im.width*sc);cv.height=Math.round(im.height*sc); const cx=cv.getContext("2d");cx.drawImage(im,0,0,cv.width,cv.height); try{const w=cv.width,h=cv.height;const id=cx.getImageData(0,0,w,h);const p=id.data;const n=w*h; const g=new Uint8Array(n); for(let i=0;i<n;i++){g[i]=(p[i*4]*299+p[i*4+1]*587+p[i*4+2]*114)/1000;} const W=w+1;const int=new Float64Array((h+1)*W); for(let y=0;y<h;y++){let row=0;for(let x=0;x<w;x++){row+=g[y*w+x];int[(y+1)*W+x+1]=int[y*W+x+1]+row;}} const S=Math.max(15,Math.round(w/60)); for(let y=0;y<h;y++){const y0=Math.max(0,y-S),y1=Math.min(h-1,y+S); for(let x=0;x<w;x++){const x0=Math.max(0,x-S),x1=Math.min(w-1,x+S); const cnt=(x1-x0+1)*(y1-y0+1); const sum=int[(y1+1)*W+x1+1]-int[y0*W+x1+1]-int[(y1+1)*W+x0]+int[y0*W+x0]; const v=g[y*w+x]<=(sum/cnt)*0.88?0:255;const i4=(y*w+x)*4;p[i4]=v;p[i4+1]=v;p[i4+2]=v;}} cx.putImageData(id,0,0);}catch(err){} try{ const worker=await Tesseract.createWorker("ara+eng",1,{logger:m=>{if(m.progress!=null)setImportBusy(Math.round(m.progress*100));}}); await worker.setParameters({tessedit_pageseg_mode:Tesseract.PSM.SINGLE_BLOCK}); const res=await worker.recognize(cv); await worker.terminate(); setImportBusy(null); const d=parseOrderText(res.data.text||""); const filled=[d.customer,d.code,d.barcode,d.quantity,d.color,d.category].filter(x=>x).length; if(filled<2)showToast("💡 قرّب الورقة وضوّي كويس وجرب تاني","danger"); d.stage=activeStage||stages[0];setImportDraft(d); }catch(err){setImportBusy(null);showToast("❌","danger");} };im.src=rr3.result;}; rr3.readAsDataURL(f); e.target.value="";}; const handleImportFile_OLD=e=>{const f=e.target.files?.[0];if(!f)return;setImportMenu(false);
-if(!window.Tesseract){showToast("❌","danger");e.target.value="";return;}
-setImportBusy(0);const rr2=new FileReader();rr2.onload=()=>{const im=new Image();im.onload=()=>{const sc=Math.max(2,Math.min(4,1800/im.width));const cv=document.createElement("canvas");cv.width=Math.round(im.width*sc);cv.height=Math.round(im.height*sc);const cx=cv.getContext("2d");cx.drawImage(im,0,0,cv.width,cv.height);try{const id=cx.getImageData(0,0,cv.width,cv.height);const p=id.data;const nn=p.length/4;const g=new Float32Array(nn);let mn=255,mx=0;for(let j=0;j<nn;j++){const v=0.299*p[j*4]+0.587*p[j*4+1]+0.114*p[j*4+2];g[j]=v;if(v<mn)mn=v;if(v>mx)mx=v;}const rg=Math.max(1,mx-mn);for(let j=0;j<nn;j++){let v=((g[j]-mn)/rg)*255;v=v<145?0:255;p[j*4]=v;p[j*4+1]=v;p[j*4+2]=v;}cx.putImageData(id,0,0);}catch(err){}
-Tesseract.recognize(cv,"ara+eng",{logger:m=>{if(m.progress!=null)setImportBusy(Math.round(m.progress*100));}}).then(r=>{
-setImportBusy(null);const d=parseOrderText(r.data.text||"");d.stage=activeStage||stages[0];setImportDraft(d);showToast("📄 ✅");
-}).catch(()=>{setImportBusy(null);showToast("❌","danger");});};im.src=rr2.result;};rr2.readAsDataURL(f);
+const ocrNow=f=>{if(!window.Tesseract){showToast("❌","danger");return;}
+setImportBusy(0);
+const rr3=new FileReader();
+rr3.onload=()=>{const im=new Image();im.onload=async()=>{
+const sc=Math.max(2,Math.min(3,1400/im.width));
+const cv=document.createElement("canvas");cv.width=Math.round(im.width*sc);cv.height=Math.round(im.height*sc);
+const cx=cv.getContext("2d");cx.drawImage(im,0,0,cv.width,cv.height);
+try{const w=cv.width,h=cv.height;const id=cx.getImageData(0,0,w,h);const p=id.data;const n=w*h;
+const g=new Uint8Array(n);
+for(let i=0;i<n;i++){g[i]=(p[i*4]*299+p[i*4+1]*587+p[i*4+2]*114)/1000;}
+const W=w+1;const int=new Float64Array((h+1)*W);
+for(let y=0;y<h;y++){let row=0;for(let x=0;x<w;x++){row+=g[y*w+x];int[(y+1)*W+x+1]=int[y*W+x+1]+row;}}
+const S=Math.max(15,Math.round(w/60));
+for(let y=0;y<h;y++){const y0=Math.max(0,y-S),y1=Math.min(h-1,y+S);
+for(let x=0;x<w;x++){const x0=Math.max(0,x-S),x1=Math.min(w-1,x+S);
+const cnt=(x1-x0+1)*(y1-y0+1);
+const sum=int[(y1+1)*W+x1+1]-int[y0*W+x1+1]-int[(y1+1)*W+x0]+int[y0*W+x0];
+const v=g[y*w+x]<=(sum/cnt)*0.88?0:255;const i4=(y*w+x)*4;p[i4]=v;p[i4+1]=v;p[i4+2]=v;}}
+cx.putImageData(id,0,0);}catch(err){}
+try{
+const worker=await Tesseract.createWorker("ara+eng",1,{logger:m=>{if(m.progress!=null)setImportBusy(Math.round(m.progress*100));}});
+await worker.setParameters({tessedit_pageseg_mode:Tesseract.PSM.SINGLE_BLOCK});
+const res=await worker.recognize(cv);
+await worker.terminate();
+setImportBusy(null);
+const d=parseOrderText(res.data.text||"");
+const filled=[d.customer,d.code,d.barcode,d.quantity,d.color,d.category].filter(x=>x).length;
+if(filled<2)showToast("💡 قرّب الورقة وضوّي كويس","danger");
+d.stage=activeStage||stages[0];setImportDraft(d);
+}catch(err){setImportBusy(null);showToast("❌","danger");}
+};im.src=rr3.result;};
+rr3.readAsDataURL(f);};
+const handleImportFile=e=>{const f=e.target.files?.[0];if(!f)return;setImportMenu(false);
+const key=String(factory.gkey||localStorage.getItem("gemini_key")||"").trim();
+if(key){setImportBusy(0);
+const rr4=new FileReader();
+rr4.onload=()=>{const im=new Image();im.onload=()=>{
+const sc=Math.min(1,1200/im.width);const cv=document.createElement("canvas");cv.width=Math.round(im.width*sc);cv.height=Math.round(im.height*sc);cv.getContext("2d").drawImage(im,0,0,cv.width,cv.height);
+const b64=cv.toDataURL("image/jpeg",0.8).split(",")[1];
+const prompt='اقرأ أمر شغل الصباغة من الصورة وأرجع JSON فقط: {"customer":"اسم العميل كما هو مكتوب","code":"الرقم بجانب اسم العميل","message":"رقم الرسالة","machine":"رقم الماكينة","category":"الخامة","color":"اسم اللون كما هو","quantity":"الوزن","barcode":"الرقم تحت الباركود أعلى اليسار","time":"التاريخ","notes":"الملاحظات مع طلبات العميل"}';
+const models=["gemini-2.0-flash","gemini-1.5-flash","gemini-1.5-flash-latest"];
+(async()=>{for(const md of models){try{
+const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+md+":generateContent?key="+key,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{parts:[{text:prompt},{inline_data:{mime_type:"image/jpeg",data:b64}}]}]})});
+const j=await r.json();let txt="";try{txt=j.candidates[0].content.parts[0].text;}catch(err){continue;}
+let o=null;try{o=JSON.parse(txt);}catch(err){const m2=txt.match(/\{[\s\S]*\}/);if(m2){try{o=JSON.parse(m2[0]);}catch(e2){}}}
+if(o){setImportBusy(null);const d={customer:String(o.customer||""),code:String(o.code||""),message:String(o.message||""),machine:String(o.machine||""),category:String(o.category||""),color:String(o.color||""),quantity:String(o.quantity||""),barcode:String(o.barcode||""),time:String(o.time||""),notes:String(o.notes||""),prepare:"",dye:""};d.stage=activeStage||stages[0];setImportDraft(d);showToast("🤖 ✅");return;}
+}catch(err){}}
+setImportBusy(null);ocrNow(f);})();
+};im.src=rr4.result;};
+rr4.readAsDataURL(f);
+}else{ocrNow(f);}
 e.target.value="";};
 const confirmImport=async()=>{const d=importDraft;if(!d)return;
 const ex=cards.find(c=>(d.barcode&&c.barcode===d.barcode)||(d.code&&c.code===d.code&&d.customer&&c.customer===d.customer));
@@ -521,8 +572,10 @@ return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noRe
 <p style={{fontSize:11,color:theme.textDim,marginTop:8}}>{t.unlockHint}</p>
 </div>)}
 {can&&(<>
+{lbl("🤖 مفتاح Gemini (قراءة ذكية لكل العمال)")}<input style={inputStyle} placeholder="AIza..." value={gemKey||factory.gkey||""} onChange={e=>{setGemKey(e.target.value);localStorage.setItem("gemini_key",e.target.value.trim());saveFactory({gkey:e.target.value.trim()});}}/>
+<p style={{fontSize:11,color:theme.textDim,marginBottom:8}}>مفتاح مجاني من aistudio.google.com/app/apikey — احطه مرة واحدة ويشتغل عند كل العمال تلقائياً</p>
 {lbl("👤 "+t.yourNameEdit)}<div style={{display:"flex",gap:6,marginBottom:10}}><input style={{...inputStyle,marginBottom:0}} value={nameDraft} onChange={e=>setNameDraft(e.target.value)}/><button onClick={()=>{if(nameDraft.trim()){setOwnerName(nameDraft.trim());localStorage.setItem("owner_name_"+userId,nameDraft.trim());showToast("✅");}}} style={{...chip(true),padding:"10px 14px"}}>{t.save}</button></div>
-{lbl("🤖 مفتاح Gemini (لقراءة ذكية أدق)")}<input style={inputStyle} onChange={e=>{setGemKey(e.target.value);localStorage.setItem("gemini_key",e.target.value.trim());saveFactory({gkey:e.target.value.trim()});}} onChange={e=>{setGemKey(e.target.value);localStorage.setItem("gemini_key",e.target.value.trim());}}/> <p style={{fontSize:11,color:theme.textDim,marginBottom:8}}>مفتاح مجاني من: aistudio.google.com/app/apikey</p> {lbl("🏭 "+t.factoryName)}<input style={inputStyle} value={fnameDraft} onChange={e=>setFnameDraft(e.target.value)}/>
+{lbl("🏭 "+t.factoryName)}<input style={inputStyle} value={fnameDraft} onChange={e=>setFnameDraft(e.target.value)}/>
 {lbl("📱 "+t.waNumber)}<input style={inputStyle} inputMode="numeric" placeholder="201xxxxxxxxx" value={waDraft} onChange={e=>setWaDraft(e.target.value)}/>
 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
 <div>{lbl("⚖️ "+t.unit)}<select style={inputStyle} value={factory.unit} onChange={e=>saveFactory({unit:e.target.value})}>{["كيلو","قطعة","متر","دستة","طن"].map(u=><option key={u}>{u}</option>)}</select></div>
@@ -551,6 +604,7 @@ return(<div><input autoFocus value={q} onChange={e=>setQ(e.target.value)} placeh
 <div style={{display:"flex",flexDirection:"column",gap:8}}>{r.map(c=>(<div key={c.id} onClick={()=>onPick(c)} style={{cursor:"pointer",background:theme.panelAlt,borderRadius:10,padding:"10px 12px"}}><b style={{fontSize:14}}>{c.customer} · {c.code}</b><div style={{fontSize:12,color:theme.textDim}}>{c.stage} — {c.color}</div></div>))}</div></div>);
 }
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+window.__booted=true;
 </script>
 </body>
 </html>
