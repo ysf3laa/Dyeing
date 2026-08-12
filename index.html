@@ -225,14 +225,14 @@ rr4.onload=()=>{const im=new Image();im.onload=()=>{
 const sc=Math.min(1,1200/im.width);const cv=document.createElement("canvas");cv.width=Math.round(im.width*sc);cv.height=Math.round(im.height*sc);cv.getContext("2d").drawImage(im,0,0,cv.width,cv.height);
 const b64=cv.toDataURL("image/jpeg",0.8).split(",")[1];
 const prompt='اقرأ أمر شغل الصباغة من الصورة وأرجع JSON فقط: {"customer":"اسم العميل كما هو مكتوب","code":"الرقم بجانب اسم العميل","message":"رقم الرسالة","machine":"رقم الماكينة","category":"الخامة","color":"اسم اللون كما هو","quantity":"الوزن","barcode":"الرقم تحت الباركود أعلى اليسار","time":"التاريخ","notes":"الملاحظات مع طلبات العميل"}';
-const models=["gemini-2.0-flash","gemini-1.5-flash","gemini-1.5-flash-latest"];
+const models=["gemini-2.5-flash","gemini-2.5-flash-lite","gemini-2.0-flash","gemini-2.0-flash-lite"];let lastErr="";
 (async()=>{for(const md of models){try{
 const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+md+":generateContent?key="+key,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{parts:[{text:prompt},{inline_data:{mime_type:"image/jpeg",data:b64}}]}]})});
-const j=await r.json();let txt="";try{txt=j.candidates[0].content.parts[0].text;}catch(err){continue;}
+const j=await r.json();lastErr=(j.error&&j.error.message)?j.error.message:("HTTP "+r.status);let txt="";try{txt=j.candidates[0].content.parts[0].text;}catch(err){continue;}
 let o=null;try{o=JSON.parse(txt);}catch(err){const m2=txt.match(/\{[\s\S]*\}/);if(m2){try{o=JSON.parse(m2[0]);}catch(e2){}}}
 if(o){setImportBusy(null);const d={customer:String(o.customer||""),code:String(o.code||""),message:String(o.message||""),machine:String(o.machine||""),category:String(o.category||""),color:String(o.color||""),quantity:String(o.quantity||""),barcode:String(o.barcode||""),time:String(o.time||""),notes:String(o.notes||""),prepare:"",dye:""};d.stage=activeStage||stages[0];setImportDraft(d);showToast("🤖 ✅");return;}
 }catch(err){}}
-setImportBusy(null);ocrNow(f);})();
+setImportBusy(null);if(lastErr)showToast("🤖 "+lastErr,"danger");ocrNow(f);})();
 };im.src=rr4.result;};
 rr4.readAsDataURL(f);
 }else{ocrNow(f);}
