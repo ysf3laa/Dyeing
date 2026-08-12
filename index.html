@@ -110,7 +110,7 @@ const [ownerName,setOwnerName]=useState(null);const [nameInput,setNameInput]=use
 const [userId,setUserId]=useState(null);const [isOnline,setIsOnline]=useState(navigator.onLine);
 const [syncStatus,setSyncStatus]=useState("idle");const [onlineUsers,setOnlineUsers]=useState([]);
 const [reportText,setReportText]=useState(null);const [statementFor,setStatementFor]=useState(null);
-const [showWorkers,setShowWorkers]=useState(false);const [photoView,setPhotoView]=useState(null);
+const [showWorkers,setShowWorkers]=useState(false);const [showTopCust,setShowTopCust]=useState(false);const [photoView,setPhotoView]=useState(null);
 const [appQr,setAppQr]=useState(false);const [wipeConfirm,setWipeConfirm]=useState(false);
 const [unlocked,setUnlocked]=useState(()=>localStorage.getItem("dye_unlock")==="1");
 const [codeInput,setCodeInput]=useState("");const [gemKey,setGemKey]=useState(localStorage.getItem("gemini_key")||"");
@@ -137,7 +137,7 @@ const importCamRef=useRef(null);const importGalRef=useRef(null);
 const scannerRef=useRef(null);const restoreRef=useRef(null);const scanMode=useRef("form");
 const gotoDone=useRef(false);
 const uiRef=useRef({});
-uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,photoView,appQr,importMenu,importDraft,showMic};
+uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,photoView,appQr,importMenu,importDraft,showMic,showTopCust};
 const t=DICT[lang];const dir=lang==="ar"?"rtl":"ltr";
 const can=unlocked;
 const theme=dark?{bg:"#171B26",panel:"#1F2635",panelAlt:"#242C3E",border:"#323C52",text:"#EDEFF5",textDim:"#9AA4BD",accent:"#C97A4A",accent2:"#4FB0A5",danger:"#E0616F",warn:"#D6A24F",input:"#242C3E"}:{bg:"#F4F1EA",panel:"#FFFFFF",panelAlt:"#F0ECE3",border:"#DFD9CB",text:"#232016",textDim:"#77705F",accent:"#C97A4A",accent2:"#3F8F86",danger:"#C6414F",warn:"#B5822F",input:"#FBF9F4"};
@@ -147,7 +147,7 @@ const allColors=PRESET_COLORS.concat(customColors);
 const Burger=()=>(<span style={{display:"flex",flexDirection:"column",gap:3}}><span style={{width:18,height:2,background:theme.text,borderRadius:2}}></span><span style={{width:18,height:2,background:theme.text,borderRadius:2}}></span><span style={{width:18,height:2,background:theme.text,borderRadius:2}}></span></span>);
 useEffect(()=>{setFnameDraft(factory.fname);setWaDraft(factory.wa);setLateDraft(factory.lateDays);},[factory.fname,factory.wa,factory.lateDays]);
 useEffect(()=>{history.pushState({guard:1},"");const onPop=()=>{const u=uiRef.current;
-if(u.showMic)setShowMic(false);else if(u.importMenu)setImportMenu(false);else if(u.importDraft)setImportDraft(null);
+if(u.showTopCust)setShowTopCust(false);else if(u.showMic)setShowMic(false);else if(u.importMenu)setImportMenu(false);else if(u.importDraft)setImportDraft(null);
 else if(u.reportText)setReportText(null);else if(u.showScanner)setShowScanner(false);else if(u.bcCard)setBcCard(null);
 else if(u.statementFor)setStatementFor(null);else if(u.showWorkers)setShowWorkers(false);
 else if(u.photoView)setPhotoView(null);else if(u.appQr)setAppQr(false);else if(u.showMenu)setShowMenu(false);
@@ -409,7 +409,7 @@ return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noRe
 <div style={{height:1,background:theme.border,margin:"8px 0"}}/>
 <MenuBtn onClick={()=>{setReportText(buildReport());setShowMenu(false);}} theme={theme}>📊 {t.report}</MenuBtn>
 <MenuBtn onClick={()=>{setStatementFor(knownCustomers[0]?knownCustomers[0].name:"");setShowMenu(false);}} theme={theme}>👥 {t.statement}</MenuBtn>
-<MenuBtn onClick={()=>{setShowWorkers(true);setShowMenu(false);}} theme={theme}>🏆 {t.workers}</MenuBtn>
+<MenuBtn onClick={()=>{setShowWorkers(true);setShowMenu(false);}} theme={theme}>🏆 {t.workers}</MenuBtn> <MenuBtn onClick={()=>{setShowTopCust(true);setShowMenu(false);}} theme={theme}>🏅 أعلى العملاء</MenuBtn>
 <MenuBtn onClick={()=>{exportCSV();setShowMenu(false);}} theme={theme}>💾 {t.backup}</MenuBtn>
 <MenuBtn onClick={()=>{setScreen("archive");setShowMenu(false);}} theme={theme} active={screen==="archive"}>🗄️ {t.archive}</MenuBtn>
 <MenuBtn onClick={()=>{setScreen("log");setShowMenu(false);}} theme={theme} active={screen==="log"}>📋 {t.dailyLog}</MenuBtn>
@@ -475,7 +475,7 @@ return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noRe
 <div onClick={e=>e.stopPropagation()} style={{background:theme.panel,borderRadius:18,padding:20,width:"100%",maxWidth:420,maxHeight:"85vh",overflowY:"auto",border:"1px solid "+theme.border}}>
 <h3 style={{margin:"0 0 12px"}}>👥 {t.statement}</h3>
 <select value={statementFor} onChange={e=>setStatementFor(e.target.value)} style={inputStyle}>{knownCustomers.map(k=><option key={k.name} value={k.name}>{k.name}</option>)}</select>
-{statementFor&&<pre style={{whiteSpace:"pre-wrap",background:theme.panelAlt,borderRadius:10,padding:12,fontSize:13,color:theme.text,fontFamily:"inherit"}}>{buildStatement(statementFor)}</pre>}
+{statementFor&&(<div> {(()=>{const cs=cards.filter(c=>c.customer===statementFor);const q=qtySum(cs);const ph=(knownCustomers.find(k=>k.name===statementFor)||{}).phone||"";const last=cs.reduce((m,c)=>Math.max(m,toMs(c.updatedAt||c.createdAt)),0); return(<div> <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}> {badge(theme.accent,"🃏 "+cs.length)} {badge(theme.accent2,"⚖️ "+q+" "+factory.unit)} {last?badge(theme.warn,"🕐 "+fmtTime(last,lang)):null} </div> {ph&&(<div style={{display:"flex",gap:8,marginBottom:10}}><a href={"tel:"+ph} style={{...btnGhost,textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>📞 {t.call}</a><a href={"https://wa.me/"+ph.replace(/\D/g,"")} target="_blank" rel="noreferrer" style={{...btnGhost,textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>💬 {t.openWhatsapp}</a></div>)} <div style={{display:"flex",flexDirection:"column",gap:6,maxHeight:"40vh",overflowY:"auto",marginBottom:10}}> {cs.slice().sort((a,b)=>toMs(b.updatedAt)-toMs(a.updatedAt)).map(c=>{const si=stages.indexOf(c.stage);const sc=STAGE_COLORS[(si>=0?si:0)%8]; return(<div key={c.id} onClick={()=>{setStatementFor(null);jumpToCard(c);}} style={{cursor:"pointer",background:theme.panelAlt,borderInlineStart:"4px solid "+sc,borderRadius:8,padding:"8px 10px"}}> <div style={{display:"flex",justifyContent:"space-between",fontSize:13}}><b>{c.code||"—"}</b><span style={{color:sc,fontWeight:700}}>{c.stage}</span></div> <div style={{fontSize:12,color:theme.textDim}}>{c.color} — {c.quantity} {factory.unit} · {fmtTime(c.updatedAt||c.createdAt,lang)}</div> </div>);})} </div> <pre style={{whiteSpace:"pre-wrap",background:theme.panelAlt,borderRadius:10,padding:12,fontSize:13,color:theme.text,fontFamily:"inherit"}}>{buildStatement(statementFor)}</pre> </div>);})()} </div>)}
 <div style={{display:"flex",gap:8,marginTop:12}}><button onClick={()=>{try{navigator.clipboard.writeText(buildStatement(statementFor));showToast("✅");}catch(e){}}} style={btnGhost}>{t.copy}</button><a href={waLink(buildStatement(statementFor||""))} target="_blank" rel="noreferrer" style={{...btnPrimary,textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>💬</a></div>
 </div></div>)}
 {showWorkers&&(
@@ -559,7 +559,7 @@ return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noRe
 {[
 ...(can?[{icon:"✏️",label:t.edit,fn:()=>{setEditingCard(actionCard);setActionCard(null);}}]:[]),
 ...(can&&nextStageOf(actionCard.stage)?[{icon:"⏭️",label:t.nextStage,fn:()=>moveCardTo(actionCard,nextStageOf(actionCard.stage))}]:[]),
-{icon:"💬",label:t.shareCard,fn:()=>{window.open(waLink(shareCardText(actionCard)),"_blank");setActionCard(null);}},
+{icon:"👤",label:t.statement,fn:()=>{setStatementFor(actionCard.customer);setActionCard(null);}}, {icon:"💬",label:t.shareCard,fn:()=>{window.open(waLink(shareCardText(actionCard)),"_blank");setActionCard(null);}},
 ...(can?[{icon:"📋",label:t.copyCard,fn:()=>{setCopyCard(actionCard);setActionCard(null);}},
 {icon:"🔄",label:t.moveCard,fn:()=>{setMoveCard(actionCard);setActionCard(null);}},
 {icon:"⭐",label:actionCard.pinned?t.unpin:t.pinCard,fn:()=>togglePin(actionCard)}]:[]),
@@ -630,7 +630,7 @@ return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noRe
 <button onClick={()=>{if(wipeConfirm){wipeAll();}else{setWipeConfirm(true);setTimeout(()=>setWipeConfirm(false),3000);}}} style={{...btnGhost,border:"1px solid "+theme.danger,color:wipeConfirm?"#fff":theme.danger,background:wipeConfirm?theme.danger:"transparent"}}>{wipeConfirm?"⚠️ "+t.wipeSure:"🗑️ "+t.wipe}</button>
 </div></>)}
 </div></div>)}
-{toast&&(<div style={{position:"fixed",bottom:24,left:"50%",transform:"translateX(-50%)",background:toast.kind==="danger"?theme.danger:theme.accent2,color:"#fff",padding:"10px 20px",borderRadius:30,fontSize:14,fontWeight:600,zIndex:999}}>{toast.msg}</div>)}
+{showTopCust&&( <div onClick={()=>setShowTopCust(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}> <div onClick={e=>e.stopPropagation()} style={{background:theme.panel,borderRadius:18,padding:20,width:"100%",maxWidth:360,maxHeight:"80vh",overflowY:"auto",border:"1px solid "+theme.border}}> <h3 style={{margin:"0 0 12px"}}>🏅 أعلى العملاء هذا الشهر</h3> {(()=>{const now=new Date();const mk=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0"); const m={};cards.forEach(c=>{if(c.customer&&localDate(new Date(toMs(c.createdAt||c.updatedAt))).slice(0,7)===mk){m[c.customer]=(m[c.customer]||0)+(parseFloat(c.quantity)||0);}}); const arr=Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,10); if(!arr.length)return <p style={{color:theme.textDim,fontSize:13,textAlign:"center"}}>{t.noResults}</p>; const mx=arr[0][1]||1; return arr.map(([n,q],i)=>(<div key={n} style={{marginBottom:10,cursor:"pointer"}} onClick={()=>{setShowTopCust(false);setStatementFor(n);}}> <div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:4}}><span>{i===0?"🥇":i===1?"🥈":i===2?"🥉":(i+1)+"."} {n}</span><b style={{color:theme.accent}}>{q} {factory.unit}</b></div> <div style={{height:8,borderRadius:6,background:theme.panelAlt}}><div style={{height:8,borderRadius:6,background:STAGE_COLORS[i%8],width:(q/mx)*100+"%"}}/></div> </div>));})()} </div></div>)} {toast&&(<div style={{position:"fixed",bottom:24,left:"50%",transform:"translateX(-50%)",background:toast.kind==="danger"?theme.danger:theme.accent2,color:"#fff",padding:"10px 20px",borderRadius:30,fontSize:14,fontWeight:600,zIndex:999}}>{toast.msg}</div>)}
 </div>);
 }
 function SearchModal({theme,t,cards,onPick,inputStyle}){
