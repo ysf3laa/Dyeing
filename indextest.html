@@ -183,7 +183,7 @@ const [heroTDraft,setHeroTDraft]=useState("");const [heroSDraft,setHeroSDraft]=u
 const [customColors,setCustomColors]=useState([]);
 const [cards,setCards]=useState([]);const [log,setLog]=useState([]);
 const [loads,setLoads]=useState([]);const [showWarehouse,setShowWarehouse]=useState(false);const [addLoad,setAddLoad]=useState(false);const [loadDetail,setLoadDetail]=useState(null);
-const [loadDraft,setLoadDraft]=useState({customer:"",total:"",date:"",notes:""});
+const [loadDraft,setLoadDraft]=useState({customer:"",total:"",date:"",notes:"",category:"",color:"",barcode:"",machine:""});
 const [showLateList,setShowLateList]=useState(false);const [showDelivered,setShowDelivered]=useState(false);const [heroEdit,setHeroEdit]=useState(false);
 const [screen,setScreen]=useState("home");const [activeStage,setActiveStage]=useState(null);
 const [lateOnly,setLateOnly]=useState(false);
@@ -273,7 +273,7 @@ const noteMic=()=>{if(micOn){stopMic();return;}const SR=window.SpeechRecognition
 rec.onresult=e=>{let s="";for(let i=0;i<e.results.length;i++)s+=e.results[i][0].transcript;setEditingCard(c=>c?{...c,notes:(c.notes?c.notes+" ":"")+s}:c);};
 rec.onend=()=>setMicOn(false);rec.onerror=()=>setMicOn(false);rec.start();recRef.current=rec;setMicOn(true);}catch(e){}};
 const loadStats=ld=>{const linked=cards.filter(c=>c.loadId===ld.id);const pulled=linked.reduce((a,c)=>a+(parseFloat(c.quantity)||0),0);const del=linked.reduce((a,c)=>a+(c.delivered?(parseFloat(c.quantity)||0):(parseFloat(c.deliveredQty)||0)),0);const inF=pulled-del;const rem=(parseFloat(ld.total)||0)-pulled;return {pulled:pulled,del:del,inF:inF,rem:rem};};
-const saveLoad=async()=>{if(!can||!db||!loadDraft.customer||!loadDraft.total)return;await db.collection("loads").doc(uid()).set({customer:loadDraft.customer.trim(),total:parseFloat(loadDraft.total)||0,date:loadDraft.date||localDate(new Date()),notes:loadDraft.notes||""});setAddLoad(false);setLoadDraft({customer:"",total:"",date:"",notes:""});showToast("📦 ✅");};
+const saveLoad=async()=>{if(!can||!db||!loadDraft.customer||!loadDraft.total)return;await db.collection("loads").doc(uid()).set({customer:loadDraft.customer.trim(),total:parseFloat(loadDraft.total)||0,date:loadDraft.date||localDate(new Date()),notes:loadDraft.notes||"",category:loadDraft.category||"",color:loadDraft.color||"",barcode:loadDraft.barcode||"",machine:loadDraft.machine||""});setAddLoad(false);setLoadDraft({customer:"",total:"",date:"",notes:"",category:"",color:"",barcode:"",machine:""});showToast("📦 ✅");};
 const toggleDelivered=async c=>{if(!can||!db)return;await db.collection("cards").doc(c.id).set({delivered:!c.delivered},{merge:true});await addLog(!c.delivered?"تسليم":"إلغاء تسليم",c);setActionCard(null);};
 const partialDeliver=async(c,q)=>{if(!can||!db)return;const v=Math.min(parseFloat(q)||0,parseFloat(c.quantity)||0);await db.collection("cards").doc(c.id).set({deliveredQty:v,delivered:v>=(parseFloat(c.quantity)||0)},{merge:true});await addLog("تسليم جزئي",c,String(v));setActionCard(null);};
 const saveHero=()=>{if(!can||!db)return;saveFactory({heroT:heroTDraft.trim(),heroS:heroSDraft.trim()});setHeroEdit(false);showToast("🎨 ✅");};
@@ -558,8 +558,23 @@ return(<div key={c.id} className="card anim" onClick={()=>{setShowDelivered(fals
 <div style={{width:64,height:64,borderRadius:20,background:"rgba(255,255,255,.18)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:30,margin:"0 auto 10px",animation:"floaty 3s infinite"}}>📦</div>
 <div style={{fontSize:18,fontWeight:900}}>المخزن الرئيسي</div>
 <div style={{fontSize:12,color:"#E4DCFF",margin:"4px 0 10px"}}>استلام وفحص وتسجيل الحمولات</div>
-{can&&<button onClick={()=>setAddLoad(true)} className="btnG" style={{background:"rgba(255,255,255,.2)",boxShadow:"none"}}>➕ إضافة حمولة</button>}
+{can&&<button onClick={()=>setAddLoad(!addLoad)} className="btnG" style={{background:"rgba(255,255,255,.2)",boxShadow:"none"}}>➕ إضافة حمولة</button>}
 </div>
+{addLoad&&(
+<div className="card anim" style={{marginBottom:12,borderColor:"var(--vio)"}}>
+<div className="lbl">👤 العميل / المورد</div><input className="inp" list="customersList" value={loadDraft.customer} onChange={e=>setLoadDraft({...loadDraft,customer:e.target.value})}/>
+<div style={grid2}>
+<div><div className="lbl">الصنف</div><input className="inp" value={loadDraft.category||""} onChange={e=>setLoadDraft({...loadDraft,category:e.target.value})}/></div>
+<div><div className="lbl">اللون</div><input className="inp" value={loadDraft.color||""} onChange={e=>setLoadDraft({...loadDraft,color:e.target.value})}/></div></div>
+<div style={grid2}>
+<div><div className="lbl">الإجمالي ({factory.unit})</div><input className="inp" type="number" value={loadDraft.total} onChange={e=>setLoadDraft({...loadDraft,total:e.target.value})}/></div>
+<div><div className="lbl">باركود</div><input className="inp" value={loadDraft.barcode||""} onChange={e=>setLoadDraft({...loadDraft,barcode:e.target.value})}/></div></div>
+<div style={grid2}>
+<div><div className="lbl">التاريخ</div><input type="date" className="inp" value={loadDraft.date} onChange={e=>setLoadDraft({...loadDraft,date:e.target.value})}/></div>
+<div><div className="lbl">ماكينة</div><input className="inp" value={loadDraft.machine||""} onChange={e=>setLoadDraft({...loadDraft,machine:e.target.value})}/></div></div>
+<div className="lbl">ملاحظات</div><textarea rows={2} className="inp" value={loadDraft.notes} onChange={e=>setLoadDraft({...loadDraft,notes:e.target.value})}/>
+<div style={{display:"flex",gap:8}}><button onClick={saveLoad} className="btnG">💾 حفظ الحمولة</button><button onClick={()=>setAddLoad(false)} className="btnO">{t.cancel}</button></div>
+</div>)}
 <div className="card" style={{marginBottom:12,padding:12}}>
 <div className="lbl">إحصائيات المخزن</div>
 <div style={{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:"1px solid "+theme.border}}><span style={{color:theme.textDim,fontSize:13}}>📦 متبقي</span><b>{Math.round(wh.rem)} {factory.unit}</b></div>
@@ -570,6 +585,7 @@ return(<div key={c.id} className="card anim" onClick={()=>{setShowDelivered(fals
 {loads.slice().sort((a,b)=>(b.date||"").localeCompare(a.date||"")).map((ld,i)=>{const s=loadStats(ld);const pct=Math.max(0,Math.min(100,(s.rem/(parseFloat(ld.total)||1))*100));
 return(<div key={ld.id} className="card" onClick={()=>setLoadDetail(ld.id)} style={{cursor:"pointer",marginBottom:10,animationDelay:(i*80)+"ms"}}>
 <div style={{display:"flex",justifyContent:"space-between"}}><b>{ld.customer}</b><span style={{fontSize:11,color:theme.textDim}}>{ld.date}</span></div>
+{(ld.category||ld.color||ld.barcode)&&<div style={{fontSize:12,color:theme.textDim,marginTop:4}}>{ld.category||""} {ld.color?"· "+ld.color:""} {ld.barcode?"· 🔳 "+ld.barcode:""}</div>}
 <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:6}}>
 {badge("var(--blue)","📦 متبقي "+s.rem)}
 {badge("var(--warn)","🏭 شغال "+s.inF)}
@@ -577,17 +593,6 @@ return(<div key={ld.id} className="card" onClick={()=>setLoadDetail(ld.id)} styl
 </div>
 <div className="bar" style={{marginTop:8}}><i style={{width:pct+"%",background:s.rem<0?"var(--red)":"var(--vio)"}}/></div>
 </div>);})}
-</div></div>)}
-{addLoad&&(
-<div className="modal" onClick={()=>setAddLoad(false)}>
-<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:380}}>
-<h3 style={{margin:"0 0 12px"}}>🚛 إضافة حمولة</h3>
-<div className="lbl">{t.customer}</div><input className="inp" list="customersList" value={loadDraft.customer} onChange={e=>setLoadDraft({...loadDraft,customer:e.target.value})}/>
-<div style={grid2}>
-<div><div className="lbl">الإجمالي ({factory.unit})</div><input className="inp" type="number" value={loadDraft.total} onChange={e=>setLoadDraft({...loadDraft,total:e.target.value})}/></div>
-<div><div className="lbl">{t.time}</div><input type="date" className="inp" value={loadDraft.date} onChange={e=>setLoadDraft({...loadDraft,date:e.target.value})}/></div></div>
-<div className="lbl">{t.notes}</div><textarea rows={2} className="inp" value={loadDraft.notes} onChange={e=>setLoadDraft({...loadDraft,notes:e.target.value})}/>
-<div style={{display:"flex",gap:8,marginTop:8}}><button onClick={saveLoad} className="btnG">💾 {t.save}</button><button onClick={()=>setAddLoad(false)} className="btnO">{t.cancel}</button></div>
 </div></div>)}
 {loadDetail&&(
 <div className="modal" onClick={()=>setLoadDetail(null)}>
