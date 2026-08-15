@@ -1,5 +1,7 @@
 name: fetch-libs
 on: workflow_dispatch
+permissions:
+  contents: write
 jobs:
   get:
     runs-on: ubuntu-latest
