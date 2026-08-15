@@ -1,37 +1,108 @@
 <!DOCTYPE html>
-<html dir="rtl">
-<head><meta charset="UTF-8"><title>Test</title></head>
-<body style="font-family:sans-serif;padding:20px;background:#171B26;color:#fff">
-<h2>🧪 اختبار المكتبات</h2>
-<div id="r1">1️⃣ React: <span style="color:#E0616F">⏳</span></div>
-<div id="r2">2️⃣ ReactDOM: <span style="color:#E0616F">⏳</span></div>
-<div id="r3">3️⃣ Babel: <span style="color:#E0616F">⏳</span></div>
-<div id="r4">4️⃣ Firebase: <span style="color:#E0616F">⏳</span></div>
-<div id="r5">5️⃣ JSX compile: <span style="color:#E0616F">⏳</span></div>
-<div id="r6" style="margin-top:20px;padding:10px;background:#242C3E;border-radius:8px">⏳ استنى...</div>
-
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>اختبار المخزن</title>
+</head>
+<body>
+<div id="root"><div style="padding:30px;text-align:center">⏳ جاري التحميل...</div></div>
 <script src="lib/react.js"></script>
-<script>document.getElementById('r1').innerHTML='1️⃣ React: <span style="color:#4FB0A5">✅ '+(typeof React!=='undefined'?'v'+React.version:'فشل')+'</span>';</script>
-
 <script src="lib/reactdom.js"></script>
-<script>document.getElementById('r2').innerHTML='2️⃣ ReactDOM: <span style="color:#4FB0A5">✅ '+(typeof ReactDOM!=='undefined'?'شغال':'فشل')+'</span>';</script>
-
 <script src="lib/babel.js"></script>
-<script>document.getElementById('r3').innerHTML='3️⃣ Babel: <span style="color:#4FB0A5">✅ '+(typeof Babel!=='undefined'?'شغال':'فشل')+'</span>';</script>
-
 <script src="lib/fbapp.js"></script>
 <script src="lib/fbauth.js"></script>
 <script src="lib/fbfs.js"></script>
-<script>document.getElementById('r4').innerHTML='4️⃣ Firebase: <span style="color:#4FB0A5">✅ '+(typeof firebase!=='undefined'?'شغال':'فشل')+'</span>';</script>
-
-<script type="text/babel">
-const Test=()=><div style={{color:'#4FB0A5',fontWeight:'bold'}}>✅ JSX compile شغال 100%</div>;
+<script>
+var st="React:"+(window.React?"✅":"❌")+" ReactDOM:"+(window.ReactDOM?"✅":"❌")+" Babel:"+(window.Babel?"✅":"❌")+" Firebase:"+(window.firebase?"✅":"❌");
+document.getElementById("root").innerHTML='<div style="padding:10px;font-size:14px;background:#eee">'+st+'</div><div id="app" style="padding:20px;text-align:center">⏳...</div>';
+</script>
+<script type="text/babel" data-presets="react">
+const {useState,useEffect}=React;
+const firebaseConfig={apiKey:"AIzaSyBEplMzCUPbZ33vpctAegDvCLFLB2d_Psc",authDomain:"dyeing-tracker-cc789.firebaseapp.com",projectId:"dyeing-tracker-cc789",storageBucket:"dyeing-tracker-cc789.firebasestorage.app",messagingSenderId:"407184511418",appId:"1:407184511418:web:16512177012e5a6ded0d83",measurementId:"G-V3ST7W6VVN"};
+firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth();
+const db=firebase.firestore();
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+const localDate=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const inp={width:"100%",boxSizing:"border-box",padding:10,borderRadius:8,border:"1px solid #323C52",background:"#242C3E",color:"#EDEFF5",marginBottom:8,fontSize:15};
+const btn={padding:"10px 16px",borderRadius:10,border:"none",background:"#C97A4A",color:"#fff",fontWeight:700,fontSize:14};
+function App(){
+const [ready,setReady]=useState(false);
+const [loads,setLoads]=useState([]);
+const [cards,setCards]=useState([]);
+const [form,setForm]=useState({customer:"",total:"",notes:""});
+const [showAdd,setShowAdd]=useState(false);
+const [selId,setSelId]=useState(null);
+const [msg,setMsg]=useState("");
+useEffect(()=>{
+auth.signInAnonymously().then(()=>{
+db.collection("loads").onSnapshot(sn=>{setLoads(sn.docs.map(d=>({id:d.id,...d.data()})));});
+db.collection("cards").onSnapshot(sn=>{setCards(sn.docs.map(d=>({id:d.id,...d.data()})));});
+setReady(true);
+}).catch(e=>{setMsg("❌ خطأ دخول: "+e.message);setReady(true);});
+},[]);
+const stats=ld=>{
+const linked=cards.filter(c=>c.loadId===ld.id);
+const pulled=linked.reduce((a,c)=>a+(parseFloat(c.quantity)||0),0);
+const del=linked.reduce((a,c)=>a+(c.delivered?(parseFloat(c.quantity)||0):(parseFloat(c.deliveredQty)||0)),0);
+return {pulled:pulled,del:del,inF:pulled-del,rem:(parseFloat(ld.total)||0)-pulled};
+};
+const add=async()=>{
+if(!form.customer||!form.total)return;
 try{
-  ReactDOM.createRoot(document.getElementById('r5')).render(<Test/>);
-  document.getElementById('r6').innerHTML='<span style="color:#4FB0A5;font-weight:bold">🎉 كل حاجة تمام — المشكلة في الكود الكبير مش في المكتبات</span>';
-}catch(e){
-  document.getElementById('r6').innerHTML='<span style="color:#E0616F">❌ خطأ: '+e.message+'</span>';
+await db.collection("loads").doc(uid()).set({customer:form.customer.trim(),total:parseFloat(form.total)||0,date:localDate(new Date()),notes:form.notes||""});
+setShowAdd(false);setForm({customer:"",total:"",notes:""});setMsg("✅ الحمولة اتضافت");
+}catch(e){setMsg("❌ "+e.message);}
+};
+const delLoad=async id=>{
+if(!confirm("حذف الحمولة؟"))return;
+await db.collection("loads").doc(id).delete();
+setSelId(null);setMsg("🗑️ اتحذفت");
+};
+if(!ready)return <div style={{padding:30,textAlign:"center"}}>⏳ {msg||"جاري التحميل..."}</div>;
+const sel=loads.find(l=>l.id===selId)||null;
+const selStats=sel?stats(sel):null;
+const linked=sel?cards.filter(c=>c.loadId===sel.id):[];
+return(
+<div style={{fontFamily:"system-ui",background:"#171B26",color:"#EDEFF5",minHeight:"100vh",padding:16}}>
+<h2 style={{margin:"0 0 12px"}}>📦 اختبار المخزن</h2>
+{msg!==""&&<div style={{background:"#242C3E",padding:10,borderRadius:8,marginBottom:10,fontSize:14}}>{msg}</div>}
+{!sel&&<button onClick={()=>setShowAdd(!showAdd)} style={btn}>➕ إضافة حمولة</button>}
+{!sel&&showAdd&&(
+<div style={{background:"#1F2635",padding:12,borderRadius:12,margin:"10px 0"}}>
+<input placeholder="اسم العميل" value={form.customer} onChange={e=>setForm({...form,customer:e.target.value})} style={inp}/>
+<input placeholder="الإجمالي (كيلو)" type="number" value={form.total} onChange={e=>setForm({...form,total:e.target.value})} style={inp}/>
+<input placeholder="ملاحظات" value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} style={inp}/>
+<button onClick={add} style={btn}>💾 حفظ</button>
+</div>)}
+{sel&&(
+<div style={{background:"#1F2635",padding:12,borderRadius:12}}>
+<button onClick={()=>setSelId(null)} style={{...btn,background:"#323C52",marginBottom:10}}>→ رجوع</button>
+<h3 style={{margin:"6px 0"}}>🚛 {sel.customer} — {sel.total} كيلو</h3>
+<div style={{fontSize:14,marginBottom:10}}>📦 متبقي {selStats.rem} · 🏭 شغال {selStats.inF} · ✅ اتسلم {selStats.del}</div>
+{linked.length===0&&<p style={{color:"#9AA4BD",fontSize:13}}>لا توجد كروت مرتبطة بالحمولة دي</p>}
+{linked.map(c=>(
+<div key={c.id} style={{background:"#242C3E",padding:10,borderRadius:8,margin:"6px 0",fontSize:14}}>
+{c.code||"—"} — {c.quantity} — {c.stage}{c.delivered?" ✅ مسلّم":(c.deliveredQty?" ⚖️ "+c.deliveredQty:"")}
+</div>))}
+<button onClick={()=>delLoad(sel.id)} style={{...btn,background:"#E0616F",marginTop:10}}>🗑️ حذف الحمولة</button>
+</div>)}
+{!sel&&(
+<div>
+{loads.length===0&&<p style={{color:"#9AA4BD"}}>لا توجد حمولات لسه — دوس ➕ وضيف واحدة وجرب</p>}
+{loads.slice().sort((a,b)=>(b.date||"").localeCompare(a.date||"")).map(ld=>{
+const st=stats(ld);
+return (
+<div key={ld.id} onClick={()=>setSelId(ld.id)} style={{background:"#1F2635",padding:12,borderRadius:12,margin:"8px 0",cursor:"pointer"}}>
+<div style={{display:"flex",justifyContent:"space-between"}}><b>{ld.customer}</b><span style={{color:"#9AA4BD",fontSize:12}}>{ld.date}</span></div>
+<div style={{fontSize:13,color:"#9AA4BD",marginTop:4}}>📦 متبقي {st.rem} · 🏭 شغال {st.inF} · ✅ اتسلم {st.del} · الإجمالي {ld.total}</div>
+</div>
+);})}
+</div>)}
+</div>);
 }
+ReactDOM.createRoot(document.getElementById("app")).render(<App/>);
 </script>
 </body>
 </html>
