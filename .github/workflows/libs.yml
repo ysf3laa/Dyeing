@@ -1,0 +1,27 @@
+name: fetch-libs
+on: workflow_dispatch
+jobs:
+  get:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download libs
+        run: |
+          mkdir -p lib
+          curl -sL -o lib/react.js https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js
+          curl -sL -o lib/reactdom.js https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js
+          curl -sL -o lib/babel.js https://cdn.jsdelivr.net/npm/@babel/standalone@7.23.5/babel.min.js
+          curl -sL -o lib/fbapp.js https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js
+          curl -sL -o lib/fbauth.js https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js
+          curl -sL -o lib/fbfs.js https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js
+          curl -sL -o lib/jsbarcode.js https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.min.js
+          curl -sL -o lib/qrcode.js https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js
+          curl -sL -o lib/html5qrcode.js https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js
+          curl -sL -o lib/tesseract.js https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js
+      - name: Commit
+        run: |
+          git config user.name "ysf3laa"
+          git config user.email "ysf3laa@users.noreply.github.com"
+          git add lib
+          git commit -m "add libs"
+          git push
