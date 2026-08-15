@@ -22,7 +22,7 @@ fieldset{border:none;margin:0;padding:0;min-width:0}
 <script>
 window.onerror=function(m,u,l){if(m&&m!=="Script error."&&!window.__booted){var r=document.getElementById("root");if(r)r.innerHTML='<div style="padding:16px;color:#E0616F;font-size:12px;word-break:break-all;text-align:center">خطأ: '+m+'<br>سطر: '+l+'</div>';}};
 window.addEventListener("unhandledrejection",function(e){e.preventDefault();console.warn(e.reason);});
-setTimeout(function(){if(!window.__booted){var r=document.getElementById("root");if(r&&r.innerHTML.indexOf("خطأ")===-1)r.innerHTML='<div style="padding:20px;color:#E0616F;text-align:center;font-size:13px">⚠️ مكتبات التطبيق محملتش<br>اقفل الـ VPN أو غيّر الشبكة وبعدين اعمل تحديث</div>';}},9000);
+setTimeout(function(){if(!window.__booted){var r=document.getElementById("root");if(r&&r.innerHTML.indexOf("خطأ")===-1)r.innerHTML='<div style="padding:20px;color:#E0616F;text-align:center;font-size:13px">⚠️ مكتبات التطبيق محملتش<br>اقفل الـ VPN أو غيّر الشبكة وبعدين اعمل تحديث</div>';}},30000);
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script>if(!window.React)document.write('<script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"><\/script>');</script>
@@ -70,7 +70,7 @@ function BarcodeView({value,h}){const r=useRef(null);useEffect(()=>{if(r.current
 function QrView({value,size}){const r=useRef(null);useEffect(()=>{if(r.current&&value&&window.QRCode){r.current.innerHTML="";try{new QRCode(r.current,{text:String(value),width:size||200,height:size||200,correctLevel:QRCode.CorrectLevel.M});}catch(e){}}},[value,size]);if(!window.QRCode)return <div style={{fontSize:12,padding:8}}>{value}</div>;return <div ref={r} style={{display:"inline-block",background:"#fff",borderRadius:12,padding:8}}/>;}
 function parseVoice(txt){
 const d={customer:"",message:"",code:"",machine:"",category:"",color:"",quantity:"",barcode:"",prepare:"",dye:"",time:"",notes:""};
-let t2=(txt||"").replace(/[٠-٩]/g,function(dd){return String("٠١٢٣٤٥٦٧٨٩".indexOf(dd));});
+let t2=(txt||"").replace(/[٠-٩]/g,function(dd){return String("٠١٢٤٥٦٨٩".indexOf(dd));});
 t2=t2.split(/\s+/).filter(function(w,i,a){return w&&w!==a[i-1];}).join(" ");
 const KW={customer:/عميل|العميل|customer|client/,code:/كود|code/,message:/رسالة|message|batch/,machine:/ماكينة|machine/,category:/صنف|خامة|category|fabric/,color:/لون|اللون|color/,quantity:/كمية|وزن|quantity|qty|weight/,barcode:/باركود|barcode/,time:/تاريخ|date/,notes:/ملاحظ|طلبات|note/};
 const STRIP=/^(عميل|العميل|customer|client|كود|code|رسالة|message|batch|ماكينة|machine|صنف|خامة|category|fabric|لون|اللون|color|كمية|وزن|quantity|qty|weight|باركود|barcode|تاريخ|date|ملاحظ|ملاحظات|طلبات|notes?)$/i;
@@ -807,3 +807,4 @@ window.__booted=true;
 </script>
 </body>
 </html>
+  
