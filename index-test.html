@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html dir="rtl">
+<head><meta charset="UTF-8"><title>Test</title></head>
+<body style="font-family:sans-serif;padding:20px;background:#171B26;color:#fff">
+<h2>🧪 اختبار المكتبات</h2>
+<div id="r1">1️⃣ React: <span style="color:#E0616F">⏳</span></div>
+<div id="r2">2️⃣ ReactDOM: <span style="color:#E0616F">⏳</span></div>
+<div id="r3">3️⃣ Babel: <span style="color:#E0616F">⏳</span></div>
+<div id="r4">4️⃣ Firebase: <span style="color:#E0616F">⏳</span></div>
+<div id="r5">5️⃣ JSX compile: <span style="color:#E0616F">⏳</span></div>
+<div id="r6" style="margin-top:20px;padding:10px;background:#242C3E;border-radius:8px">⏳ استنى...</div>
+
+<script src="lib/react.js"></script>
+<script>document.getElementById('r1').innerHTML='1️⃣ React: <span style="color:#4FB0A5">✅ '+(typeof React!=='undefined'?'v'+React.version:'فشل')+'</span>';</script>
+
+<script src="lib/reactdom.js"></script>
+<script>document.getElementById('r2').innerHTML='2️⃣ ReactDOM: <span style="color:#4FB0A5">✅ '+(typeof ReactDOM!=='undefined'?'شغال':'فشل')+'</span>';</script>
+
+<script src="lib/babel.js"></script>
+<script>document.getElementById('r3').innerHTML='3️⃣ Babel: <span style="color:#4FB0A5">✅ '+(typeof Babel!=='undefined'?'شغال':'فشل')+'</span>';</script>
+
+<script src="lib/fbapp.js"></script>
+<script src="lib/fbauth.js"></script>
+<script src="lib/fbfs.js"></script>
+<script>document.getElementById('r4').innerHTML='4️⃣ Firebase: <span style="color:#4FB0A5">✅ '+(typeof firebase!=='undefined'?'شغال':'فشل')+'</span>';</script>
+
+<script type="text/babel">
+const Test=()=><div style={{color:'#4FB0A5',fontWeight:'bold'}}>✅ JSX compile شغال 100%</div>;
+try{
+  ReactDOM.createRoot(document.getElementById('r5')).render(<Test/>);
+  document.getElementById('r6').innerHTML='<span style="color:#4FB0A5;font-weight:bold">🎉 كل حاجة تمام — المشكلة في الكود الكبير مش في المكتبات</span>';
+}catch(e){
+  document.getElementById('r6').innerHTML='<span style="color:#E0616F">❌ خطأ: '+e.message+'</span>';
+}
+</script>
+</body>
+</html>
