@@ -285,7 +285,7 @@ const saveLoad=async()=>{if(!can||!db||!loadDraft.customer||!loadDraft.total)ret
 const toggleDelivered=async c=>{if(!can||!db)return;await db.collection("cards").doc(c.id).set({delivered:!c.delivered},{merge:true});await addLog(!c.delivered?"تسليم":"إلغاء تسليم",c);setActionCard(null);};
 const partialDeliver=async(c,q)=>{if(!can||!db)return;const v=Math.min(parseFloat(q)||0,parseFloat(c.quantity)||0);await db.collection("cards").doc(c.id).set({deliveredQty:v,delivered:v>=(parseFloat(c.quantity)||0)},{merge:true});await addLog("تسليم جزئي",c,String(v));setActionCard(null);};
 const saveHero=()=>{if(!can||!db)return;saveFactory({heroT:heroTDraft.trim(),heroS:heroSDraft.trim()});setHeroEdit(false);showToast("🎨 ✅");};
-const saveAnnounce=()=>{if(!can||!db)return;db.collection("config").doc("announce").set({text:announceDraft.trim(),by:ownerName||"",time:Date.now()});setShowAnnounce(false);showToast("📢 اتنشر");};
+const saveAnnounce=()=>{if(!can||!db)return;const el=document.getElementById("annBox");const txt=el?el.value:"";db.collection("config").doc("announce").set({text:txt.trim(),by:ownerName||"",time:Date.now()});setShowAnnounce(false);showToast("📢 اتنشر");};
 const saveDefect=async()=>{if(!can||!db||!defectFor)return;await db.collection("defects").doc(uid()).set({cardId:defectFor.id,customer:defectFor.customer||"",code:defectFor.code||"",stage:defectFor.stage||"",reason:defectDraft.reason||"",qty:defectDraft.qty||"",notes:defectDraft.notes||"",by:ownerName||"",time:Date.now(),date:localDate(new Date())});setDefectFor(null);setDefectDraft({reason:"",qty:"",notes:""});showToast("⚠️ تم التسجيل");};
 const saveFactory=patch=>{if(!can||!db)return;db.collection("config").doc("factory").set({...factory,...patch},{merge:true});};
 const saveFactoryDrafts=()=>{saveFactory({fname:fnameDraft.trim()||"متابعة الصباغة",wa:waDraft.trim(),lateDays:+lateDraft||2,heroT:heroTDraft.trim(),heroS:heroSDraft.trim()});showToast("✅");};
@@ -646,7 +646,7 @@ return(<div><h3 style={{margin:"0 0 8px"}}>🚛 {ld.customer} — {ld.total} {fa
 <div className="modal" onClick={()=>setShowAnnounce(false)}>
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:380}}>
 <h3 style={{margin:"0 0 10px"}}>📢 إعلان لكل العمال</h3>
-<textarea rows={3} className="inp" value={announceDraft} onChange={e=>setAnnounceDraft(e.target.value)} placeholder="اكتب الإعلان... هيظهر فوق عند كل الأجهزة فوراً"/>
+<textarea id="annBox" rows={3} className="inp" defaultValue={(announce&&announce.text)||""} placeholder="اكتب الإعلان... هيظهر فوق عند كل الأجهزة فوراً"/>
 <div style={{display:"flex",gap:8}}>
 <button onClick={saveAnnounce} className="btnG">📢 نشر</button>
 <button onClick={()=>{if(!can||!db)return;db.collection("config").doc("announce").set({text:"",by:"",time:Date.now()});setShowAnnounce(false);showToast("🗑️");}} className="btnO">🗑️ مسح الإعلان</button>
