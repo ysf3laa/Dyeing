@@ -395,7 +395,8 @@ const donePct=totalQty>0?Math.min(100,Math.round((wh.del/totalQty)*100)):0;
 const nCards=useCountUp(liveCards.length);const nLate=useCountUp(lateCount);const nRem=useCountUp(Math.round(wh.rem));const nDel=useCountUp(Math.round(wh.del));
 const grid2={display:"grid",gridTemplateColumns:"1fr 1fr",gap:10};
 const S_ICONS=["🚛","🧪","⚙️","🧵","","🏭","✅","🎯"];
-const annVisible=!!(announce&&announce.text)&&annDismissed!==String(announce.time);<span className="badge" style={{background:c}}>{x}</span>;
+const annVisible=!!(announce&&announce.text)&&annDismissed!==String(announce.time);
+const badge=(c,x)=><span className="badge" style={{background:c}}>{x}</span>;
 const rawD=(()=>{try{return new URLSearchParams(window.location.search).get("d");}catch(e){return null;}})();
 const pubData=(()=>{if(!rawD)return null;try{return b64d(rawD);}catch(e){return null;}})();
 if(pubData&&!new URLSearchParams(window.location.search).get("goto"))return(<div dir="rtl" style={{minHeight:"100vh",background:"#fff",color:"#232016",display:"flex",alignItems:"center",justifyContent:"center",padding:20,fontFamily:"system-ui,sans-serif"}}>
