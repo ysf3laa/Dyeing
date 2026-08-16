@@ -187,6 +187,7 @@ const [loadDraft,setLoadDraft]=useState({customer:"",total:"",date:"",notes:"",c
 const [showLateList,setShowLateList]=useState(false);const [showDelivered,setShowDelivered]=useState(false);const [heroEdit,setHeroEdit]=useState(false);
 const [screen,setScreen]=useState("home");const [activeStage,setActiveStage]=useState(null);
 const [lateOnly,setLateOnly]=useState(false);
+const [stageQ,setStageQ]=useState("");
 const [showSettings,setShowSettings]=useState(false);const [showSearch,setShowSearch]=useState(false);
 const [showMenu,setShowMenu]=useState(false);const [showScanner,setShowScanner]=useState(false);
 const [bcCard,setBcCard]=useState(null);const [nameDraft,setNameDraft]=useState("");
@@ -368,7 +369,7 @@ const isLate=c=>daysSince(c.updatedAt||c.createdAt)>=1;
 const dueInfo=c=>{if(!c.due)return null;const today=localDate(new Date());if(c.due<today)return{txt:t.overdue,col:theme.danger};if((new Date(c.due).getTime()-new Date(today).getTime())/86400000<=1)return{txt:t.dueSoon,col:theme.warn};return null;};
 const liveCards=cards.filter(c=>!c.archived);
 const archivedCards=cards.filter(c=>c.archived);
-const cardsToShow=activeStage?liveCards.filter(c=>c.stage===activeStage).filter(c=>!lateOnly||isLate(c)).sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||toMs(b.updatedAt)-toMs(a.updatedAt)):[];
+const cardsToShow=activeStage?liveCards.filter(c=>c.stage===activeStage).filter(c=>!lateOnly||isLate(c)).filter(c=>{const q=stageQ.trim().toLowerCase();if(!q)return true;return FIELD_KEYS.some(k=>((c[k]||"")+"").toLowerCase().includes(q));}).sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||toMs(b.updatedAt)-toMs(a.updatedAt)):[];
 const statusMsg=syncStatus==="syncing"?t.syncing:syncStatus==="synced"?t.synced:(isOnline?t.online:t.offline);
 const statusColor=syncStatus==="syncing"?theme.warn:syncStatus==="synced"?theme.accent2:(isOnline?theme.accent2:theme.danger);
 const onlineNames=[...new Set(onlineUsers.map(u=>u.name))];
@@ -405,6 +406,7 @@ return(
 <div className="anim" style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
 <div style={{width:44,height:44,borderRadius:50,background:"linear-gradient(135deg,var(--vio),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,boxShadow:"0 6px 18px rgba(124,92,255,.4)"}}>{(ownerName||"؟")[0]}</div>
 <div style={{flex:1}}><div style={{fontSize:12,color:theme.textDim}}>👋 مرحباً يا {ownerName}</div><div style={{fontSize:20,fontWeight:900}}>{factory.fname}</div></div>
+<button onClick={()=>setShowSearch(true)} style={hdrBtn}>🔍</button>
 <button onClick={()=>setShowMenu(true)} style={hdrBtn}>️</button>
 </div>
 <div className="card grad anim" style={{animationDelay:"80ms",marginBottom:12,position:"relative",overflow:"hidden"}}>
@@ -463,6 +465,16 @@ return(<div key={s} className="anim" style={{display:"flex",gap:12,marginBottom:
 <button onClick={()=>setScreen("stages")} style={hdrBtn}>→</button>
 <div style={{flex:1}}><div style={{fontSize:19,fontWeight:900}}>{activeStage}</div><div style={{fontSize:11,color:theme.textDim}}>{cardsToShow.length} كرت</div></div>
 <button onClick={()=>setLateOnly(!lateOnly)} className={"chip"+(lateOnly?" on":"")}>{lateOnly?t.lateOnly:t.all}</button>
+</div>
+<div className="card anim" style={{display:"flex",alignItems:"center",gap:8,padding:"10px 14px",marginBottom:14}}>
+<span style={{fontSize:16}}>🔍</span>
+<input value={stageQ} onChange={e=>setStageQ(e.target.value)} placeholder={t.search} style={{flex:1,background:"transparent",border:"none",outline:"none",color:theme.text,fontSize:14}}/>
+{stageQ!==""&&<button onClick={()=>setStageQ("")} style={{background:"none",border:"none",color:theme.textDim,fontSize:16}}>✕</button>}
+</div>
+<div style={{position:"fixed",bottom:86,insetInlineEnd:14,display:"flex",flexDirection:"column",gap:10,zIndex:250}}>
+{can&&<button onClick={()=>{setMicText("");setShowMic(true);}} style={{width:50,height:50,borderRadius:25,border:"none",color:"#fff",fontSize:20,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 8px 20px rgba(0,0,0,.4)",background:"var(--vio)"}}>🎙️</button>}
+{can&&<button onClick={()=>setImportMenu(true)} style={{width:50,height:50,borderRadius:25,border:"none",color:"#fff",fontSize:20,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 8px 20px rgba(0,0,0,.4)",background:"var(--teal)"}}>📄</button>}
+<button onClick={()=>{scanMode.current="quick";setShowScanner(true);}} style={{width:50,height:50,borderRadius:25,border:"none",color:"#fff",fontSize:20,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 8px 20px rgba(0,0,0,.4)",background:"var(--warn)"}}>📷</button>
 </div>
 {cardsToShow.length===0&&<p style={{textAlign:"center",padding:"50px 10px",color:theme.textDim}}>{t.noCardsHere}</p>}
 {cardsToShow.map((c,i)=>{const d=daysSince(c.updatedAt||c.createdAt);const l1=d>=1&&d<LD;const l2=d>=LD;const lk=liveCards.filter(x=>x.message&&x.message===c.message&&x.id!==c.id).length;const di=dueInfo(c);const bc=c.urgent?"var(--red)":l2?"var(--red)":l1?"var(--warn)":di?di.col:STAGE_COLORS[(stages.indexOf(c.stage)>=0?stages.indexOf(c.stage):0)%8];
