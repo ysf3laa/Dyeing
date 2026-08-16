@@ -9,7 +9,7 @@
 :root{--bg:#0B0E1A;--panel:#141829;--panel2:#1B2036;--line:#242B47;--txt:#EDEFF5;--dim:#8A93B5;--vio:#7C5CFF;--vio2:#9F7CFF;--blue:#5E8FD6;--teal:#2DD4A8;--red:#FF5C7A;--warn:#FFB65C}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:'Tajawal',system-ui,sans-serif;background:radial-gradient(900px 480px at 85% -10%,rgba(124,92,255,.14),transparent),radial-gradient(700px 400px at -10% 30%,rgba(45,212,168,.07),transparent),var(--bg);color:var(--txt);min-height:100vh}
-input,select,textarea,button{font-family:inherit}button{cursor:pointer}
+input,select,textarea,button{font-family:inherit;color:var(--txt)}button{cursor:pointer}
 fieldset{border:none;margin:0;padding:0;min-width:0}
 @keyframes spin{to{transform:rotate(360deg)}}
 .spin{animation:spin 1s linear infinite;display:inline-block}
@@ -187,6 +187,7 @@ const [loadDraft,setLoadDraft]=useState({customer:"",total:"",date:"",notes:"",c
 const [showLateList,setShowLateList]=useState(false);const [showDelivered,setShowDelivered]=useState(false);const [heroEdit,setHeroEdit]=useState(false);
 const [screen,setScreen]=useState("home");const [activeStage,setActiveStage]=useState(null);
 const [lateOnly,setLateOnly]=useState(false);
+const [stageQ,setStageQ]=useState("");
 const [showSettings,setShowSettings]=useState(false);const [showSearch,setShowSearch]=useState(false);
 const [showMenu,setShowMenu]=useState(false);const [showScanner,setShowScanner]=useState(false);
 const [bcCard,setBcCard]=useState(null);const [nameDraft,setNameDraft]=useState("");
@@ -342,6 +343,7 @@ stages.forEach(st=>{const cs=live.filter(c=>c.stage===st);const q=qtySum(cs);s+=
 const buildStatement=n=>{const cs=cards.filter(c=>c.customer===n);let s="👥 "+t.statement+" — "+n+"\n\n";cs.forEach(c=>{s+="• "+(c.code||"—")+" | "+(c.color||"—")+" | "+(c.quantity||"—")+" | "+(c.stage||"—")+(c.delivered?" | ✅":"")+"\n";});s+="\n⚖️ "+qtySum(cs)+" "+factory.unit;return s;};
 const workerStats=()=>{const today=localDate(new Date());const m={};log.forEach(e=>{if(localDate(new Date(toMs(e.time||e.timeLocal)))===today)m[e.person]=(m[e.person]||0)+1;});return Object.entries(m).sort((a,b)=>b[1]-a[1]);};
 const shareCardText=c=>{let s="🏭 "+factory.fname+"\n👤 "+(c.customer||"—")+"\n🔢 "+(c.code||"—")+"\n🎨 "+(c.color||"—")+"\n⚖️ "+(c.quantity||"—")+" "+factory.unit+"\n📍 "+(c.stage||"—")+"\n";if(c.due)s+="📅 "+c.due+"\n";if(c.barcode)s+="🔳 "+c.barcode+"\n";return s;};
+const exportSheet=(list,fname)=>{const h=["المرحلة","اسم العميل","الكود","الرسالة","اللون","الصنف","الكمية","الباركود","الملاحظات"];const rows=list.map(c=>[c.stage||"",c.customer||"",c.code||"",c.message||"",c.color||"",c.category||"",c.quantity||"",c.barcode||"",c.notes||(c.stage==="موقوف"?"موقوف":"")]);const csv="\uFEFF"+[h].concat(rows).map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(",")).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download=(fname||"sheet")+".csv";a.click();showToast("💾 ✅");};
 const exportCSV=()=>{const h=["code","customer","message","category","color","quantity","barcode","machine","prepare","dye","time","notes","phone","address","stage","due"];const r=cards.map(c=>h.map(x=>'"'+String(c[x]??"" ).replace(/"/g,'""')+'"').join(","));const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\uFEFF"+h.join(",")+"\n"+r.join("\n")],{type:"text/csv"}));a.download="dyeing.csv";a.click();showToast("💾 ✅");};
 const backupJSON=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify({cards,logs:log,loads})],{type:"application/json"}));a.download="dyeing-backup.json";a.click();showToast("💾 ✅");};
 const restoreJSON=e=>{const f=e.target.files?.[0];if(!f||!can)return;const r=new FileReader();r.onload=async()=>{try{const d=JSON.parse(r.result);if(Array.isArray(d.cards))for(const c of d.cards)await db.collection("cards").doc(c.id).set(c,{merge:true});if(Array.isArray(d.loads))for(const l of d.loads)await db.collection("loads").doc(l.id).set(l,{merge:true});showToast("♻️ ✅");}catch(x){showToast("❌","danger");}};r.readAsText(f);e.target.value="";};
@@ -368,7 +370,7 @@ const isLate=c=>daysSince(c.updatedAt||c.createdAt)>=1;
 const dueInfo=c=>{if(!c.due)return null;const today=localDate(new Date());if(c.due<today)return{txt:t.overdue,col:theme.danger};if((new Date(c.due).getTime()-new Date(today).getTime())/86400000<=1)return{txt:t.dueSoon,col:theme.warn};return null;};
 const liveCards=cards.filter(c=>!c.archived);
 const archivedCards=cards.filter(c=>c.archived);
-const cardsToShow=activeStage?liveCards.filter(c=>c.stage===activeStage).filter(c=>!lateOnly||isLate(c)).sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||toMs(b.updatedAt)-toMs(a.updatedAt)):[];
+const cardsToShow=activeStage?liveCards.filter(c=>c.stage===activeStage).filter(c=>!lateOnly||isLate(c)).filter(c=>{const q=stageQ.trim().toLowerCase();if(!q)return true;return FIELD_KEYS.some(k=>((c[k]||"")+"").toLowerCase().includes(q));}).sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||toMs(b.updatedAt)-toMs(a.updatedAt)):[];
 const statusMsg=syncStatus==="syncing"?t.syncing:syncStatus==="synced"?t.synced:(isOnline?t.online:t.offline);
 const statusColor=syncStatus==="syncing"?theme.warn:syncStatus==="synced"?theme.accent2:(isOnline?theme.accent2:theme.danger);
 const onlineNames=[...new Set(onlineUsers.map(u=>u.name))];
@@ -405,6 +407,7 @@ return(
 <div className="anim" style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
 <div style={{width:44,height:44,borderRadius:50,background:"linear-gradient(135deg,var(--vio),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,boxShadow:"0 6px 18px rgba(124,92,255,.4)"}}>{(ownerName||"؟")[0]}</div>
 <div style={{flex:1}}><div style={{fontSize:12,color:theme.textDim}}>👋 مرحباً يا {ownerName}</div><div style={{fontSize:20,fontWeight:900}}>{factory.fname}</div></div>
+<button onClick={()=>setShowSearch(true)} style={hdrBtn}>🔍</button>
 <button onClick={()=>setShowMenu(true)} style={hdrBtn}>️</button>
 </div>
 <div className="card grad anim" style={{animationDelay:"80ms",marginBottom:12,position:"relative",overflow:"hidden"}}>
@@ -462,7 +465,18 @@ return(<div key={s} className="anim" style={{display:"flex",gap:12,marginBottom:
 <div className="anim" style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
 <button onClick={()=>setScreen("stages")} style={hdrBtn}>→</button>
 <div style={{flex:1}}><div style={{fontSize:19,fontWeight:900}}>{activeStage}</div><div style={{fontSize:11,color:theme.textDim}}>{cardsToShow.length} كرت</div></div>
+<button onClick={()=>exportSheet(liveCards.filter(c=>c.stage===activeStage),activeStage)} className="chip on">💾 تصدير</button>
 <button onClick={()=>setLateOnly(!lateOnly)} className={"chip"+(lateOnly?" on":"")}>{lateOnly?t.lateOnly:t.all}</button>
+</div>
+<div className="card anim" style={{display:"flex",alignItems:"center",gap:8,padding:"10px 14px",marginBottom:14}}>
+<span style={{fontSize:16}}>🔍</span>
+<input value={stageQ} onChange={e=>setStageQ(e.target.value)} placeholder={t.search} style={{flex:1,background:"transparent",border:"none",outline:"none",color:theme.text,fontSize:14}}/>
+{stageQ!==""&&<button onClick={()=>setStageQ("")} style={{background:"none",border:"none",color:theme.textDim,fontSize:16}}>✕</button>}
+</div>
+<div style={{position:"fixed",bottom:86,insetInlineEnd:14,display:"flex",flexDirection:"column",gap:10,zIndex:250}}>
+{can&&<button onClick={()=>{setMicText("");setShowMic(true);}} style={{width:50,height:50,borderRadius:25,border:"none",color:"#fff",fontSize:20,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 8px 20px rgba(0,0,0,.4)",background:"var(--vio)"}}>🎙️</button>}
+{can&&<button onClick={()=>setImportMenu(true)} style={{width:50,height:50,borderRadius:25,border:"none",color:"#fff",fontSize:20,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 8px 20px rgba(0,0,0,.4)",background:"var(--teal)"}}>📄</button>}
+<button onClick={()=>{scanMode.current="quick";setShowScanner(true);}} style={{width:50,height:50,borderRadius:25,border:"none",color:"#fff",fontSize:20,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 8px 20px rgba(0,0,0,.4)",background:"var(--warn)"}}>📷</button>
 </div>
 {cardsToShow.length===0&&<p style={{textAlign:"center",padding:"50px 10px",color:theme.textDim}}>{t.noCardsHere}</p>}
 {cardsToShow.map((c,i)=>{const d=daysSince(c.updatedAt||c.createdAt);const l1=d>=1&&d<LD;const l2=d>=LD;const lk=liveCards.filter(x=>x.message&&x.message===c.message&&x.id!==c.id).length;const di=dueInfo(c);const bc=c.urgent?"var(--red)":l2?"var(--red)":l1?"var(--warn)":di?di.col:STAGE_COLORS[(stages.indexOf(c.stage)>=0?stages.indexOf(c.stage):0)%8];
@@ -479,7 +493,7 @@ return(<div key={c.id} className="card" onClick={()=>setEditingCard(c)} onContex
 </div>)}
 {screen==="log"&&(
 <div style={{maxWidth:640,margin:"0 auto",padding:"40px 16px 20px"}}>
-<div className="anim" style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}><button onClick={()=>setScreen("home")} style={hdrBtn}>→</button><div style={{fontSize:19,fontWeight:900,flex:1}}>{t.dailyLog}</div></div>
+<div className="anim" style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}><button onClick={()=>setScreen("home")} style={hdrBtn}>→</button><div style={{fontSize:19,fontWeight:900,flex:1}}>{t.dailyLog}</div><button onClick={()=>exportSheet(liveCards,"سجل-المصنع")} className="chip on">💾 تصدير الشيت</button></div>
 {(()=>{const g={};log.forEach(e=>{(g[e.date]=g[e.date]||[]).push(e)});const ds=Object.keys(g).sort((a,b)=>b.localeCompare(a));
 return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noResults}</p>:ds.map((d,i)=>(<div key={d} className="anim" style={{marginBottom:18,animationDelay:(i*80)+"ms"}}><div style={{fontSize:13,fontWeight:800,color:"var(--vio2)",marginBottom:8}}>{d}</div>
 {g[d].map(e=>(<div key={e.id} className="card" style={{marginBottom:6,padding:"10px 12px"}}><div style={{display:"flex",justifyContent:"space-between"}}><b>{e.action}</b><span style={{color:theme.textDim,fontSize:11}}>{fmtTime(e.time||e.timeLocal,lang)}</span></div><div style={{color:theme.textDim,fontSize:12}}>👤 {e.person} {e.cardCode?" · "+e.cardCode:""}</div></div>))}</div>));})()}
