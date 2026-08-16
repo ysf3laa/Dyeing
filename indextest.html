@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#0B0E1A">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg">
+<meta name="mobile-web-app-capable" content="yes">
 <title>متابعة الصباغة</title>
 <style>
 :root{--bg:#0B0E1A;--panel:#141829;--panel2:#1B2036;--line:#242B47;--txt:#EDEFF5;--dim:#8A93B5;--vio:#7C5CFF;--vio2:#9F7CFF;--blue:#5E8FD6;--teal:#2DD4A8;--red:#FF5C7A;--warn:#FFB65C}
@@ -63,7 +66,7 @@ window.onerror=function(m,u,l){if(m&&m!=="Script error."&&!window.__booted){var 
 window.addEventListener("unhandledrejection",function(e){e.preventDefault();console.warn(e.reason);});
 setTimeout(function(){if(!window.__booted){var r=document.getElementById("root");if(r&&r.innerHTML.indexOf("خطأ")===-1){var d=document.createElement("div");d.style.cssText="position:fixed;bottom:10px;left:10px;right:10px;background:#1B2036;color:#FF5C7A;border:1px solid #FF5C7A;border-radius:14px;padding:12px;font-size:12px;text-align:center;z-index:99999";d.innerHTML="⚠️ المكتبات لسه بتتحمل — دوس إعادة أو غيّر الشبكة<br><button onclick='location.reload()' style='margin-top:8px;background:#7C5CFF;color:#fff;border:none;border-radius:10px;padding:9px 22px;font-size:13px;font-weight:700'>🔄 إعادة المحاولة</button>";r.appendChild(d);}}},45000);
 </script>
-<script src="lib/react.js"></script>
+<script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script>
 <script src="lib/reactdom.js"></script>
 <script src="lib/babel.js"></script>
 <script src="lib/fbapp.js"></script>
