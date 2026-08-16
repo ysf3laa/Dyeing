@@ -493,7 +493,7 @@ return(<div key={c.id} className="card" onClick={()=>setEditingCard(c)} onContex
 </div>)}
 {screen==="log"&&(
 <div style={{maxWidth:640,margin:"0 auto",padding:"40px 16px 20px"}}>
-<div className="anim" style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}><button onClick={()=>setScreen("home")} style={hdrBtn}>→</button><div style={{fontSize:19,fontWeight:900,flex:1}}>{t.dailyLog}</div><button onClick={()=>exportSheet(liveCards,"سجل-المصنع")} className="chip on">💾 تصدير الشيت</button></div>
+<div className="anim" style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}><button onClick={()=>setScreen("home")} style={hdrBtn}>→</button><div style={{fontSize:19,fontWeight:900,flex:1}}>{t.dailyLog}</div></div>
 {(()=>{const g={};log.forEach(e=>{(g[e.date]=g[e.date]||[]).push(e)});const ds=Object.keys(g).sort((a,b)=>b.localeCompare(a));
 return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noResults}</p>:ds.map((d,i)=>(<div key={d} className="anim" style={{marginBottom:18,animationDelay:(i*80)+"ms"}}><div style={{fontSize:13,fontWeight:800,color:"var(--vio2)",marginBottom:8}}>{d}</div>
 {g[d].map(e=>(<div key={e.id} className="card" style={{marginBottom:6,padding:"10px 12px"}}><div style={{display:"flex",justifyContent:"space-between"}}><b>{e.action}</b><span style={{color:theme.textDim,fontSize:11}}>{fmtTime(e.time||e.timeLocal,lang)}</span></div><div style={{color:theme.textDim,fontSize:12}}>👤 {e.person} {e.cardCode?" · "+e.cardCode:""}</div></div>))}</div>));})()}
@@ -676,6 +676,7 @@ return(<div><h3 style={{margin:"0 0 8px"}}>🚛 {ld.customer} — {ld.total} {fa
 <h3 style={{margin:"0 0 12px"}}>📊 {t.report}</h3>
 <pre style={{whiteSpace:"pre-wrap",background:theme.panelAlt,borderRadius:14,padding:12,fontSize:13,maxHeight:"50vh",overflowY:"auto",color:theme.text,fontFamily:"inherit"}}>{reportText}</pre>
 <div style={{display:"flex",gap:8,marginTop:12}}><button onClick={()=>{try{navigator.clipboard.writeText(reportText);showToast("✅");}catch(e){}}} className="btnO">{t.copy}</button><a href={waLink(reportText)} target="_blank" rel="noreferrer" className="btnG" style={{textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>💬 واتساب</a></div>
+<button onClick={()=>exportSheet(liveCards,"تقرير-اليوم")} className="btnO" style={{marginTop:8}}>💾 تصدير شيت Excel</button>
 </div></div>)}
 {statementFor!==null&&(
 <div className="modal" onClick={()=>setStatementFor(null)}>
