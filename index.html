@@ -185,6 +185,7 @@ const [cards,setCards]=useState([]);const [log,setLog]=useState([]);
 const [loads,setLoads]=useState([]);const [showWarehouse,setShowWarehouse]=useState(false);const [addLoad,setAddLoad]=useState(false);const [loadDetail,setLoadDetail]=useState(null);
 const [loadDraft,setLoadDraft]=useState({customer:"",total:"",date:"",notes:"",category:"",color:"",barcode:"",machine:""});
 const [showLateList,setShowLateList]=useState(false);const [showDelivered,setShowDelivered]=useState(false);const [heroEdit,setHeroEdit]=useState(false);
+const [defects,setDefects]=useState([]);const [showDefects,setShowDefects]=useState(false);const [defectFor,setDefectFor]=useState(null);const [defectDraft,setDefectDraft]=useState({reason:"",qty:"",notes:""});
 const [screen,setScreen]=useState("home");const [activeStage,setActiveStage]=useState(null);
 const [lateOnly,setLateOnly]=useState(false);
 const [stageQ,setStageQ]=useState("");
@@ -201,7 +202,7 @@ const importCamRef=useRef(null);const importGalRef=useRef(null);
 const scannerRef=useRef(null);const restoreRef=useRef(null);const scanMode=useRef("form");
 const gotoDone=useRef(false);
 const uiRef=useRef({});
-uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,showTopCust,photoView,appQr,importMenu,importDraft,showMic,showWarehouse,addLoad,loadDetail,showLateList,showDelivered,heroEdit};
+uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,showTopCust,photoView,appQr,importMenu,importDraft,showMic,showWarehouse,addLoad,loadDetail,showLateList,showDelivered,heroEdit,showDefects,defectFor};
 const t=DICT[lang];const dir=lang==="ar"?"rtl":"ltr";
 const can=unlocked;
 const theme={bg:"#0B0E1A",panel:"#141829",panelAlt:"#1B2036",border:"#242B47",text:"#EDEFF5",textDim:"#8A93B5",accent:"#7C5CFF",accent2:"#2DD4A8",danger:"#FF5C7A",warn:"#FFB65C",input:"#1B2036"};
@@ -210,7 +211,7 @@ const LD=+factory.lateDays||2;
 const allColors=PRESET_COLORS.concat(customColors);
 useEffect(()=>{setFnameDraft(factory.fname);setWaDraft(factory.wa);setLateDraft(factory.lateDays);setHeroTDraft(factory.heroT||"");setHeroSDraft(factory.heroS||"");},[factory.fname,factory.wa,factory.lateDays,factory.heroT,factory.heroS]);
 useEffect(()=>{history.pushState({guard:1},"");const onPop=()=>{const u=uiRef.current;
-if(u.showTopCust)setShowTopCust(false);else if(u.showLateList)setShowLateList(false);else if(u.showDelivered)setShowDelivered(false);else if(u.heroEdit)setHeroEdit(false);else if(u.addLoad)setAddLoad(false);else if(u.loadDetail)setLoadDetail(null);else if(u.showWarehouse)setShowWarehouse(false);else if(u.showMic)setShowMic(false);else if(u.importMenu)setImportMenu(false);else if(u.importDraft)setImportDraft(null);
+if(u.showTopCust)setShowTopCust(false);else if(u.showLateList)setShowLateList(false);else if(u.showDelivered)setShowDelivered(false);else if(u.heroEdit)setHeroEdit(false);else if(u.showDefects)setShowDefects(false);else if(u.defectFor)setDefectFor(null);else if(u.addLoad)setAddLoad(false);else if(u.loadDetail)setLoadDetail(null);else if(u.showWarehouse)setShowWarehouse(false);else if(u.showMic)setShowMic(false);else if(u.importMenu)setImportMenu(false);else if(u.importDraft)setImportDraft(null);
 else if(u.reportText)setReportText(null);else if(u.showScanner)setShowScanner(false);else if(u.bcCard)setBcCard(null);
 else if(u.statementFor)setStatementFor(null);else if(u.showWorkers)setShowWorkers(false);
 else if(u.photoView)setPhotoView(null);else if(u.appQr)setAppQr(false);else if(u.showMenu)setShowMenu(false);
@@ -227,6 +228,7 @@ useEffect(()=>{if(!fbReady||!auth||!db)return;const un=auth.onAuthStateChanged(a
 db.collection("cards").onSnapshot(sn=>{setCards(sn.docs.map(d=>({id:d.id,...d.data()})));},e=>console.error(e));
 db.collection("logs").onSnapshot(sn=>{setLog(sn.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>toMs(b.time)-toMs(a.time)));});
 db.collection("loads").onSnapshot(sn=>{setLoads(sn.docs.map(d=>({id:d.id,...d.data()})));});
+db.collection("defects").onSnapshot(sn=>{setDefects(sn.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>toMs(b.time)-toMs(a.time)));});
 db.collection("config").onSnapshot(sn=>{const g=id=>{const d=sn.docs.find(x=>x.id===id);return d?d.data():null;};
 const s=g("stages"),m=g("machines"),f=g("factory"),cl=g("colors");
 if(s)setStages(s.list||DEFAULT_STAGES);if(m)setMachines(m.list||DEFAULT_MACHINES);
@@ -278,6 +280,7 @@ const saveLoad=async()=>{if(!can||!db||!loadDraft.customer||!loadDraft.total)ret
 const toggleDelivered=async c=>{if(!can||!db)return;await db.collection("cards").doc(c.id).set({delivered:!c.delivered},{merge:true});await addLog(!c.delivered?"تسليم":"إلغاء تسليم",c);setActionCard(null);};
 const partialDeliver=async(c,q)=>{if(!can||!db)return;const v=Math.min(parseFloat(q)||0,parseFloat(c.quantity)||0);await db.collection("cards").doc(c.id).set({deliveredQty:v,delivered:v>=(parseFloat(c.quantity)||0)},{merge:true});await addLog("تسليم جزئي",c,String(v));setActionCard(null);};
 const saveHero=()=>{if(!can||!db)return;saveFactory({heroT:heroTDraft.trim(),heroS:heroSDraft.trim()});setHeroEdit(false);showToast("🎨 ✅");};
+const saveDefect=async()=>{if(!can||!db||!defectFor)return;await db.collection("defects").doc(uid()).set({cardId:defectFor.id,customer:defectFor.customer||"",code:defectFor.code||"",stage:defectFor.stage||"",reason:defectDraft.reason||"",qty:defectDraft.qty||"",notes:defectDraft.notes||"",by:ownerName||"",time:Date.now(),date:localDate(new Date())});setDefectFor(null);setDefectDraft({reason:"",qty:"",notes:""});showToast("⚠️ تم التسجيل");};
 const saveFactory=patch=>{if(!can||!db)return;db.collection("config").doc("factory").set({...factory,...patch},{merge:true});};
 const saveFactoryDrafts=()=>{saveFactory({fname:fnameDraft.trim()||"متابعة الصباغة",wa:waDraft.trim(),lateDays:+lateDraft||2,heroT:heroTDraft.trim(),heroS:heroSDraft.trim()});showToast("✅");};
 const saveStages=l=>{if(!can||!db)return;db.collection("config").doc("stages").set({list:l});};
@@ -530,6 +533,7 @@ return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noRe
 <MenuBtn onClick={()=>{setStatementFor(knownCustomers[0]?knownCustomers[0].name:"");setShowMenu(false);}}>👥 {t.statement}</MenuBtn>
 <MenuBtn onClick={()=>{setShowTopCust(true);setShowMenu(false);}}>🏅 أعلى العملاء</MenuBtn>
 <MenuBtn onClick={()=>{setShowWorkers(true);setShowMenu(false);}}>🏆 {t.workers}</MenuBtn>
+<MenuBtn onClick={()=>{setShowDefects(true);setShowMenu(false);}}>🧾 سجل العيوب</MenuBtn>
 <MenuBtn onClick={()=>{exportCSV();setShowMenu(false);}}>💾 {t.backup}</MenuBtn>
 <MenuBtn onClick={()=>{setScreen("archive");setShowMenu(false);}}>🗄️ {t.archive}</MenuBtn>
 <MenuBtn onClick={()=>{setScreen("log");setShowMenu(false);}}>📋 {t.dailyLog}</MenuBtn>
@@ -621,6 +625,31 @@ return(<div><h3 style={{margin:"0 0 8px"}}>🚛 {ld.customer} — {ld.total} {fa
 </div>))}
 {can&&<button onClick={()=>{if(confirm("حذف الحمولة؟ الكروت هتفضل زي ما هي")){db.collection("loads").doc(ld.id).delete();setLoadDetail(null);}}} className="btnO" style={{borderColor:"var(--red)",color:"var(--red)",marginTop:8}}>🗑️ حذف الحمولة</button>}
 </div>);})()}
+</div></div>)}
+{defectFor&&(
+<div className="modal" onClick={()=>setDefectFor(null)}>
+<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:380}}>
+<h3 style={{margin:"0 0 10px"}}>⚠️ عيب / مرتجع — {defectFor.customer}</h3>
+<div className="lbl">سبب العيب</div>
+<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{["بقعة","تثبيت ضعيف","كسرة","لون مختلف","شد خيط","عيوب نسيج","أخرى"].map(r=><button key={r} onClick={()=>setDefectDraft({...defectDraft,reason:r})} className={"chip"+(defectDraft.reason===r?" on":"")}>{r}</button>)}</div>
+<div style={grid2}>
+<div><div className="lbl">الكمية</div><input className="inp" type="number" value={defectDraft.qty} onChange={e=>setDefectDraft({...defectDraft,qty:e.target.value})}/></div>
+<div><div className="lbl">المرحلة</div><input className="inp" value={defectFor.stage||""} disabled/></div></div>
+<div className="lbl">ملاحظات</div><textarea rows={2} className="inp" value={defectDraft.notes} onChange={e=>setDefectDraft({...defectDraft,notes:e.target.value})}/>
+<div style={{display:"flex",gap:8}}><button onClick={saveDefect} className="btnG">💾 تسجيل</button><button onClick={()=>setDefectFor(null)} className="btnO">{t.cancel}</button></div>
+</div></div>)}
+{showDefects&&(
+<div className="modal" onClick={()=>setShowDefects(false)}>
+<div className="mbox" onClick={e=>e.stopPropagation()}>
+<h3 style={{margin:"0 0 10px"}}>🧾 سجل العيوب والمرتجعات ({defects.length})</h3>
+{(()=>{const m={};defects.forEach(d=>{if(d.reason)m[d.reason]=(m[d.reason]||0)+1;});const top=Object.entries(m).sort((a,b)=>b[1]-a[1])[0];
+return top?(<div className="card grad" style={{padding:12,marginBottom:12,textAlign:"center"}}><div style={{fontSize:12,color:"#E4DCFF"}}>أكثر عيب متكرر</div><div style={{fontSize:18,fontWeight:900}}>{top[0]} ({top[1]})</div></div>):null;})()}
+{defects.length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center"}}>مفيش عيوب مسجلة — شغل نضيف 🎉</p>}
+{defects.map((d,i)=>(<div key={d.id} className="card anim" style={{padding:"10px 12px",marginBottom:8,borderInlineStart:"4px solid var(--red)",animationDelay:(i*50)+"ms"}}>
+<div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:14}}>{d.customer} · {d.code}</b><span className="badge" style={{background:"var(--red)"}}>{d.reason}</span></div>
+<div style={{fontSize:12,color:theme.textDim,marginTop:4}}>{d.qty?"كمية "+d.qty+" · ":""}{d.stage} · {d.date} · 👤 {d.by}</div>
+{d.notes&&<div style={{fontSize:12,marginTop:4}}>{d.notes}</div>}
+</div>))}
 </div></div>)}
 {showMic&&(
 <div className="modal" onClick={()=>{setShowMic(false);stopMic();}}>
@@ -820,6 +849,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 ...(can?[{icon:actionCard.delivered?"↩️":"✅",label:actionCard.delivered?"إلغاء التسليم":"تم التسليم",fn:()=>toggleDelivered(actionCard)},
 {icon:"⚖️",label:"تسليم جزئي",fn:()=>{const q=prompt("الكمية المسلّمة من الكرت:",actionCard.quantity||"");if(q!==null)partialDeliver(actionCard,q);}}]:[]),
 {icon:"💬",label:t.shareCard,fn:()=>{window.open(waLink(shareCardText(actionCard)),"_blank");setActionCard(null);}},
+...(can?[{icon:"⚠️",label:"تسجيل عيب / مرتجع",fn:()=>{setDefectFor(actionCard);setActionCard(null);}}]:[]),
 ...(can?[{icon:"📋",label:t.copyCard,fn:()=>{setCopyCard(actionCard);setActionCard(null);}},
 {icon:"🔄",label:t.moveCard,fn:()=>{setMoveCard(actionCard);setActionCard(null);}},
 {icon:"⭐",label:actionCard.pinned?t.unpin:t.pinCard,fn:()=>togglePin(actionCard)}]:[]),
