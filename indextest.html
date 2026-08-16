@@ -192,6 +192,7 @@ const [defects,setDefects]=useState([]);const [showDefects,setShowDefects]=useSt
 const [screen,setScreen]=useState("home");const [activeStage,setActiveStage]=useState(null);
 const [lateOnly,setLateOnly]=useState(false);
 const [stageQ,setStageQ]=useState("");
+const [announce,setAnnounce]=useState(null);const [showAnnounce,setShowAnnounce]=useState(false);const [announceDraft,setAnnounceDraft]=useState("");const [annDismissed,setAnnDismissed]=useState(localStorage.getItem("ann_dismiss"));
 const [showSettings,setShowSettings]=useState(false);const [showSearch,setShowSearch]=useState(false);
 const [showMenu,setShowMenu]=useState(false);const [showScanner,setShowScanner]=useState(false);
 const [bcCard,setBcCard]=useState(null);const [nameDraft,setNameDraft]=useState("");
@@ -205,7 +206,7 @@ const importCamRef=useRef(null);const importGalRef=useRef(null);
 const scannerRef=useRef(null);const restoreRef=useRef(null);const scanMode=useRef("form");
 const gotoDone=useRef(false);
 const uiRef=useRef({});
-uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,showTopCust,photoView,appQr,importMenu,importDraft,showMic,showWarehouse,addLoad,loadDetail,showLateList,showDelivered,heroEdit,showDefects,defectFor};
+uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,showTopCust,photoView,appQr,importMenu,importDraft,showMic,showWarehouse,addLoad,loadDetail,showLateList,showDelivered,heroEdit,showDefects,defectFor,showAnnounce};
 const t=DICT[lang];const dir=lang==="ar"?"rtl":"ltr";
 const can=unlocked;
 const theme={bg:"#0B0E1A",panel:"#141829",panelAlt:"#1B2036",border:"#242B47",text:"#EDEFF5",textDim:"#8A93B5",accent:"#7C5CFF",accent2:"#2DD4A8",danger:"#FF5C7A",warn:"#FFB65C",input:"#1B2036"};
@@ -214,7 +215,7 @@ const LD=+factory.lateDays||2;
 const allColors=PRESET_COLORS.concat(customColors);
 useEffect(()=>{setFnameDraft(factory.fname);setWaDraft(factory.wa);setLateDraft(factory.lateDays);setHeroTDraft(factory.heroT||"");setHeroSDraft(factory.heroS||"");},[factory.fname,factory.wa,factory.lateDays,factory.heroT,factory.heroS]);
 useEffect(()=>{history.pushState({guard:1},"");const onPop=()=>{const u=uiRef.current;
-if(u.showTopCust)setShowTopCust(false);else if(u.showLateList)setShowLateList(false);else if(u.showDelivered)setShowDelivered(false);else if(u.heroEdit)setHeroEdit(false);else if(u.showDefects)setShowDefects(false);else if(u.defectFor)setDefectFor(null);else if(u.addLoad)setAddLoad(false);else if(u.loadDetail)setLoadDetail(null);else if(u.showWarehouse)setShowWarehouse(false);else if(u.showMic)setShowMic(false);else if(u.importMenu)setImportMenu(false);else if(u.importDraft)setImportDraft(null);
+if(u.showTopCust)setShowTopCust(false);else if(u.showLateList)setShowLateList(false);else if(u.showDelivered)setShowDelivered(false);else if(u.heroEdit)setHeroEdit(false);else if(u.showDefects)setShowDefects(false);else if(u.defectFor)setDefectFor(null);else if(u.showAnnounce)setShowAnnounce(false);else if(u.addLoad)setAddLoad(false);else if(u.loadDetail)setLoadDetail(null);else if(u.showWarehouse)setShowWarehouse(false);else if(u.showMic)setShowMic(false);else if(u.importMenu)setImportMenu(false);else if(u.importDraft)setImportDraft(null);
 else if(u.reportText)setReportText(null);else if(u.showScanner)setShowScanner(false);else if(u.bcCard)setBcCard(null);
 else if(u.statementFor)setStatementFor(null);else if(u.showWorkers)setShowWorkers(false);
 else if(u.photoView)setPhotoView(null);else if(u.appQr)setAppQr(false);else if(u.showMenu)setShowMenu(false);
@@ -236,7 +237,8 @@ db.collection("config").onSnapshot(sn=>{const g=id=>{const d=sn.docs.find(x=>x.i
 const s=g("stages"),m=g("machines"),f=g("factory"),cl=g("colors");
 if(s)setStages(s.list||DEFAULT_STAGES);if(m)setMachines(m.list||DEFAULT_MACHINES);
 if(f)setFactory({fname:f.fname||"متابعة الصباغة",wa:f.wa||"",unit:f.unit||"كيلو",lateDays:f.lateDays||2,printSize:f.printSize||"A5",gkey:f.gkey||"",heroT:f.heroT||"",heroS:f.heroS||""});
-if(cl)setCustomColors(cl.list||[]);});
+if(cl)setCustomColors(cl.list||[]);
+const an=g("announce");if(an&&an.text)setAnnounce(an);else setAnnounce(null);});
 setFirebaseOk(true);setReady(true);}else{try{await auth.signInAnonymously();}catch(e){setReady(true);}}});return()=>un&&un();},[]);
 useEffect(()=>{if(!firebaseOk||!userId||!ownerName||!db)return;const beat=()=>{try{db.collection("presence").doc(userId).set({name:ownerName,last:Date.now()});}catch(e){}};beat();const iv=setInterval(beat,20000);const un=db.collection("presence").onSnapshot(sn=>{const n=Date.now();setOnlineUsers(sn.docs.map(d=>d.data()).filter(p=>n-(p.last||0)<60000));});return()=>{clearInterval(iv);un&&un();};},[firebaseOk,userId,ownerName]);
 useEffect(()=>{if(!ready||gotoDone.current)return;const g=new URLSearchParams(window.location.search).get("goto");if(!g)return;let p=null;try{p=b64d(g);}catch(e){return;}if(!p||!p.c)return;
@@ -283,6 +285,7 @@ const saveLoad=async()=>{if(!can||!db||!loadDraft.customer||!loadDraft.total)ret
 const toggleDelivered=async c=>{if(!can||!db)return;await db.collection("cards").doc(c.id).set({delivered:!c.delivered},{merge:true});await addLog(!c.delivered?"تسليم":"إلغاء تسليم",c);setActionCard(null);};
 const partialDeliver=async(c,q)=>{if(!can||!db)return;const v=Math.min(parseFloat(q)||0,parseFloat(c.quantity)||0);await db.collection("cards").doc(c.id).set({deliveredQty:v,delivered:v>=(parseFloat(c.quantity)||0)},{merge:true});await addLog("تسليم جزئي",c,String(v));setActionCard(null);};
 const saveHero=()=>{if(!can||!db)return;saveFactory({heroT:heroTDraft.trim(),heroS:heroSDraft.trim()});setHeroEdit(false);showToast("🎨 ✅");};
+const saveAnnounce=()=>{if(!can||!db)return;db.collection("config").doc("announce").set({text:announceDraft.trim(),by:ownerName||"",time:Date.now()});setShowAnnounce(false);showToast("📢 اتنشر");};
 const saveDefect=async()=>{if(!can||!db||!defectFor)return;await db.collection("defects").doc(uid()).set({cardId:defectFor.id,customer:defectFor.customer||"",code:defectFor.code||"",stage:defectFor.stage||"",reason:defectDraft.reason||"",qty:defectDraft.qty||"",notes:defectDraft.notes||"",by:ownerName||"",time:Date.now(),date:localDate(new Date())});setDefectFor(null);setDefectDraft({reason:"",qty:"",notes:""});showToast("⚠️ تم التسجيل");};
 const saveFactory=patch=>{if(!can||!db)return;db.collection("config").doc("factory").set({...factory,...patch},{merge:true});};
 const saveFactoryDrafts=()=>{saveFactory({fname:fnameDraft.trim()||"متابعة الصباغة",wa:waDraft.trim(),lateDays:+lateDraft||2,heroT:heroTDraft.trim(),heroS:heroSDraft.trim()});showToast("✅");};
@@ -392,7 +395,7 @@ const donePct=totalQty>0?Math.min(100,Math.round((wh.del/totalQty)*100)):0;
 const nCards=useCountUp(liveCards.length);const nLate=useCountUp(lateCount);const nRem=useCountUp(Math.round(wh.rem));const nDel=useCountUp(Math.round(wh.del));
 const grid2={display:"grid",gridTemplateColumns:"1fr 1fr",gap:10};
 const S_ICONS=["🚛","🧪","⚙️","🧵","","🏭","✅","🎯"];
-const badge=(c,x)=><span className="badge" style={{background:c}}>{x}</span>;
+const annVisible=!!(announce&&announce.text)&&annDismissed!==String(announce.time);<span className="badge" style={{background:c}}>{x}</span>;
 const rawD=(()=>{try{return new URLSearchParams(window.location.search).get("d");}catch(e){return null;}})();
 const pubData=(()=>{if(!rawD)return null;try{return b64d(rawD);}catch(e){return null;}})();
 if(pubData&&!new URLSearchParams(window.location.search).get("goto"))return(<div dir="rtl" style={{minHeight:"100vh",background:"#fff",color:"#232016",display:"flex",alignItems:"center",justifyContent:"center",padding:20,fontFamily:"system-ui,sans-serif"}}>
@@ -408,6 +411,15 @@ if(!ownerName)return(<div dir={dir} style={{minHeight:"100vh",background:theme.b
 return(
 <div dir={dir} style={{minHeight:"100vh",background:theme.bg,color:theme.text,paddingBottom:90}}>
 <div style={{position:"fixed",top:0,left:0,right:0,padding:"6px 12px",background:"rgba(11,14,26,.85)",backdropFilter:"blur(10px)",borderBottom:"1px solid "+theme.border,fontSize:11,color:statusColor,zIndex:300,textAlign:"center",fontWeight:700}}>{statusMsg}{!can&&<span style={{color:theme.warn}}> · {t.lockedNote}</span>}</div>
+{annVisible&&(
+<div style={{position:"fixed",top:26,left:0,right:0,zIndex:290,padding:"6px 12px"}}>
+<div className="card grad" style={{padding:"10px 14px",display:"flex",alignItems:"center",gap:10,borderRadius:14}}>
+<span style={{fontSize:18,animation:"floaty 2s infinite"}}>📢</span>
+<div style={{flex:1,fontSize:13,fontWeight:700}}>{announce.text}</div>
+{can&&<button onClick={()=>{setAnnounceDraft(announce.text||"");setShowAnnounce(true);}} style={{background:"rgba(255,255,255,.2)",border:"none",borderRadius:8,padding:"4px 8px",color:"#fff",fontSize:12}}>✏️</button>}
+<button onClick={()=>{localStorage.setItem("ann_dismiss",String(announce.time));setAnnDismissed(String(announce.time));}} style={{background:"rgba(255,255,255,.2)",border:"none",borderRadius:8,padding:"4px 8px",color:"#fff",fontSize:12}}>✕</button>
+</div></div>)}
+{annVisible&&<div style={{height:58}}/>}
 {screen==="home"&&(
 <div style={{maxWidth:640,margin:"0 auto",padding:"40px 16px 20px"}}>
 <div className="anim" style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
@@ -536,7 +548,7 @@ return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noRe
 <MenuBtn onClick={()=>{setStatementFor(knownCustomers[0]?knownCustomers[0].name:"");setShowMenu(false);}}>👥 {t.statement}</MenuBtn>
 <MenuBtn onClick={()=>{setShowTopCust(true);setShowMenu(false);}}>🏅 أعلى العملاء</MenuBtn>
 <MenuBtn onClick={()=>{setShowWorkers(true);setShowMenu(false);}}>🏆 {t.workers}</MenuBtn>
-<MenuBtn onClick={()=>{setShowDefects(true);setShowMenu(false);}}>🧾 سجل العيوب</MenuBtn>
+{can&&<MenuBtn onClick={()=>{setAnnounceDraft((announce&&announce.text)||"");setShowAnnounce(true);setShowMenu(false);}}>📢 إعلان للعمال</MenuBtn>}
 <MenuBtn onClick={()=>{exportCSV();setShowMenu(false);}}>💾 {t.backup}</MenuBtn>
 <MenuBtn onClick={()=>{setScreen("archive");setShowMenu(false);}}>🗄️ {t.archive}</MenuBtn>
 <MenuBtn onClick={()=>{setScreen("log");setShowMenu(false);}}>📋 {t.dailyLog}</MenuBtn>
@@ -629,6 +641,15 @@ return(<div><h3 style={{margin:"0 0 8px"}}>🚛 {ld.customer} — {ld.total} {fa
 {can&&<button onClick={()=>{if(confirm("حذف الحمولة؟ الكروت هتفضل زي ما هي")){db.collection("loads").doc(ld.id).delete();setLoadDetail(null);}}} className="btnO" style={{borderColor:"var(--red)",color:"var(--red)",marginTop:8}}>🗑️ حذف الحمولة</button>}
 </div>);})()}
 </div></div>)}
+{showAnnounce&&(
+<div className="modal" onClick={()=>setShowAnnounce(false)}>
+<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:380}}>
+<h3 style={{margin:"0 0 10px"}}>📢 إعلان لكل العمال</h3>
+<textarea rows={3} className="inp" value={announceDraft} onChange={e=>setAnnounceDraft(e.target.value)} placeholder="اكتب الإعلان... هيظهر فوق عند كل الأجهزة فوراً"/>
+<div style={{display:"flex",gap:8}}>
+<button onClick={saveAnnounce} className="btnG">📢 نشر</button>
+<button onClick={()=>{if(!can||!db)return;db.collection("config").doc("announce").set({text:"",by:"",time:Date.now()});setShowAnnounce(false);showToast("🗑️");}} className="btnO">🗑️ مسح الإعلان</button>
+</div></div></div>)}
 {defectFor&&(
 <div className="modal" onClick={()=>setDefectFor(null)}>
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:380}}>
