@@ -667,6 +667,7 @@ return(<div key={c.id} className="card anim" onClick={()=>{setLinkedFrom(null);j
 <div style={{fontSize:12,color:theme.textDim,marginTop:4}}>{c.color} — {c.quantity} {factory.unit} · {fmtTime(c.updatedAt||c.createdAt,lang)}{c.delivered?" · ✅":""}</div>
 </div>);})}
 </div></div>);})()}
+{defectFor&&(
 <div className="modal" onClick={()=>setDefectFor(null)}>
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:380}}>
 <h3 style={{margin:"0 0 10px"}}>⚠️ عيب / مرتجع — {defectFor.customer}</h3>
