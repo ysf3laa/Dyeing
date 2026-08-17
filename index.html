@@ -189,6 +189,7 @@ const [loads,setLoads]=useState([]);const [showWarehouse,setShowWarehouse]=useSt
 const [loadDraft,setLoadDraft]=useState({customer:"",total:"",date:"",notes:"",category:"",color:"",barcode:"",machine:""});
 const [showLateList,setShowLateList]=useState(false);const [showDelivered,setShowDelivered]=useState(false);const [heroEdit,setHeroEdit]=useState(false);
 const [defects,setDefects]=useState([]);const [showDefects,setShowDefects]=useState(false);const [defectFor,setDefectFor]=useState(null);const [defectDraft,setDefectDraft]=useState({reason:"",qty:"",notes:""});
+const [linkedFrom,setLinkedFrom]=useState(null);
 const [screen,setScreen]=useState("home");const [activeStage,setActiveStage]=useState(null);
 const [lateOnly,setLateOnly]=useState(false);
 const [stageQ,setStageQ]=useState("");
@@ -206,7 +207,7 @@ const importCamRef=useRef(null);const importGalRef=useRef(null);
 const scannerRef=useRef(null);const restoreRef=useRef(null);const scanMode=useRef("form");
 const gotoDone=useRef(false);
 const uiRef=useRef({});
-uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,showTopCust,photoView,appQr,importMenu,importDraft,showMic,showWarehouse,addLoad,loadDetail,showLateList,showDelivered,heroEdit,showDefects,defectFor,showAnnounce};
+uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,showTopCust,photoView,appQr,importMenu,importDraft,showMic,showWarehouse,addLoad,loadDetail,showLateList,showDelivered,heroEdit,showDefects,defectFor,showAnnounce,linkedFrom};
 const t=DICT[lang];const dir=lang==="ar"?"rtl":"ltr";
 const can=unlocked;
 const theme={bg:"#0B0E1A",panel:"#141829",panelAlt:"#1B2036",border:"#242B47",text:"#EDEFF5",textDim:"#8A93B5",accent:"#7C5CFF",accent2:"#2DD4A8",danger:"#FF5C7A",warn:"#FFB65C",input:"#1B2036"};
@@ -215,7 +216,7 @@ const LD=+factory.lateDays||2;
 const allColors=PRESET_COLORS.concat(customColors);
 useEffect(()=>{setFnameDraft(factory.fname);setWaDraft(factory.wa);setLateDraft(factory.lateDays);setHeroTDraft(factory.heroT||"");setHeroSDraft(factory.heroS||"");},[factory.fname,factory.wa,factory.lateDays,factory.heroT,factory.heroS]);
 useEffect(()=>{history.pushState({guard:1},"");const onPop=()=>{const u=uiRef.current;
-if(u.showTopCust)setShowTopCust(false);else if(u.showLateList)setShowLateList(false);else if(u.showDelivered)setShowDelivered(false);else if(u.heroEdit)setHeroEdit(false);else if(u.showDefects)setShowDefects(false);else if(u.defectFor)setDefectFor(null);else if(u.showAnnounce)setShowAnnounce(false);else if(u.addLoad)setAddLoad(false);else if(u.loadDetail)setLoadDetail(null);else if(u.showWarehouse)setShowWarehouse(false);else if(u.showMic)setShowMic(false);else if(u.importMenu)setImportMenu(false);else if(u.importDraft)setImportDraft(null);
+if(u.showTopCust)setShowTopCust(false);else if(u.showLateList)setShowLateList(false);else if(u.showDelivered)setShowDelivered(false);else if(u.heroEdit)setHeroEdit(false);else if(u.showDefects)setShowDefects(false);else if(u.defectFor)setDefectFor(null);else if(u.showAnnounce)setShowAnnounce(false);else if(u.linkedFrom)setLinkedFrom(null);else if(u.addLoad)setAddLoad(false);else if(u.loadDetail)setLoadDetail(null);else if(u.showWarehouse)setShowWarehouse(false);else if(u.showMic)setShowMic(false);else if(u.importMenu)setImportMenu(false);else if(u.importDraft)setImportDraft(null);
 else if(u.reportText)setReportText(null);else if(u.showScanner)setShowScanner(false);else if(u.bcCard)setBcCard(null);
 else if(u.statementFor)setStatementFor(null);else if(u.showWorkers)setShowWorkers(false);
 else if(u.photoView)setPhotoView(null);else if(u.appQr)setAppQr(false);else if(u.showMenu)setShowMenu(false);
@@ -507,7 +508,7 @@ return(<div key={c.id} className="card" onClick={()=>setEditingCard(c)} onContex
 <span>{t.quantity}: <b style={{color:theme.text}}>{c.quantity||"—"}</b></span>
 {c.machine&&<span>{t.machine}: <b style={{color:theme.text}}>{c.machine}</b></span>}
 {c.barcode&&<span>🔳 <b style={{color:theme.text}}>{c.barcode}</b></span>}</div>
-{(c.urgent||l2||l1||lk>0||di||c.delivered||c.deliveredQty)&&(<div style={{display:"flex",gap:6,marginTop:8,flexWrap:"wrap"}}>{c.urgent&&badge("var(--red)",t.urgent)}{l2&&badge("var(--red)",t.aged2)}{!l2&&l1&&badge("var(--warn)",t.aged1)}{di&&badge(di.col,di.txt)}{lk>0&&badge("var(--blue)",t.linkedCards+": "+lk)}{c.delivered&&badge("var(--teal)","✅ مسلّم")}{!c.delivered&&c.deliveredQty&&badge("var(--teal)","⚖️ "+c.deliveredQty)}</div>)}
+{(c.urgent||l2||l1||lk>0||di||c.delivered||c.deliveredQty)&&(<div style={{display:"flex",gap:6,marginTop:8,flexWrap:"wrap"}}>{c.urgent&&badge("var(--red)",t.urgent)}{l2&&badge("var(--red)",t.aged2)}{!l2&&l1&&badge("var(--warn)",t.aged1)}{di&&badge(di.col,di.txt)}{lk>0&&<span onClick={(e)=>{e.stopPropagation();setLinkedFrom(c);}} style={{cursor:"pointer"}}>{badge("var(--blue)",t.linkedCards+": "+lk+" ←")}</span>}{c.delivered&&badge("var(--teal)","✅ مسلّم")}{!c.delivered&&c.deliveredQty&&badge("var(--teal)","⚖️ "+c.deliveredQty)}</div>)}
 </div>);})}
 </div>)}
 {screen==="log"&&(
@@ -651,6 +652,21 @@ return(<div><h3 style={{margin:"0 0 8px"}}>🚛 {ld.customer} — {ld.total} {fa
 <button onClick={saveAnnounce} className="btnG">📢 نشر</button>
 <button onClick={()=>{if(!can||!db)return;db.collection("config").doc("announce").set({text:"",by:"",time:Date.now()});setShowAnnounce(false);showToast("🗑️");}} className="btnO">🗑️ مسح الإعلان</button>
 </div></div></div>)}
+{linkedFrom&&(()=>{const lk=liveCards.filter(x=>x.message&&x.message===linkedFrom.message&&x.id!==linkedFrom.id);return(
+<div className="modal" onClick={()=>setLinkedFrom(null)}>
+<div className="mbox" onClick={e=>e.stopPropagation()}>
+<h3 style={{margin:"0 0 10px"}}>🔗 كروت مرتبطة — رسالة {linkedFrom.message} ({lk.length})</h3>
+<div className="card grad" style={{padding:12,marginBottom:12}}>
+<div style={{fontSize:11,color:"#E4DCFF"}}>الكرت الحالي</div>
+<div style={{fontSize:14,fontWeight:800}}>{linkedFrom.customer||"—"} · {linkedFrom.code||"—"}</div>
+<div style={{fontSize:12,marginTop:4}}>{linkedFrom.color} — {linkedFrom.quantity} · {linkedFrom.stage}</div>
+</div>
+{lk.map((c,i)=>{const si=stages.indexOf(c.stage);const sc=STAGE_COLORS[(si>=0?si:0)%8];
+return(<div key={c.id} className="card anim" onClick={()=>{setLinkedFrom(null);jumpToCard(c);}} style={{cursor:"pointer",padding:"10px 12px",marginBottom:8,borderInlineStart:"4px solid "+sc,animationDelay:(i*50)+"ms"}}>
+<div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:14}}>{c.customer||"—"} · {c.code||"—"}</b><span className="badge" style={{background:sc}}>{c.stage}</span></div>
+<div style={{fontSize:12,color:theme.textDim,marginTop:4}}>{c.color} — {c.quantity} {factory.unit} · {fmtTime(c.updatedAt||c.createdAt,lang)}{c.delivered?" · ✅":""}</div>
+</div>);})}
+</div></div>);})()}
 {defectFor&&(
 <div className="modal" onClick={()=>setDefectFor(null)}>
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:380}}>
