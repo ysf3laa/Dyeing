@@ -338,7 +338,7 @@ const j=await r.json();lastErr=(j.error&&j.error.message)?j.error.message:("HTTP
 let o=null;try{o=JSON.parse(txt);}catch(err){const m2=txt.match(/\{[\s\S]*\}/);if(m2){try{o=JSON.parse(m2[0]);}catch(e2){}}}
 if(o){setImportBusy(null);const d={customer:String(o.customer||""),code:String(o.code||""),message:String(o.message||""),machine:String(o.machine||""),category:String(o.category||""),color:String(o.color||""),quantity:String(o.quantity||""),barcode:String(o.barcode||""),time:String(o.time||""),notes:String(o.notes||""),prepare:"",dye:""};d.stage=activeStage||stages[0]||"";setImportDraft(d);showToast("🤖 ✅");return;}
 }catch(err){lastErr=String(err&&err.message||err);}}
-setImportBusy(null);if(lastErr)showToast("🤖 "+lastErr,"danger");ocrNow(f);})();
+setImportBusy(null);if(lastErr)showToast(/quota|limit|429|exceeded/i.test(lastErr)?"🤖 خلص حد Gemini اليومي — بنكمّل بالقارئ العادي":"🤖 "+lastErr,"danger");ocrNow(f);})();
 };im.src=rr4.result;};
 rr4.readAsDataURL(f);
 }else{ocrNow(f);}
