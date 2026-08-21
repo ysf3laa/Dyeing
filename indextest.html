@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0B0E1A">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg">
+<meta name="mobile-web-app-capable" content="yes">
+<title>متابعة مراحل</title>
+<style>
+:root{--bg:#0B0E1A;--panel:#141829;--panel2:#1B2036;--line:#242B47;--txt:#EDEFF5;--dim:#8A93B5;--vio:#7C5CFF;--vio2:#9F7CFF;--blue:#5E8FD6;--teal:#2DD4A8;--red:#FF5C7A;--warn:#FFB65C}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Tajawal',system-ui,sans-serif;background:radial-gradient(900px 480px at 85% -10%,rgba(124,92,255,.14),transparent),radial-gradient(700px 400px at -10% 30%,rgba(45,212,168,.07),transparent),var(--bg);color:var(--txt);min-height:100vh}
+input,select,textarea,button{font-family:inherit;color:var(--txt)}button{cursor:pointer}
+fieldset{border:none;margin:0;padding:0;min-width:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{animation:spin 1s linear infinite;display:inline-block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+@keyframes glow{0%,100%{box-shadow:0 0 14px var(--g,rgba(124,92,255,.35))}50%{box-shadow:0 0 30px var(--g,rgba(124,92,255,.65))}}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes growW{from{width:0}}
+@keyframes growH{from{height:0}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.anim{animation:fadeUp .55s both}
+.card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:20px;padding:16px;animation:fadeUp .55s both}
+.card:active{transform:scale(.985)}
+.grad{background:linear-gradient(135deg,var(--vio),var(--blue));box-shadow:0 10px 30px rgba(124,92,255,.35)}
+.btnG{background:linear-gradient(135deg,var(--vio),var(--blue));border:none;color:#fff;border-radius:14px;padding:13px 18px;font-weight:800;font-size:14px;box-shadow:0 8px 24px rgba(124,92,255,.35);transition:transform .15s;width:100%}
+.btnG:active{transform:scale(.95)}
+.btnO{background:transparent;border:1px solid var(--line);color:var(--txt);border-radius:14px;padding:12px 16px;font-weight:700;font-size:14px;transition:transform .15s;width:100%}
+.btnO:active{transform:scale(.95)}
+.inp{width:100%;box-sizing:border-box;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);font-size:15px;margin-bottom:10px;outline:none;transition:border .2s}
+.inp:focus{border-color:var(--vio)}
+.chip{padding:7px 12px;border-radius:20px;border:1px solid var(--line);background:transparent;color:var(--dim);font-size:12px;font-weight:700;transition:all .2s}
+.chip.on{background:linear-gradient(135deg,var(--vio),var(--blue));border-color:transparent;color:#fff;box-shadow:0 4px 14px rgba(124,92,255,.4)}
+.badge{font-size:10.5px;font-weight:800;color:#fff;border-radius:20px;padding:4px 10px;display:inline-block;animation:pop .4s both}
+.lbl{font-size:12px;font-weight:800;margin-bottom:6px;color:var(--dim)}
+.tldot{width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;animation:glow 2.8s infinite;position:relative;z-index:2}
+.tlline{width:3px;background:linear-gradient(180deg,var(--vio),var(--teal));animation:growH 1s both}
+.navbar{position:fixed;bottom:0;left:0;right:0;background:rgba(11,14,26,.85);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);display:flex;justify-content:space-around;align-items:center;padding:8px 6px calc(10px + env(safe-area-inset-bottom));z-index:300;animation:fadeUp .5s both}
+.navi{background:none;border:none;color:var(--dim);font-size:10px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 10px;border-radius:12px;transition:color .2s}
+.navi span{font-size:19px;transition:transform .25s}
+.navi.on{color:var(--vio2)}
+.navi.on span{transform:translateY(-3px) scale(1.15)}
+.navplus{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--vio),var(--blue));border:none;color:#fff;font-size:24px;box-shadow:0 8px 24px rgba(124,92,255,.5);margin-top:-26px;transition:transform .2s;animation:floaty 3s ease-in-out infinite}
+.navplus:active{transform:scale(.9)}
+.ring{position:relative;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column}
+.bar{height:8px;border-radius:8px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:8px;border-radius:8px;animation:growW 1s both}
+.shimmer{background:linear-gradient(90deg,var(--panel) 25%,var(--panel2) 50%,var(--panel) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite}
+.syncing-bar{position:fixed;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--vio),var(--teal),var(--vio));background-size:200% 100%;animation:shimmer 1.5s linear infinite;z-index:9999;display:none}
+.syncing-bar.active{display:block}
+#bc-reader video{border-radius:12px}
+.modal{position:fixed;inset:0;background:rgba(5,7,14,.7);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:400;padding:16px;animation:pop .25s both}
+.mbox{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:24px;padding:20px;width:100%;max-width:460px;max-height:88vh;overflow-y:auto;animation:fadeUp .35s both}
+</style>
+</head>
+<body>
+<div id="syncBar" class="syncing-bar"></div>
+<div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:16px"><div style="font-size:40px;animation:floaty 2s infinite">🏭</div><div style="color:#8A93B5;font-size:14px;font-weight:700">🤍 استغل الانتظار في الاستغفار</div></div></div>
+<script>
+window.onerror=function(m,u,l){if(m&&m!=="Script error."){var r=document.getElementById("root");if(r)r.innerHTML='<div style="padding:16px;color:#FF5C7A;font-size:12px;word-break:break-all;text-align:center">خطأ: '+m+'<br>سطر: '+l+'</div>';}};
+window.addEventListener("unhandledrejection",function(e){e.preventDefault();console.warn(e.reason);});
+setTimeout(function(){if(!window.__booted){var r=document.getElementById("root");if(r&&r.innerHTML.indexOf("خطأ")===-1){var d=document.createElement("div");d.style.cssText="position:fixed;bottom:10px;left:10px;right:10px;background:#1B2036;color:#FF5C7A;border:1px solid #FF5C7A;border-radius:14px;padding:12px;font-size:12px;text-align:center;z-index:99999";d.innerHTML="⚠️ المكتبات لسه بتتحمل — دوس إعادة أو غيّر الشبكة<br><button onclick='location.reload()' style='margin-top:8px;background:#7C5CFF;color:#fff;border:none;border-radius:10px;padding:9px 22px;font-size:13px;font-weight:700'>🔄 إعادة المحاولة</button>";r.appendChild(d);}}},45000);
+</script>
+<script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script>
+<script src="lib/react.js"></script>
+<script src="lib/reactdom.js"></script>
+<script src="lib/babel.js"></script>
+<script src="lib/fbapp.js"></script>
+<script src="lib/fbauth.js"></script>
+<script src="lib/fbfs.js"></script>
+<script src="lib/jsbarcode.js"></script>
+<script src="lib/qrcode.js"></script>
+<script src="lib/html5qrcode.js"></script>
+<script src="lib/tesseract.js"></script>
+<script type="text/babel" data-presets="react">
+const {useState,useEffect,useRef}=React;
+function useCountUp(v,dur){const [n,setN]=useState(0);useEffect(()=>{let s=null;let raf;const step=t=>{if(s===null)s=t;const p=Math.min(1,(t-s)/(dur||900));setN(Math.round(v*(1-Math.pow(1-p,3))));if(p<1)raf=requestAnimationFrame(step);};raf=requestAnimationFrame(step);return()=>cancelAnimationFrame(raf);},[v]);return n;}
+const firebaseConfig={apiKey:"AIzaSyBEplMzCUPbZ33vpctAegDvCLFLB2d_Psc",authDomain:"dyeing-tracker-cc789.firebaseapp.com",projectId:"dyeing-tracker-cc789",storageBucket:"dyeing-tracker-cc789.firebasestorage.app",messagingSenderId:"407184511418",appId:"1:407184511418:web:16512177012e5a6ded0d83",measurementId:"G-V3ST7W6VVN"};
+const UNLOCK_CODE="20112005";
+const SUPPORT_WA="201044836450";
+let db=null,auth=null,fbReady=false;
+try{firebase.initializeApp(firebaseConfig);auth=firebase.auth();db=firebase.firestore();db.enablePersistence({synchronizeTabs:true}).catch(e=>console.warn(e.code));fbReady=true;}catch(e){console.error(e);}
+const DEFAULT_STAGES=["جيتات","صباغة","تجهيز","لف","الصالة"];
+const DEFAULT_MACHINES=["1","2","3","4","5","6","7","8","9","10"];
+const STAGE_COLORS=["#7C5CFF","#5E8FD6","#2DD4A8","#FFB65C","#FF5C7A","#B98FD6","#6FBF73","#D6A24F"];
+const PRESET_COLORS=["أبيض","أسود","أحمر","أزرق","أخضر","أصفر","بيج","كحلي","رمادي","بني","بنفسجي","برتقالي","تركواز","كشمير","ذهبي","فضي"];
+const APP_URL="https://ysf3laa.github.io/Dyeing/";
+const DICT={
+ar:{appName:"متابعة مراحل",search:"بحث في كل الكروت...",settings:"الإعدادات",dailyLog:"السجل اليومي",addStage:"إضافة مرحلة",add:"إضافة",cardsPlural:"كروت",lateOnly:"المتأخر فقط",all:"الكل",newCard:"كرت جديد",code:"كود",customer:"عميل",message:"رسالة",category:"صنف",color:"لون",quantity:"كمية",barcode:"باركود",machine:"ماكينة",prepare:"تجهيز",dye:"صباغة",time:"تاريخ",notes:"ملاحظة",phone:"تليفون العميل",address:"عنوان العميل",urgent:"مستعجل",save:"حفظ",cancel:"إلغاء",duplicateWarning:"يوجد كرت بنفس البيانات بالكامل. تحفظ برضه؟",saveAnyway:"حفظ برضه",edit:"تعديل",copyCard:"نسخ الكرت",moveCard:"نقل الكرت",showQr:"عرض QR",delete:"حذف",openWhatsapp:"واتساب",call:"اتصال",pinCard:"تثبيت",unpin:"إلغاء التثبيت",yourName:"اسمك",confirmName:"تأكيد",language:"اللغة",noResults:"لا توجد نتائج",linkedCards:"كروت مرتبطة",aged1:"متأخر يوم",aged2:"متأخر",noCardsHere:"لا يوجد كروت هنا",online:"🟢 متصل",offline:"🔴 أوفلاين - محفوظ محلياً",syncing:"⏳ مزامنة...",synced:"✅ اتزامن",home:"الرئيسية",stagesLabel:"المراحل",history:"تاريخ الحركة",nextStage:"المرحلة الجاية",report:"تقرير اليوم",copy:"نسخ",backup:"نسخة Excel",showBarcode:"عرض الباركود",cameraErr:"مش قادر أفتح الكاميرا",viewPhoto:"عرض الصورة",shareCard:"مشاركة واتساب",statement:"كشف حساب عميل",due:"موعد التسليم",overdue:"عدّى الميعاد",dueSoon:"قرب الميعاد",archive:"الأرشيف",archiveCard:"أرشفة",unarchive:"رجوع",printCard:"طباعة",workers:"لوحة العمال",notFound:"مش موجود",foundIn:"موجود في",colorsLabel:"ألوان سريعة",factoryName:"اسم المصنع",waNumber:"رقم واتساب المصنع",unit:"وحدة الوزن",lateDays:"يعتبر متأخر بعد (يوم)",printSize:"مقاس الطباعة",manageStages:"إدارة المراحل",manageMachines:"إدارة الماكينات",manageColors:"ألوان إضافية",appQr:"QR التطبيق",backupFull:"نسخة كاملة JSON",restore:"استعادة نسخة",wipe:"تصفير البيانات",wipeSure:"متأكد؟ كل البيانات هتتمسح!",rename:"تعديل",yourNameEdit:"تعديل اسمك",scanAny:"امسح باركود أو QR",viewOnly:"🔒 اطلاع فقط",reading:"جاري قراءة الصورة",extracted:"راجع البيانات المستخرجة وظبط الغلط",chooseImport:"اختار مصدر صورة الأمر",camera:"تصوير",gallery:"من الجهاز",saveFactoryBtn:"حفظ بيانات المصنع"},
+en:{appName:"Stage Tracker",search:"Search...",settings:"Settings",dailyLog:"Daily Log",addStage:"Add Stage",add:"Add",cardsPlural:"cards",lateOnly:"Late",all:"All",newCard:"New Card",code:"Code",customer:"Customer",message:"Batch",category:"Category",color:"Color",quantity:"Qty",barcode:"Barcode",machine:"Machine",prepare:"Prepare",dye:"Dye",time:"Date",notes:"Notes",phone:"Phone",address:"Address",urgent:"Urgent",save:"Save",cancel:"Cancel",duplicateWarning:"Duplicate. Save?",saveAnyway:"Save",edit:"Edit",copyCard:"Copy",moveCard:"Move",showQr:"QR",delete:"Delete",openWhatsapp:"WhatsApp",call:"Call",pinCard:"Pin",unpin:"Unpin",yourName:"Name",confirmName:"OK",language:"Lang",noResults:"None",linkedCards:"Linked",aged1:"1d",aged2:"Late",noCardsHere:"Empty",online:"🟢",offline:"🔴",syncing:"⏳",synced:"✅",home:"Home",stagesLabel:"Stages",history:"History",nextStage:"Next",report:"Report",copy:"Copy",backup:"CSV",showBarcode:"Barcode",cameraErr:"Camera error",viewPhoto:"View",shareCard:"Share",statement:"Statement",due:"Due",overdue:"Overdue",dueSoon:"Soon",archive:"Archive",archiveCard:"Archive",unarchive:"Restore",printCard:"Print",workers:"Workers",notFound:"Not found",foundIn:"In",colorsLabel:"Colors",factoryName:"Factory name",waNumber:"Factory WhatsApp",unit:"Unit",lateDays:"Late after (days)",printSize:"Print size",manageStages:"Stages",manageMachines:"Machines",manageColors:"Colors",appQr:"App QR",backupFull:"JSON backup",restore:"Restore",wipe:"Wipe",wipeSure:"Sure?!",rename:"Rename",yourNameEdit:"Edit name",scanAny:"Scan",viewOnly:"🔒 View only",reading:"Reading",extracted:"Review data",chooseImport:"Source",camera:"Camera",gallery:"Gallery",saveFactoryBtn:"Save"}
+};
+const FIELD_KEYS=["code","customer","message","category","color","quantity","barcode","machine","prepare","dye","time","notes","phone","address"];
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
+function nowISO(){return new Date().toISOString();}
+function toMs(v){if(!v)return 0;if(typeof v==="number")return v;if(v.toDate)return v.toDate().getTime();const d=new Date(v);return isNaN(d.getTime())?0:d.getTime();}
+function fmtTime(v,l){const m=toMs(v);if(!m)return "";return new Date(m).toLocaleString(l==="ar"?"ar-EG":"en-GB",{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"});}
+function daysSince(v){const m=toMs(v);if(!m)return 0;return(Date.now()-m)/86400000;}
+function localDate(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function b64e(s){return btoa(unescape(encodeURIComponent(s))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");}
+function b64d(s){s=String(s).replace(/-/g,"+").replace(/_/g,"/");while(s.length%4)s+="=";return JSON.parse(decodeURIComponent(escape(atob(s))));}
+function pubUrl(c){try{const v=c.barcode||c.code||c.id;return APP_URL+"?d="+b64e(JSON.stringify({n:c.customer||"",c:v,col:c.color||"",cat:c.category||"",q:c.quantity||""}));}catch(e){return APP_URL;}}
+function readCompressed(f,cb){const r=new FileReader();r.onload=()=>{const i=new Image();i.onload=()=>{const s=Math.min(1,700/Math.max(i.width,i.height));const c=document.createElement("canvas");c.width=Math.round(i.width*s);c.height=Math.round(i.height*s);c.getContext("2d").drawImage(i,0,0,c.width,c.height);cb(c.toDataURL("image/jpeg",0.6));};i.src=r.result;};r.readAsDataURL(f);}
+function MenuBtn({children,onClick,active}){return <button onClick={onClick} style={{width:"100%",display:"flex",alignItems:"center",gap:8,padding:"11px 10px",borderRadius:12,border:"none",background:active?"rgba(124,92,255,.15)":"transparent",color:active?"var(--vio2)":"var(--txt)",fontSize:14,fontWeight:700,textAlign:"start",marginBottom:2}}>{children}</button>;}
+function BarcodeView({value,h}){const r=useRef(null);useEffect(()=>{if(r.current&&value&&window.JsBarcode){try{JsBarcode(r.current,value,{format:"CODE128",background:"transparent",lineColor:"#000",width:2,height:h||50,displayValue:true,fontSize:14,font:"monospace",margin:0});}catch(e){}}},[value,h]);if(!value)return null;return <svg ref={r} style={{maxWidth:"100%"}}/>;}
+function QrView({value,size}){const r=useRef(null);useEffect(()=>{if(r.current&&value&&window.QRCode){r.current.innerHTML="";try{new QRCode(r.current,{text:String(value),width:size||200,height:size||200,correctLevel:QRCode.CorrectLevel.M});}catch(e){}}},[value,size]);if(!window.QRCode)return <div style={{fontSize:12,padding:8}}>{value}</div>;return <div ref={r} style={{display:"inline-block",background:"#fff",borderRadius:12,padding:8}}/>;}
+function Ring({pct,size,color,children}){return <div className="ring" style={{width:size,height:size,background:"conic-gradient("+color+" "+(pct*3.6)+"deg,var(--line) 0)"}}><div style={{width:size-14,height:size-14,borderRadius:"50%",background:"var(--panel)",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column"}}>{children}</div></div>;}
+function parseVoice(txt){
+const d={customer:"",message:"",code:"",machine:"",category:"",color:"",quantity:"",barcode:"",prepare:"",dye:"",time:"",notes:""};
+let t2=(txt||"").replace(/[٠-٩]/g,function(dd){return String("٠١٢٣٤٥٦٧٨٩".indexOf(dd));});
+t2=t2.split(/\s+/).filter(function(w,i,a){return w&&w!==a[i-1];}).join(" ");
+const KW={customer:/عميل|العميل|customer|client/,code:/كود|code/,message:/رسالة|message|batch/,machine:/ماكينة|machine/,category:/صنف|خامة|category|fabric/,color:/لون|اللون|color/,quantity:/كمية|وزن|quantity|qty|weight/,barcode:/باركود|barcode/,time:/تاريخ|date/,notes:/ملاحظ|طلبات|note/};
+const STRIP=/^(عميل|العميل|customer|client|كود|code|رسالة|message|batch|ماكينة|machine|صنف|خامة|category|fabric|لون|اللون|color|كمية|وزن|quantity|qty|weight|باركود|barcode|تاريخ|date|ملاحظ|ملاحظات|طلبات|notes?)$/i;
+const pos=[];
+Object.keys(KW).forEach(function(k){const re=KW[k];re.lastIndex=0;const m=re.exec(t2);if(m)pos.push([m.index,m[0].length,k]);});
+pos.sort(function(a,b){return a[0]-b[0];});
+for(let i=0;i<pos.length;i++){const s=pos[i][0]+pos[i][1];const e2=i+1<pos.length?pos[i+1][0]:t2.length;
+const words=t2.slice(s,e2).split(/\s+/).filter(function(w){return w&&!STRIP.test(w);});
+d[pos[i][2]]=words.join(" ").replace(/^[\s:\-،]+/,"").trim();}
+["code","message","machine","quantity","barcode"].forEach(function(f){const m=(d[f]||"").match(/\d+(?:[.,]\d+)?/);if(m)d[f]=m[0];});
+if(!d.customer&&!d.code&&!d.quantity){
+const toks=t2.split(/\s+/).filter(function(w){return w&&!STRIP.test(w);});
+const items=toks.map(function(tk){return {tk:tk,isNum:/^\d+(?:[.,]\d+)?$/.test(tk),isAr:/[؀-ۿ]/.test(tk)};});
+const phrases=[];let cur=null;
+items.forEach(function(it){const ty=it.isNum?"num":(it.isAr?"ar":"x");if(!cur||cur.type!==ty){cur={type:ty,words:[]};phrases.push(cur);}cur.words.push(it.tk);});
+const ars=phrases.filter(function(p){return p.type==="ar";}).map(function(p){return p.words.join(" ");});
+const nums=phrases.filter(function(p){return p.type==="num";}).map(function(p){return p.words.join(" ");});
+if(ars[0])d.customer=ars[0];
+if(ars[1])d.category=ars[1];
+if(ars[2])d.color=ars[2];
+if(ars[3])d.notes=ars.slice(3).join(" ");
+nums.forEach(function(v){if(/^26\d{5}$/.test(v))d.barcode=v;});
+const small=nums.filter(function(v){return !/^26\d{5}$/.test(v);});
+if(small[0])d.code=small[0];
+if(small[1])d.message=small[1];
+if(small[2])d.quantity=small[2];
+if(small[3])d.machine=small[3];
+if(!d.customer&&!d.barcode)d.notes=t2.trim();
+}
+return d;}
+function parseOrderText(txt){
+const d={customer:"",message:"",code:"",color:"",category:"",quantity:"",machine:"",barcode:"",prepare:"",dye:"",time:"",notes:""};
+const flat=(txt||"").replace(/\r/g,"").replace(/\n/g," ").replace(/[٠-٩]/g,function(dd){return String("٠١٢٣٤٥٦٧٨٩".indexOf(dd));}).replace(/\s+/g," ");
+const after=(re,len)=>{re.lastIndex=0;const m=re.exec(flat);if(!m)return"";const s=m.index+m[0].length;return flat.slice(s,s+(len||40));};
+const cut=w=>{const labs=["رقم","الحافظة","الحافظه","وزن","الخامة","الخامه","الماكينة","الماكينه","تاريخ","كود","اسم","العرض","الاثواب","ملاحظات","ملاحظه","طلبات","جودة","جوده"];let m=w.length;for(let k=0;k<labs.length;k++){const i=w.indexOf(labs[k]);if(i>0&&i<m)m=i;}return w.slice(0,m);};
+const num=w=>{const m=(w||"").match(/\d+(?:[.,]\d+)?/);return m?m[0]:"";};
+const arw=w=>(w||"").replace(/[^\u0600-\u06FF\s]/g," ").replace(/\s+/g," ").trim();
+const arwStar=w=>(w||"").replace(/[^\u0600-\u06FF\s\*]/g," ").replace(/\s+/g," ").trim();
+const cw=cut(after(/العميل/,50));
+d.customer=arwStar(cw);
+d.code=num(cw);
+d.message=num(after(/رقم\s*الرسال[ةه]/,15));
+d.machine=num(after(/الماكين[ةه]/,10));
+d.color=arw(cut(after(/اسم\s*اللون/,30)));
+d.category=arw(cut(after(/الخام[ةه]/,30)));
+d.quantity=num(after(/الوزن/,15));
+const tm=after(/تاريخ/,15).match(/\d{4}\/\d{1,2}\/\d{1,2}/);if(tm)d.time=tm[0];
+const nums=flat.match(/\b26\d{5}\b/g)||[];
+const shn=(after(/شترك/,14).match(/\b26\d{5}\b/)||[null])[0];
+d.barcode=(nums.find(n=>n!==shn)||nums[0]||"");
+const n1=arw(cut(after(/ملاحظ[ةه]/,150)));
+const n2=arw(cut(after(/طلبات\s*العميل/,150)));
+d.notes=(n1+" "+n2).replace(/\s+/g," ").trim();
+return d;}
+function NewCompanyBox({onCreate}){
+const [c,setC]=useState("");
+const [n,setN]=useState("");
+const [u,setU]=useState("");
+const [p,setP]=useState("");
+return(
+<div className="card" style={{borderColor:"var(--vio)"}}>
+<div className="lbl">➕ شركة جديدة</div>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+<input className="inp" placeholder="الكود (إنجليزي)" value={c} onChange={e=>setC(e.target.value)}/>
+<input className="inp" placeholder="اسم الشركة" value={n} onChange={e=>setN(e.target.value)}/>
+<input className="inp" placeholder="اسم مستخدم المالك" value={u} onChange={e=>setU(e.target.value)}/>
+<input className="inp" placeholder="رمز المالك" value={p} onChange={e=>setP(e.target.value)}/>
+</div>
+<button onClick={()=>{onCreate(c,n,u,p);setC("");setN("");setU("");setP("");}} className="btnG">🏢 إنشاء الشركة</button>
+</div>);
+}
+function App(){
+const [ready,setReady]=useState(false);
+const [firebaseOk,setFirebaseOk]=useState(false);
+const [ownerName,setOwnerName]=useState(null);
+const [nameDraft,setNameDraft]=useState("");
+const [userId,setUserId]=useState(null);
+const [isOnline,setIsOnline]=useState(navigator.onLine);
+const [syncStatus,setSyncStatus]=useState("idle");
+const [onlineUsers,setOnlineUsers]=useState([]);
+const [reportText,setReportText]=useState(null);
+const [statementFor,setStatementFor]=useState(null);
+const [showWorkers,setShowWorkers]=useState(false);
+const [showTopCust,setShowTopCust]=useState(false);
+const [photoView,setPhotoView]=useState(null);
+const [appQr,setAppQr]=useState(false);
+const [wipeConfirm,setWipeConfirm]=useState(false);
+const [gemKey,setGemKey]=useState(localStorage.getItem("gemini_key")||"");
+const [importBusy,setImportBusy]=useState(null);
+const [importDraft,setImportDraft]=useState(null);
+const [importMenu,setImportMenu]=useState(false);
+const [lang,setLang]=useState(()=>localStorage.getItem("pref_lang")||"ar");
+const [stages,setStages]=useState(DEFAULT_STAGES);
+const [machines,setMachines]=useState(DEFAULT_MACHINES);
+const [factory,setFactory]=useState({fname:"متابعة مراحل",wa:"",unit:"كيلو",lateDays:2,printSize:"A5",heroT:"",heroS:""});
+const [fnameDraft,setFnameDraft]=useState("متابعة مراحل");
+const [waDraft,setWaDraft]=useState("");
+const [lateDraft,setLateDraft]=useState(2);
+const [heroTDraft,setHeroTDraft]=useState("");
+const [heroSDraft,setHeroSDraft]=useState("");
+const [customColors,setCustomColors]=useState([]);
+const [cards,setCards]=useState([]);
+const [log,setLog]=useState([]);
+const [loads,setLoads]=useState([]);
+const [showWarehouse,setShowWarehouse]=useState(false);
+const [addLoad,setAddLoad]=useState(false);
+const [loadDetail,setLoadDetail]=useState(null);
+const [loadDraft,setLoadDraft]=useState({customer:"",total:"",date:"",notes:"",category:"",color:"",barcode:"",machine:""});
+const [showLateList,setShowLateList]=useState(false);
+const [showDelivered,setShowDelivered]=useState(false);
+const [heroEdit,setHeroEdit]=useState(false);
+const [defects,setDefects]=useState([]);
+const [showDefects,setShowDefects]=useState(false);
+const [defectFor,setDefectFor]=useState(null);
+const [defectDraft,setDefectDraft]=useState({reason:"",qty:"",notes:""});
+const [linkedFrom,setLinkedFrom]=useState(null);
+const [screen,setScreen]=useState("home");
+const [activeStage,setActiveStage]=useState(null);
+const [lateOnly,setLateOnly]=useState(false);
+const [stageQ,setStageQ]=useState("");
+const [announce,setAnnounce]=useState(null);
+const [showAnnounce,setShowAnnounce]=useState(false);
+const [announceDraft,setAnnounceDraft]=useState("");
+const [annDismissed,setAnnDismissed]=useState(localStorage.getItem("ann_dismiss"));
+const [tenant,setTenant]=useState(localStorage.getItem("tenant")||"");
+const [loginCo,setLoginCo]=useState(new URLSearchParams(window.location.search).get("co")||"");
+const [loginU,setLoginU]=useState("");
+const [loginP,setLoginP]=useState("");
+const [me,setMe]=useState(()=>{try{const tt=localStorage.getItem("tenant");if(!tt)return null;const s=localStorage.getItem("session_"+tt);return s?JSON.parse(s):null;}catch(e){return null;}});
+const [companies,setCompanies]=useState([]);
+const [users,setUsers]=useState([]);
+const [userDraft,setUserDraft]=useState({u:"",p:"",name:""});
+const [passDraft,setPassDraft]=useState({old:"",new:""});
+const [showNotif,setShowNotif]=useState(false);
+const [reportSuggest,setReportSuggest]=useState(false);
+const [news,setNews]=useState([]);
+const [newsDraft,setNewsDraft]=useState("");
+const [manageCo,setManageCo]=useState(null);
+const [coData,setCoData]=useState(null);
+const [showSettings,setShowSettings]=useState(false);
+const [showSearch,setShowSearch]=useState(false);
+const [showMenu,setShowMenu]=useState(false);
+const [showScanner,setShowScanner]=useState(false);
+const [bcCard,setBcCard]=useState(null);
+const [editingCard,setEditingCard]=useState(null);
+const [actionCard,setActionCard]=useState(null);
+const [moveCard_,setMoveCard]=useState(null);
+const [copyCard_,setCopyCard]=useState(null);
+const [qrCard,setQrCard]=useState(null);
+const [toast,setToast]=useState(null);
+const [micOn,setMicOn]=useState(false);
+const [micText,setMicText]=useState("");
+const [showMic,setShowMic]=useState(false);
+const [micLang,setMicLang]=useState("ar-EG");
+const recRef=useRef(null);
+const photoInputRef=useRef(null);
+const photoGalRef=useRef(null);
+const scanFileRef=useRef(null);
+const importCamRef=useRef(null);
+const importGalRef=useRef(null);
+const scannerRef=useRef(null);
+const restoreRef=useRef(null);
+const scanMode=useRef("form");
+const gotoDone=useRef(false);
+const uiRef=useRef({});
+uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,showTopCust,photoView,appQr,importMenu,importDraft,showMic,showWarehouse,addLoad,loadDetail,showLateList,showDelivered,heroEdit,showDefects,defectFor,showAnnounce,linkedFrom,showNotif,reportSuggest,manageCo};
+const t=DICT[lang];
+const dir=lang==="ar"?"rtl":"ltr";
+const isSuper=!!(me&&me.role==="super");
+const isOwner=!!(me&&me.role==="owner");
+const can=!!me&&!isSuper;
+const col=n=>db.collection("t/"+(tenant||"_")+"/"+n);
+const theme={bg:"#0B0E1A",panel:"#141829",panelAlt:"#1B2036",border:"#242B47",text:"#EDEFF5",textDim:"#8A93B5",accent:"#7C5CFF",accent2:"#2DD4A8",danger:"#FF5C7A",warn:"#FFB65C",input:"#1B2036"};
+const hdrBtn={width:42,height:42,borderRadius:14,border:"1px solid "+theme.border,background:theme.panel,color:theme.text,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:17};
+const LD=+factory.lateDays||2;
+const allColors=PRESET_COLORS.concat(customColors);
+useEffect(()=>{setFnameDraft(factory.fname);setWaDraft(factory.wa);setLateDraft(factory.lateDays);setHeroTDraft(factory.heroT||"");setHeroSDraft(factory.heroS||"");},[factory.fname,factory.wa,factory.lateDays,factory.heroT,factory.heroS]);
+useEffect(()=>{if(me)setOwnerName(me.name);},[me]);
+useEffect(()=>{if(me&&!isSuper&&can){const today=localDate(new Date());if(localStorage.getItem("lastReport_"+tenant)!==today){setReportSuggest(true);}}},[me]);
+useEffect(()=>{history.pushState({guard:1},"");const onPop=()=>{const u=uiRef.current;
+if(u.showTopCust)setShowTopCust(false);else if(u.showLateList)setShowLateList(false);else if(u.showDelivered)setShowDelivered(false);else if(u.heroEdit)setHeroEdit(false);else if(u.showDefects)setShowDefects(false);else if(u.defectFor)setDefectFor(null);else if(u.showAnnounce)setShowAnnounce(false);else if(u.linkedFrom)setLinkedFrom(null);else if(u.showNotif)setShowNotif(false);else if(u.reportSuggest)setReportSuggest(false);else if(u.manageCo)setManageCo(null);else if(u.addLoad)setAddLoad(false);else if(u.loadDetail)setLoadDetail(null);else if(u.showWarehouse)setShowWarehouse(false);else if(u.showMic)setShowMic(false);else if(u.importMenu)setImportMenu(false);else if(u.importDraft)setImportDraft(null);
+else if(u.reportText)setReportText(null);else if(u.showScanner)setShowScanner(false);else if(u.bcCard)setBcCard(null);
+else if(u.statementFor)setStatementFor(null);else if(u.showWorkers)setShowWorkers(false);
+else if(u.photoView)setPhotoView(null);else if(u.appQr)setAppQr(false);else if(u.showMenu)setShowMenu(false);
+else if(u.editingCard)setEditingCard(null);else if(u.actionCard)setActionCard(null);
+else if(u.moveCard_)setMoveCard(null);else if(u.copyCard_)setCopyCard(null);else if(u.qrCard)setQrCard(null);
+else if(u.showSearch)setShowSearch(false);else if(u.showSettings)setShowSettings(false);
+else if(u.screen==="stage")setScreen("stages");else if(u.screen==="stages")setScreen("home");else if(u.screen==="log")setScreen("home");
+else if(u.screen==="archive")setScreen("home");else{history.back();return;}
+history.pushState({guard:1},"");};
+window.addEventListener("popstate",onPop);return()=>window.removeEventListener("popstate",onPop);},[]);
+useEffect(()=>{const on=()=>{setIsOnline(true);setSyncStatus("syncing");setTimeout(()=>{setSyncStatus("synced");setTimeout(()=>setSyncStatus("idle"),2000);},1500);};const off=()=>{setIsOnline(false);setSyncStatus("idle");};window.addEventListener("online",on);window.addEventListener("offline",off);return()=>{window.removeEventListener("online",on);window.removeEventListener("offline",off);};},[]);
+useEffect(()=>{const b=document.getElementById("syncBar");if(b)b.classList.toggle("active",syncStatus==="syncing");},[syncStatus]);
+useEffect(()=>{if(!fbReady||!auth||!db)return;const un=auth.onAuthStateChanged(async user=>{if(user){setUserId(user.uid);}else{try{await auth.signInAnonymously();}catch(e){}}setFirebaseOk(true);setReady(true);});return()=>un&&un();},[]);
+useEffect(()=>{if(!fbReady||!db||!me||isSuper||!tenant)return;
+const u1=col("cards").onSnapshot(sn=>{setCards(sn.docs.map(d=>({id:d.id,...d.data()})));},e=>console.error(e));
+const u2=col("logs").onSnapshot(sn=>{setLog(sn.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>toMs(b.time)-toMs(a.time)));});
+const u3=col("loads").onSnapshot(sn=>{setLoads(sn.docs.map(d=>({id:d.id,...d.data()})));});
+const u4=col("defects").onSnapshot(sn=>{setDefects(sn.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>toMs(b.time)-toMs(a.time)));});
+const u5=col("config").onSnapshot(sn=>{const g=id=>{const d=sn.docs.find(x=>x.id===id);return d?d.data():null;};
+const s=g("stages"),m=g("machines"),f=g("factory"),cl=g("colors");
+if(s)setStages(s.list||DEFAULT_STAGES);if(m)setMachines(m.list||DEFAULT_MACHINES);
+if(f)setFactory({fname:f.fname||"متابعة مراحل",wa:f.wa||"",unit:f.unit||"كيلو",lateDays:f.lateDays||2,printSize:f.printSize||"A5",gkey:f.gkey||"",heroT:f.heroT||"",heroS:f.heroS||""});
+if(cl)setCustomColors(cl.list||[]);
+const an=g("announce");if(an&&an.text)setAnnounce(an);else setAnnounce(null);});
+const u6=col("users").onSnapshot(sn=>{setUsers(sn.docs.map(d=>({id:d.id,...d.data()})));});
+return()=>{[u1,u2,u3,u4,u5,u6].forEach(u=>{try{u&&u();}catch(e){}});};
+},[me,tenant]);
+useEffect(()=>{if(!fbReady||!db||!isSuper)return;const u=db.collection("companies").onSnapshot(sn=>{setCompanies(sn.docs.map(d=>({id:d.id,...d.data()})));});return()=>{try{u&&u();}catch(e){}};},[isSuper]);
+useEffect(()=>{if(!fbReady||!db||!me)return;const u=db.collection("news").onSnapshot(sn=>{setNews(sn.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.time||0)-(a.time||0)));});return()=>{try{u&&u();}catch(e){}};},[me]);
+useEffect(()=>{if(!firebaseOk||!userId||!ownerName||!db||!me||isSuper)return;const beat=()=>{try{db.collection("presence").doc(userId).set({name:ownerName,last:Date.now()});}catch(e){}};beat();const iv=setInterval(beat,20000);const un=db.collection("presence").onSnapshot(sn=>{const n=Date.now();setOnlineUsers(sn.docs.map(d=>d.data()).filter(p=>n-(p.last||0)<60000));});return()=>{clearInterval(iv);un&&un();};},[firebaseOk,userId,ownerName,me]);
+useEffect(()=>{if(!ready||gotoDone.current)return;const g=new URLSearchParams(window.location.search).get("goto");if(!g)return;let p=null;try{p=b64d(g);}catch(e){return;}if(!p||!p.c)return;
+const f=cards.find(c=>(c.barcode&&c.barcode===p.c)||c.code===p.c);
+if(f){gotoDone.current=true;jumpToCard(f);showToast("📍 "+t.foundIn+": "+f.stage);}},[ready,cards]);
+useEffect(()=>{if(!showScanner||!window.Html5Qrcode)return;let done=false;const hq=new Html5Qrcode("bc-reader");scannerRef.current=hq;
+const fm=window.Html5QrcodeSupportedFormats?[Html5QrcodeSupportedFormats.QR_CODE,Html5QrcodeSupportedFormats.CODE_128,Html5QrcodeSupportedFormats.CODE_39,Html5QrcodeSupportedFormats.EAN_13]:null;
+hq.start({facingMode:"environment"},Object.assign({fps:10,qrbox:{width:250,height:190}},fm?{formatsToSupport:fm}:{}),(txt)=>{if(done)return;done=true;try{hq.stop();}catch(e){}setShowScanner(false);handleScan(String(txt).trim());},()=>{}).catch(()=>{setShowScanner(false);showToast(t.cameraErr,"danger");});
+return()=>{done=true;try{hq.stop();hq.clear();}catch(e){}};},[showScanner]);
+const showToast=(m,k)=>{setToast({msg:m,kind:k||"ok"});setTimeout(()=>setToast(null),2600);};
+const doLogin=async()=>{const code=(loginCo||"").trim().toUpperCase();const u=loginU.trim();
+if(!code||!u||!loginP){showToast("كمّل البيانات","danger");return;}
+if(code==="MASTER"){if(u==="admin"&&loginP===UNLOCK_CODE){localStorage.setItem("tenant","MASTER");localStorage.setItem("session_MASTER",JSON.stringify({user:"admin",role:"super",name:"المالك"}));setTenant("MASTER");setMe({user:"admin",role:"super",name:"المالك"});showToast("👑 أهلاً");}else showToast("بيانات المالك غلط","danger");return;}
+try{const cs=await db.collection("companies").doc(code).get();
+if(!cs.exists){showToast("كود الشركة مش موجود","danger");return;}
+if(cs.data().active===false){showToast("الشركة موقوفة — كلم الدعم","danger");return;}
+const us=await db.collection("t/"+code+"/users").doc(u).get();
+if(!us.exists||String(us.data().pass)!==String(loginP)){showToast("اسم المستخدم أو الرمز غلط","danger");return;}
+const sess={user:u,role:us.data().role||"worker",name:us.data().name||u};
+localStorage.setItem("tenant",code);localStorage.setItem("session_"+code,JSON.stringify(sess));setTenant(code);setMe(sess);showToast("👋 أهلاً "+sess.name);
+}catch(e){showToast("خطأ: "+(e.code||e.message),"danger");}};
+const logout=()=>{const tt=localStorage.getItem("tenant");if(tt)localStorage.removeItem("session_"+tt);localStorage.removeItem("tenant");setTenant("");setMe(null);setCards([]);setLog([]);setLoads([]);setDefects([]);};
+const createCompany=async(code,name,ou,op)=>{code=(code||"").trim().toUpperCase();if(!code||!name||!ou||!op)return showToast("كمّل البيانات","danger");
+const ex=await db.collection("companies").doc(code).get();if(ex.exists)return showToast("الكود موجود قبل كده","danger");
+await db.collection("companies").doc(code).set({name:name,active:true,createdAt:Date.now()});
+await db.collection("t/"+code+"/users").doc(ou).set({pass:op,role:"owner",name:name,createdAt:Date.now()});
+showToast("🏢 اتعملت شركة "+code);};
+const toggleCompany=async c=>{await db.collection("companies").doc(c.id).set({active:c.active===false},{merge:true});};
+const quickEnter=c=>{const sess={user:"master-quick",role:"owner",name:"👑 المالك (دخول سريع)"};localStorage.setItem("tenant",c.id);localStorage.setItem("session_"+c.id,JSON.stringify(sess));setTenant(c.id);setMe(sess);showToast("🚪 دخلت "+c.name);};
+const openManage=async c=>{setManageCo(c);setCoData(null);
+try{const u=await db.collection("t/"+c.id+"/users").get();setCoData({users:u.docs.map(d=>({id:d.id,...d.data()}))});}catch(e){setCoData({users:[]});}};
+const saveCoName=async n=>{if(!manageCo||!n||!n.trim())return;await db.collection("companies").doc(manageCo.id).set({name:n.trim()},{merge:true});setManageCo({...manageCo,name:n.trim()});showToast("✏️ اتعدل الاسم");};
+const resetCoUser=async(u,p)=>{await db.collection("t/"+manageCo.id+"/users").doc(u).set({pass:p},{merge:true});showToast("🔑 اتغير رمز "+u);};
+const deleteCoUser=async u=>{await db.collection("t/"+manageCo.id+"/users").doc(u).delete();setCoData({...coData,users:coData.users.filter(x=>x.id!==u)});showToast("🗑️");};
+const deleteCompany=async c=>{if(!confirm("حذف شركة "+c.name+" نهائياً؟ كل بياناتها هتتمسح!"))return;
+for(const cn of ["cards","logs","loads","defects","users","config","announce"]){try{const sn=await db.collection("t/"+c.id+"/"+cn).get();for(const d of sn.docs){await d.ref.delete();}}catch(e){}}
+try{await db.collection("companies").doc(c.id).delete();}catch(e){showToast("خطأ: "+(e.code||e.message),"danger");return;}
+setManageCo(null);showToast("🗑️ اتحذفت "+c.id,"danger");};
+const addUser=async()=>{if(!isOwner||!db)return;const u=userDraft.u.trim();if(!u||!userDraft.p||!userDraft.name)return showToast("كمّل البيانات","danger");
+const ex=await col("users").doc(u).get();if(ex.exists)return showToast("الاسم موجود","danger");
+await col("users").doc(u).set({pass:userDraft.p,role:"worker",name:userDraft.name,createdAt:Date.now()});setUserDraft({u:"",p:"",name:""});showToast("👷 اتضاف");};
+const resetUserPass=async(u,p)=>{await col("users").doc(u).set({pass:p},{merge:true});showToast("🔑 اتغير");};
+const deleteUser=async u=>{await col("users").doc(u).delete();showToast("🗑️");};
+const changeMyPass=async()=>{if(!me||!db||isSuper)return;const my=await col("users").doc(me.user).get();if(!my.exists||String(my.data().pass)!==String(passDraft.old))return showToast("الرمز القديم غلط","danger");
+await col("users").doc(me.user).set({pass:passDraft.new},{merge:true});setPassDraft({old:"",new:""});showToast("🔒 اتغير رمزك");};
+const migrateOld=async code=>{code=(code||"").trim().toUpperCase();if(!code)return;
+const cs=await db.collection("companies").doc(code).get();if(!cs.exists){showToast("اعمل الشركة الأول","danger");return;}
+const snap=await db.collection("cards").get();for(const d of snap.docs){await db.collection("t/"+code+"/cards").doc(d.id).set(d.data());}
+const sl=await db.collection("logs").get();for(const d of sl.docs){await db.collection("t/"+code+"/logs").doc(d.id).set(d.data());}
+const so=await db.collection("loads").get();for(const d of so.docs){await db.collection("t/"+code+"/loads").doc(d.id).set(d.data());}
+showToast("📦 اتنقلت البيانات القديمة لـ "+code);};
+const postNews=async()=>{if(!isSuper||!db)return;if(!newsDraft.trim())return;await db.collection("news").doc(uid()).set({text:newsDraft.trim(),time:Date.now()});setNewsDraft("");showToast("🆕 اتنشر لكل الشركات");};
+const createDemo=async()=>{const code="DEMO";
+const ex=await db.collection("companies").doc(code).get();
+if(!ex.exists){await db.collection("companies").doc(code).set({name:"شركة تجريبية (ديمو)",active:true,createdAt:Date.now()});await db.collection("t/"+code+"/users").doc("demo").set({pass:"1234",role:"owner",name:"مدير تجريبي",createdAt:Date.now()});}
+const samples=[["خالد عيسي","411","أحمر","462","جيتات"],["امريكان","452","أبيض","21","صباغة"],["محمد الزماكة","475","غسيل","426","تجهيز"],["طارق الدهشوري","707","أبيض","457","لف"],["رفيق المنير","724","اسود خاص","251","الصالة"],["الحاج طارق","457","أبيض","464","جيتات"]];
+for(const s of samples){await db.collection("t/"+code+"/cards").doc(uid()).set({customer:s[0],code:s[1],color:s[2],quantity:s[3],stage:s[4],message:"",category:"جاكار",barcode:"",machine:"",prepare:"",dye:"",time:"",notes:"",phone:"",address:"",urgent:false,pinned:false,due:"",photo:"",archived:false,loadId:"",delivered:false,deliveredQty:0,createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp(),createdBy:"MASTER",history:[{stage:s[4],by:"MASTER",at:nowISO()}]});}
+showToast("🎭 الديمو جاهز — دخول: DEMO / demo / 1234");};
+const jumpToCard=c=>{setActiveStage(c.stage);setScreen("stage");setEditingCard(c);};
+const nextStageOf=s=>{const i=stages.indexOf(s);if(i===-1)return null;return i<stages.length-1?stages[i+1]:null;};
+const qtySum=l=>l.reduce((a,c)=>a+(parseFloat(c.quantity)||0),0);
+const knownCustomers=(()=>{const m={};cards.forEach(c=>{if(c.customer){m[c.customer]=m[c.customer]||{};if(c.phone)m[c.customer].phone=c.phone;if(c.address)m[c.customer].address=c.address;}});return Object.keys(m).map(k=>({name:k,phone:(m[k]||{}).phone||"",address:(m[k]||{}).address||""}));})();
+const onCustomerChange=v=>{const k=knownCustomers.find(x=>x.name===v);setEditingCard({...editingCard,customer:v,phone:k&&k.phone?k.phone:editingCard.phone,address:k&&k.address?k.address:editingCard.address});};
+const waLink=txt=>"https://wa.me/"+(factory.wa?factory.wa.replace(/\D/g,"")+"?":"?")+"text="+encodeURIComponent(txt);
+const parseScan=txt=>{txt=String(txt).trim();if(/^https?:\/\//.test(txt)){try{const u=new URL(txt);const d=u.searchParams.get("d")||u.searchParams.get("goto");if(d){const j=b64d(d);return{code:j.c||"",data:j};}}catch(e){}return{code:"",data:null};}return{code:txt,data:null};};
+const handleScan=txt=>{const p=parseScan(txt);if(!p.code&&!p.data)return;
+if(scanMode.current==="form"){if(!can){showToast(t.viewOnly,"danger");return;}setEditingCard(f=>f?{...f,barcode:p.code,code:f.code||p.code,customer:f.customer||(p.data?p.data.n||"":"")}:f);showToast("📷 "+p.code);}
+else{const f=cards.find(c=>(c.barcode&&c.barcode===p.code)||c.code===p.code);
+if(f){jumpToCard(f);showToast("✅ "+t.foundIn+": "+f.stage);}
+else if(can){showToast("❌ "+t.notFound,"danger");setEditingCard({id:uid(),stage:activeStage||stages[0]||"",code:p.code,customer:p.data?p.data.n||"":"",message:"",category:p.data?p.data.cat||"":"",color:p.data?p.data.col||"":"",quantity:p.data?p.data.q||"":"",barcode:p.code,machine:"",prepare:"",dye:"",time:"",notes:"",phone:"",address:"",urgent:false,pinned:false,due:"",photo:"",archived:false,loadId:"",delivered:false,deliveredQty:0});}
+else showToast("❌ "+t.notFound,"danger");}};
+const scanFromFile=e=>{const f=e.target.files?.[0];if(!f||!scannerRef.current)return;scannerRef.current.scanFileV2(f,true).then(r=>{if(r&&r.decodedText){setShowScanner(false);handleScan(String(r.decodedText).trim());}}).catch(()=>showToast("❌","danger"));e.target.value="";};
+const startMic=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){showToast("المتصفح مش داعم الإملاء","danger");return;}
+try{const rec=new SR();rec.lang=micLang;rec.interimResults=true;rec.continuous=true;
+const base=micText?micText+" ":"";const seen={};
+rec.onresult=e=>{let out="";let interim="";
+for(let i=0;i<e.results.length;i++){const r=e.results[i];const tr=(r[0]&&r[0].transcript||"").trim();if(!tr)continue;
+if(r.isFinal){const key=tr.toLowerCase();if(!seen[key]){seen[key]=1;out+=tr+" ";}}else{interim=tr;}}
+setMicText((base+out+interim).trim());};
+rec.onend=()=>setMicOn(false);
+rec.onerror=ev=>{setMicOn(false);if(ev.error&&ev.error!=="no-speech")showToast("🎙️ "+ev.error,"danger");};
+rec.start();recRef.current=rec;setMicOn(true);}catch(e){showToast("🎙️ ","danger");}};
+const stopMic=()=>{try{recRef.current&&recRef.current.stop();}catch(e){}setMicOn(false);};
+const extractVoice=()=>{const d=parseVoice(micText);d.stage=activeStage||stages[0]||"";setShowMic(false);stopMic();setImportDraft(d);};
+const noteMic=()=>{if(micOn){stopMic();return;}const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){showToast("المتصفح مش داعم","danger");return;}try{const rec=new SR();rec.lang=micLang;rec.interimResults=false;
+rec.onresult=e=>{let s="";for(let i=0;i<e.results.length;i++)s+=e.results[i][0].transcript;setEditingCard(c=>c?{...c,notes:(c.notes?c.notes+" ":"")+s}:c);};
+rec.onend=()=>setMicOn(false);rec.onerror=()=>setMicOn(false);rec.start();recRef.current=rec;setMicOn(true);}catch(e){}};
+const loadStats=ld=>{const linked=cards.filter(c=>c.loadId===ld.id);const pulled=linked.reduce((a,c)=>a+(parseFloat(c.quantity)||0),0);const del=linked.reduce((a,c)=>a+(c.delivered?(parseFloat(c.quantity)||0):(parseFloat(c.deliveredQty)||0)),0);const inF=pulled-del;const rem=(parseFloat(ld.total)||0)-pulled;return {pulled:pulled,del:del,inF:inF,rem:rem};};
+const saveLoad=async()=>{if(!can||!db||!loadDraft.customer||!loadDraft.total)return;await col("loads").doc(uid()).set({customer:loadDraft.customer.trim(),total:parseFloat(loadDraft.total)||0,date:loadDraft.date||localDate(new Date()),notes:loadDraft.notes||"",category:loadDraft.category||"",color:loadDraft.color||"",barcode:loadDraft.barcode||"",machine:loadDraft.machine||""});setAddLoad(false);setLoadDraft({customer:"",total:"",date:"",notes:"",category:"",color:"",barcode:"",machine:""});showToast("📦 ✅");};
+const toggleDelivered=async c=>{if(!can||!db)return;await col("cards").doc(c.id).set({delivered:!c.delivered},{merge:true});await addLog(!c.delivered?"تسليم":"إلغاء تسليم",c);setActionCard(null);};
+const partialDeliver=async(c,q)=>{if(!can||!db)return;const v=Math.min(parseFloat(q)||0,parseFloat(c.quantity)||0);await col("cards").doc(c.id).set({deliveredQty:v,delivered:v>=(parseFloat(c.quantity)||0)},{merge:true});await addLog("تسليم جزئي",c,String(v));setActionCard(null);};
+const saveHero=()=>{if(!can||!db)return;saveFactory({heroT:heroTDraft.trim(),heroS:heroSDraft.trim()});setHeroEdit(false);showToast("🎨 ✅");};
+const saveAnnounce=()=>{if(!can||!db)return;const el=document.getElementById("annBox");const txt=el?el.value:"";col("config").doc("announce").set({text:txt.trim(),by:ownerName||"",time:Date.now()});setShowAnnounce(false);showToast("📢 اتنشر");};
+const saveDefect=async()=>{if(!can||!db||!defectFor)return;await col("defects").doc(uid()).set({cardId:defectFor.id,customer:defectFor.customer||"",code:defectFor.code||"",stage:defectFor.stage||"",reason:defectDraft.reason||"",qty:defectDraft.qty||"",notes:defectDraft.notes||"",by:ownerName||"",time:Date.now(),date:localDate(new Date())});setDefectFor(null);setDefectDraft({reason:"",qty:"",notes:""});showToast("⚠️ تم التسجيل");};
+const saveFactory=patch=>{if(!can||!db)return;col("config").doc("factory").set({...factory,...patch},{merge:true});};
+const saveFactoryDrafts=()=>{saveFactory({fname:fnameDraft.trim()||"متابعة مراحل",wa:waDraft.trim(),lateDays:+lateDraft||2,heroT:heroTDraft.trim(),heroS:heroSDraft.trim()});showToast("✅");};
+const saveStages=l=>{if(!can||!db)return;col("config").doc("stages").set({list:l});};
+const renameStage=(o,n)=>{if(!can)return;saveStages(stages.map(s=>s===o?n:s));cards.filter(c=>c.stage===o).forEach(c=>col("cards").doc(c.id).set({stage:n},{merge:true}));};
+const saveMachines=l=>{if(!can||!db)return;col("config").doc("machines").set({list:l});};
+const saveColors=l=>{if(!can||!db)return;col("config").doc("colors").set({list:l});};
+const addLog=async(a,c,d="")=>{if(!db)return;try{await col("logs").doc(uid()).set({action:a,cardCode:c?.code||"",person:ownerName||"—",details:d,time:firebase.firestore.FieldValue.serverTimestamp(),timeLocal:Date.now(),date:new Date().toISOString().slice(0,10)});}catch(e){}};
+const saveCard=async(card,skip=false)=>{if(!can)return;card={...card};delete card.__dupWarning;card.stage=String(card.stage||"").trim();if(stages.length&&!stages.includes(card.stage))card.stage=activeStage||stages[0];if(!db)return;
+if(!skip){const d=cards.find(c=>c.id!==card.id&&String(c.code||"")===String(card.code||"")&&String(c.barcode||"")===String(card.barcode||"")&&String(c.customer||"")===String(card.customer||"")&&String(c.color||"")===String(card.color||"")&&String(c.category||"")===String(card.category||"")&&String(c.quantity||"")===String(card.quantity||""));if(d){setEditingCard({...card,__dupWarning:true});return;}}
+const ex=cards.some(c=>c.id===card.id);
+try{if(ex){await col("cards").doc(card.id).set({...card,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedBy:ownerName,updatedLocal:Date.now()},{merge:true});await addLog("تعديل",card);}
+else{const id=card.id||uid();await col("cards").doc(id).set({...card,id,createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp(),createdBy:ownerName,history:[{stage:card.stage,by:ownerName,at:nowISO()}]});await addLog("إضافة",card);}
+setEditingCard(null);showToast(isOnline?"✅":"📱");}catch(e){showToast("خطأ: "+(e.code||e.message),"danger");}};
+const deleteCard=async c=>{if(!can||!db)return;try{await col("cards").doc(c.id).delete();await addLog("حذف",c);setActionCard(null);showToast("🗑️","danger");}catch(e){}};
+const moveCardTo=async(c,d)=>{if(!can||!db)return;d=d||(stages[0]||"");try{await col("cards").doc(c.id).set({stage:d,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),history:firebase.firestore.FieldValue.arrayUnion({stage:d,by:ownerName,at:nowISO()})},{merge:true});await addLog("نقل",c,"→ "+d);setMoveCard(null);setActionCard(null);showToast("→ "+d);}catch(e){}};
+const copyCardTo=async(c,d)=>{if(!can||!db)return;try{const id=uid();await col("cards").doc(id).set({...c,id,stage:d,pinned:false,createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp(),createdBy:ownerName,history:[{stage:d,by:ownerName,at:nowISO()}]});await addLog("نسخ",c);setCopyCard(null);setActionCard(null);showToast("📋 ✅");}catch(e){}};
+const togglePin=async c=>{if(!can||!db)return;try{await col("cards").doc(c.id).set({pinned:!c.pinned},{merge:true});setActionCard(null);}catch(e){}};
+const toggleArchive=async c=>{if(!can||!db)return;try{await col("cards").doc(c.id).set({archived:!c.archived},{merge:true});await addLog(c.archived?"رجوع":"أرشفة",c);setActionCard(null);}catch(e){}};
+const isLate=c=>daysSince(c.updatedAt||c.createdAt)>=1;
+const dueInfo=c=>{if(!c.due)return null;const today=localDate(new Date());if(c.due<today)return{txt:t.overdue,col:theme.danger};if((new Date(c.due).getTime()-new Date(today).getTime())/86400000<=1)return{txt:t.dueSoon,col:theme.warn};return null;};
+const liveCards=cards.filter(c=>!c.archived);
+const archivedCards=cards.filter(c=>c.archived);
+const cardsToShow=activeStage?liveCards.filter(c=>c.stage===activeStage).filter(c=>!lateOnly||isLate(c)).filter(c=>{const q=stageQ.trim().toLowerCase();if(!q)return true;return FIELD_KEYS.some(k=>((c[k]||"")+"").toLowerCase().includes(q));}).sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||toMs(b.updatedAt)-toMs(a.updatedAt)):[];
+const statusMsg=syncStatus==="syncing"?t.syncing:syncStatus==="synced"?t.synced:(isOnline?t.online:t.offline);
+const statusColor=syncStatus==="syncing"?theme.warn:syncStatus==="synced"?theme.accent2:(isOnline?theme.accent2:theme.danger);
+const onlineNames=[...new Set(onlineUsers.map(u=>u.name))];
+const lateCount=liveCards.filter(c=>daysSince(c.updatedAt||c.createdAt)>=LD).length;
+const lateAll=liveCards.filter(c=>daysSince(c.updatedAt||c.createdAt)>=LD);
+const delAll=liveCards.filter(c=>c.delivered||(parseFloat(c.deliveredQty)||0)>0);
+const todayLogCount=log.filter(e=>localDate(new Date(toMs(e.time||e.timeLocal)))===localDate(new Date())).length;
+const recent3=liveCards.slice().sort((a,b)=>toMs(b.updatedAt)-toMs(a.updatedAt)).slice(0,3);
+const wh=loads.reduce((a,l)=>{const s=loadStats(l);return {rem:a.rem+Math.max(0,s.rem),del:a.del+s.del};},{rem:0,del:0});
+const totalQty=qtySum(liveCards);
+const donePct=totalQty>0?Math.min(100,Math.round((wh.del/totalQty)*100)):0;
+const nCards=useCountUp(liveCards.length);const nLate=useCountUp(lateCount);const nRem=useCountUp(Math.round(wh.rem));const nDel=useCountUp(Math.round(wh.del));
+const grid2={display:"grid",gridTemplateColumns:"1fr 1fr",gap:10};
+const S_ICONS=["🚛","","⚙️","🧵","","🏭","✅","🎯"];
+const annVisible=!!(announce&&announce.text)&&annDismissed!==String(announce.time);
+const lowLoadList=loads.filter(l=>{const s=loadStats(l);return s.rem<=(parseFloat(l.total)||0)*0.1;});
+const notifCount=lateAll.length+lowLoadList.length;
+const badge=(c,x)=><span className="badge" style={{background:c}}>{x}</span>;
+const rawD=(()=>{try{return new URLSearchParams(window.location.search).get("d");}catch(e){return null;}})();
+const pubData=(()=>{if(!rawD)return null;try{return b64d(rawD);}catch(e){return null;}})();
+if(pubData&&!new URLSearchParams(window.location.search).get("goto"))return(<div dir="rtl" style={{minHeight:"100vh",background:"#fff",color:"#232016",display:"flex",alignItems:"center",justifyContent:"center",padding:20,fontFamily:"system-ui,sans-serif"}}>
+<div style={{width:"100%",maxWidth:380,border:"4px solid #7C5CFF",borderRadius:20,padding:24}}>
+<div style={{fontSize:22,fontWeight:900,textAlign:"center",marginBottom:4}}>🏭 متابعة مراحل</div>
+<div style={{fontSize:12,color:"#77705F",textAlign:"center",marginBottom:18}}>نظام إدارة أوامر الإنتاج لمصنع - متابعة المراحل</div>
+{[["اسم العمل",pubData.n],["الكود",pubData.c],["اللون",pubData.col],["الصنف",pubData.cat],["الوزن",pubData.q]].map(r=>r[1]?<div key={r[0]} style={{display:"flex",justifyContent:"space-between",borderBottom:"1px solid #DFD9CB",padding:"10px 4px",fontSize:15}}><b>{r[0]}</b><span>{r[1]}</span></div>:null)}
+<a href={APP_URL+"?goto="+encodeURIComponent(rawD)} style={{display:"block",marginTop:18,background:"#7C5CFF",color:"#fff",borderRadius:12,padding:"12px",textDecoration:"none",fontWeight:700,textAlign:"center"}}>فتح التطبيق الكامل → مكان الكرت</a>
+<div style={{fontSize:11,color:"#77705F",textAlign:"center",marginTop:10}}>🔒 التعديل للعاملين فقط بحساب الشركة</div>
+</div></div>);
+if(!ready)return(<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:theme.bg,color:theme.text,flexDirection:"column",gap:16}}><div style={{fontSize:48,animation:"floaty 2s infinite"}}>🏭</div><div className="spin" style={{fontSize:24}}>⚙️</div><div style={{color:theme.textDim,fontSize:14,fontWeight:700}}>🕌 صلِّ على النبي</div></div>);
+if(!me)return(
+<div dir={dir} style={{minHeight:"100vh",background:theme.bg,color:theme.text,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+<div className="card" style={{padding:32,width:"100%",maxWidth:380}}>
+<div style={{width:60,height:60,borderRadius:18,background:"linear-gradient(135deg,var(--vio),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px",fontSize:28,animation:"floaty 2.5s infinite",boxShadow:"0 10px 30px rgba(124,92,255,.4)"}}>🏭</div>
+<h2 style={{margin:"0 0 6px",fontSize:20,textAlign:"center"}}>متابعة مراحل</h2>
+<p style={{color:theme.textDim,fontSize:12,marginBottom:18,textAlign:"center"}}>نظام إدارة أوامر الإنتاج لمصنع - متابعة المراحل 🔒</p>
+<div className="lbl">كود الشركة</div>
+<input className="inp" value={loginCo} onChange={e=>setLoginCo(e.target.value)} placeholder="مثال: ALPHA"/>
+<div className="lbl">اسم المستخدم</div>
+<input className="inp" value={loginU} onChange={e=>setLoginU(e.target.value)} placeholder="username"/>
+<div className="lbl">الرمز</div>
+<input className="inp" type="password" value={loginP} onChange={e=>setLoginP(e.target.value)} placeholder="••••" onKeyDown={e=>e.key==="Enter"&&doLogin()}/>
+<button onClick={doLogin} className="btnG">🔓 دخول</button>
+</div>
+</div>);
+if(isSuper)return(
+<div dir={dir} style={{minHeight:"100vh",background:theme.bg,color:theme.text,paddingBottom:40}}>
+<div style={{maxWidth:640,margin:"0 auto",padding:"30px 16px"}}>
+<div className="anim" style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
+<div style={{width:44,height:44,borderRadius:50,background:"linear-gradient(135deg,var(--vio),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>👑</div>
+<div style={{flex:1}}>
+<div style={{fontSize:20,fontWeight:900}}>لوحة المالك</div>
+<div style={{fontSize:11,color:theme.textDim}}>{companies.length} شركة مسجلة</div>
+</div>
+<button onClick={logout} className="chip">🚪 خروج</button>
+</div>
+<div style={grid2}>
+<div className="card">
+<div className="lbl">🏢 شركات نشطة</div>
+<div style={{fontSize:24,fontWeight:900,color:"var(--teal)"}}>{companies.filter(c=>c.active!==false).length}</div>
+</div>
+<div className="card">
+<div className="lbl">⏸️ موقوفة</div>
+<div style={{fontSize:24,fontWeight:900,color:"var(--red)"}}>{companies.filter(c=>c.active===false).length}</div>
+</div>
+</div>
+<div style={{marginTop:12}}><NewCompanyBox onCreate={createCompany}/></div>
+<div style={{display:"flex",gap:8,marginTop:10}}>
+<button onClick={createDemo} className="btnO">🎭 تجهيز نسخة الديمو</button>
+</div>
+<div className="card" style={{marginTop:10,borderColor:"var(--warn)"}}>
+<div className="lbl">🆕 بث تحديث لكل الشركات</div>
+<input className="inp" placeholder="مثال: وصلنا ميزة التنبيهات الذكية 🎉" value={newsDraft} onChange={e=>setNewsDraft(e.target.value)}/>
+<button onClick={postNews} className="btnG">📡 نشر التحديث</button>
+</div>
+<div style={{marginTop:12}}>
+{companies.map((c,i)=>(
+<div key={c.id} className="card anim" style={{marginBottom:10,borderInlineStart:"4px solid "+(c.active===false?"var(--red)":"var(--teal)"),animationDelay:(i*60)+"ms"}}>
+<div style={{display:"flex",justifyContent:"space-between"}}>
+<b>{c.name} <span style={{color:theme.textDim,fontSize:11}}>({c.id})</span></b>
+{c.active===false?<span className="badge" style={{background:"var(--red)"}}>موقوفة</span>:<span className="badge" style={{background:"var(--teal)"}}>نشطة</span>}
+</div>
+<div style={{display:"flex",gap:6,marginTop:8,flexWrap:"wrap"}}>
+<button onClick={()=>openManage(c)} className="chip">⚙️ إدارة</button>
+<button onClick={()=>migrateOld(c.id)} className="chip">📦 استيراد القديم</button>
+<button onClick={()=>quickEnter(c)} className="chip on">🚪 دخول سريع</button>
+</div>
+</div>))}
+</div>
+</div>
+</div>);
+const ocrNow=f=>{if(!window.Tesseract){showToast("❌","danger");return;}
+setImportBusy(0);
+const rr3=new FileReader();
+rr3.onload=()=>{const im=new Image();im.onload=async()=>{
+const sc=Math.max(2,Math.min(3,1400/im.width));
+const cv=document.createElement("canvas");cv.width=Math.round(im.width*sc);cv.height=Math.round(im.height*sc);
+const cx=cv.getContext("2d");cx.drawImage(im,0,0,cv.width,cv.height);
+try{const w=cv.width,h=cv.height;const id=cx.getImageData(0,0,w,h);const p=id.data;const n=w*h;
+const g=new Uint8Array(n);
+for(let i=0;i<n;i++){g[i]=(p[i*4]*299+p[i*4+1]*587+p[i*4+2]*114)/1000;}
+const W=w+1;const int=new Float64Array((h+1)*W);
+for(let y=0;y<h;y++){let row=0;for(let x=0;x<w;x++){row+=g[y*w+x];int[(y+1)*W+x+1]=int[y*W+x+1]+row;}}
+const S=Math.max(15,Math.round(w/60));
+for(let y=0;y<h;y++){const y0=Math.max(0,y-S),y1=Math.min(h-1,y+S);
+for(let x=0;x<w;x++){const x0=Math.max(0,x-S),x1=Math.min(w-1,x+S);
+const cnt=(x1-x0+1)*(y1-y0+1);
+const sum=int[(y1+1)*W+x1+1]-int[y0*W+x1+1]-int[(y1+1)*W+x0]+int[y0*W+x0];
+const v=g[y*w+x]<=(sum/cnt)*0.88?0:255;const i4=(y*w+x)*4;p[i4]=v;p[i4+1]=v;p[i4+2]=v;}}
+cx.putImageData(id,0,0);}catch(err){}
+try{
+const res=await Tesseract.recognize(cv,"ara+eng",{logger:m=>{if(m.progress!=null)setImportBusy(Math.round(m.progress*100));}});
+setImportBusy(null);
+const d=parseOrderText(res.data.text||"");
+const filled=[d.customer,d.code,d.barcode,d.quantity,d.color,d.category].filter(x=>x).length;
+if(filled<2)showToast("💡 قرّب الورقة وضوّي كويس","danger");
+d.stage=activeStage||stages[0]||"";setImportDraft(d);
+}catch(err){setImportBusy(null);showToast("❌","danger");}
+};im.src=rr3.result;};
+rr3.readAsDataURL(f);};
+const handleImportFile=e=>{const f=e.target.files?.[0];if(!f)return;setImportMenu(false);
+const key=String(factory.gkey||localStorage.getItem("gemini_key")||"").trim();
+if(key){setImportBusy(0);
+const rr4=new FileReader();
+rr4.onload=()=>{const im=new Image();im.onload=()=>{
+const sc=Math.min(1,1200/im.width);const cv=document.createElement("canvas");cv.width=Math.round(im.width*sc);cv.height=Math.round(im.height*sc);cv.getContext("2d").drawImage(im,0,0,cv.width,cv.height);
+const b64=cv.toDataURL("image/jpeg",0.8).split(",")[1];
+const prompt='اقرأ أمر شغل من الصورة وأرجع JSON فقط: {"customer":"اسم العميل كما هو مكتوب","code":"الرقم بجانب اسم العميل","message":"رقم الرسالة","machine":"رقم الماكينة","category":"الخامة","color":"اسم اللون كما هو","quantity":"الوزن","barcode":"الرقم تحت الباركود أعلى اليسار","time":"التاريخ","notes":"الملاحظات مع طلبات العميل"}';
+let models=["gemini-3-flash","gemini-2.5-flash"];let lastErr="";
+const modelsP=fetch("https://generativelanguage.googleapis.com/v1beta/models?key="+key).then(r=>r.json()).then(mj=>{if(mj&&mj.models){let av=mj.models.map(m=>String(m.name).replace("models/","")).filter(n=>/flash/.test(n)&&!/image|tts|embed|imagen|video/i.test(n));const nl=av.filter(n=>!n.includes("lite"));if(nl.length)av=nl;if(av.length)models=av.slice(0,3);}}).catch(()=>{});
+(async()=>{await modelsP;for(const md of models){try{
+const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+md+":generateContent?key="+key,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{parts:[{text:prompt},{inline_data:{mime_type:"image/jpeg",data:b64}}]}]})});
+const j=await r.json();lastErr=(j.error&&j.error.message)?j.error.message:("HTTP "+r.status);let txt="";try{txt=j.candidates[0].content.parts[0].text;}catch(err){continue;}
+let o=null;try{o=JSON.parse(txt);}catch(err){const m2=txt.match(/\{[\s\S]*\}/);if(m2){try{o=JSON.parse(m2[0]);}catch(e2){}}}
+if(o){setImportBusy(null);const d={customer:String(o.customer||""),code:String(o.code||""),message:String(o.message||""),machine:String(o.machine||""),category:String(o.category||""),color:String(o.color||""),quantity:String(o.quantity||""),barcode:String(o.barcode||""),time:String(o.time||""),notes:String(o.notes||""),prepare:"",dye:""};d.stage=activeStage||stages[0]||"";setImportDraft(d);showToast("🤖 ✅");return;}
+}catch(err){lastErr=String(err&&err.message||err);}}
+setImportBusy(null);if(lastErr)showToast(/quota|limit|429|exceeded/i.test(lastErr)?"🤖 خلص حد Gemini اليومي — بنكمّل بالقارئ العادي":"🤖 "+lastErr,"danger");ocrNow(f);})();
+};im.src=rr4.result;};
+rr4.readAsDataURL(f);
+}else{ocrNow(f);}
+e.target.value="";};
+const confirmImport=async()=>{const d=importDraft;if(!d)return;
+const ex=cards.find(c=>String(c.customer||"")===String(d.customer||"")&&String(c.code||"")===String(d.code||"")&&String(c.barcode||"")===String(d.barcode||"")&&String(c.color||"")===String(d.color||"")&&String(c.category||"")===String(d.category||"")&&String(c.quantity||"")===String(d.quantity||""));
+if(ex){setImportDraft(null);jumpToCard(ex);showToast("✅ "+t.foundIn+": "+ex.stage);}
+else{await saveCard({...d,id:uid(),urgent:false,pinned:false,photo:"",archived:false,phone:d.phone||"",address:d.address||"",loadId:"",delivered:false,deliveredQty:0});setImportDraft(null);}};
+const buildReport=()=>{const today=localDate(new Date());const live=cards.filter(c=>!c.archived);
+let s="📊 "+t.report+" — "+today+"\n🏭 "+factory.fname+"\n\n🃏 "+live.length+"\n➕ "+live.filter(c=>localDate(new Date(toMs(c.createdAt)))===today).length+"\n🔄 "+log.filter(e=>localDate(new Date(toMs(e.time||e.timeLocal)))===today).length+"\n⚠️ "+live.filter(c=>daysSince(c.updatedAt||c.createdAt)>=LD).length+"\n\n";
+stages.forEach(st=>{const cs=live.filter(c=>c.stage===st);const q=qtySum(cs);s+="• "+st+": "+cs.length+(q?" ("+q+" "+factory.unit+")":"")+"\n";});return s;};
+const buildStatement=n=>{const cs=cards.filter(c=>c.customer===n);let s="👥 "+t.statement+" — "+n+"\n\n";cs.forEach(c=>{s+="• "+(c.code||"—")+" | "+(c.color||"—")+" | "+(c.quantity||"—")+" | "+(c.stage||"—")+(c.delivered?" | ✅":"")+"\n";});s+="\n⚖️ "+qtySum(cs)+" "+factory.unit;return s;};
+const workerStats=()=>{const today=localDate(new Date());const m={};log.forEach(e=>{if(localDate(new Date(toMs(e.time||e.timeLocal)))===today)m[e.person]=(m[e.person]||0)+1;});return Object.entries(m).sort((a,b)=>b[1]-a[1]);};
+const shareCardText=c=>{let s="🏭 "+factory.fname+"\n👤 "+(c.customer||"—")+"\n🔢 "+(c.code||"—")+"\n🎨 "+(c.color||"—")+"\n⚖️ "+(c.quantity||"—")+" "+factory.unit+"\n📍 "+(c.stage||"—")+"\n";if(c.due)s+="📅 "+c.due+"\n";if(c.barcode)s+="🔳 "+c.barcode+"\n";return s;};
+const exportSheet=(list,fname)=>{const h=["المرحلة","اسم العميل","الكود","الرسالة","اللون","الصنف","الكمية","الباركود","الملاحظات"];const rows=list.map(c=>[c.stage||"",c.customer||"",c.code||"",c.message||"",c.color||"",c.category||"",c.quantity||"",c.barcode||"",c.notes||(c.stage==="موقوف"?"موقوف":"")]);const csv="\uFEFF"+[h].concat(rows).map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(",")).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download=(fname||"sheet")+".csv";a.click();showToast("💾 ✅");};
+const exportCSV=()=>{const h=["code","customer","message","category","color","quantity","barcode","machine","prepare","dye","time","notes","phone","address","stage","due"];const r=cards.map(c=>h.map(x=>'"'+String(c[x]??"" ).replace(/"/g,'""')+'"').join(","));const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\uFEFF"+h.join(",")+"\n"+r.join("\n")],{type:"text/csv"}));a.download="stages.csv";a.click();showToast("💾 ✅");};
+const backupJSON=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify({cards,logs:log,loads})],{type:"application/json"}));a.download="stages-backup.json";a.click();showToast("💾 ✅");};
+const restoreJSON=e=>{const f=e.target.files?.[0];if(!f||!can)return;const r=new FileReader();r.onload=async()=>{try{const d=JSON.parse(r.result);if(Array.isArray(d.cards))for(const c of d.cards)await col("cards").doc(c.id).set(c,{merge:true});if(Array.isArray(d.loads))for(const l of d.loads)await col("loads").doc(l.id).set(l,{merge:true});showToast("♻️ ✅");}catch(x){showToast("❌","danger");}};r.readAsText(f);e.target.value="";};
+const wipeAll=async()=>{for(const c of cards)await col("cards").doc(c.id).delete();for(const l of log)await col("logs").doc(l.id).delete();for(const l of loads)await col("loads").doc(l.id).delete();setWipeConfirm(false);showToast("🗑️ ✅");};
+const printCard=card=>{const bc=document.createElementNS("http://www.w3.org/2000/svg","svg");try{if(card.barcode&&window.JsBarcode)JsBarcode(bc,card.barcode,{format:"CODE128",width:2,height:60,displayValue:true,margin:0});}catch(e){}
+let qr=null;try{const qd=document.createElement("div");new QRCode(qd,{text:pubUrl(card),width:160,height:160,correctLevel:QRCode.CorrectLevel.M});const cv=qd.querySelector("canvas");if(cv)qr=cv.toDataURL();}catch(e){}
+const w=window.open("","_blank");if(!w)return;const pw=factory.printSize==="A4"?"190mm":"132mm";
+const rows=[[t.customer,card.customer],[t.code,card.code],[t.message,card.message],[t.category,card.category],[t.color,card.color],[t.quantity,card.quantity],[t.machine,card.machine],[t.due,card.due],[t.phone,card.phone],[t.address,card.address],[t.notes,card.notes]];
+w.document.write('<html dir="rtl"><head><meta charset="utf-8"><style>body{font-family:sans-serif;padding:8mm;width:'+pw+'}h2{text-align:center;font-size:16px}table{width:100%;border-collapse:collapse;font-size:12px}td{border:1px solid #000;padding:4px 6px}.c{text-align:center;margin-top:6px}</style></head><body><h2>🏭 '+factory.fname+' — '+(card.stage||"")+'</h2><table>'+rows.map(r=>'<tr><td style="width:30%"><b>'+r[0]+'</b></td><td>'+(r[1]||"—")+'</td></tr>').join("")+'</table><div class="c">'+(bc.outerHTML||"")+'</div>'+(qr?'<div class="c"><img src="'+qr+'" style="width:35mm"/></div>':"")+'<scr'+'ipt>window.onload=function(){window.print()}<\/scr'+'ipt></body></html>');w.document.close();};
+const handlePhotoFile=e=>{const f=e.target.files?.[0];if(!f||!can)return;readCompressed(f,d=>{setEditingCard(c=>c?{...c,photo:d}:c);showToast("🖼️ ✅");});e.target.value="";};
+return(
+<div dir={dir} style={{minHeight:"100vh",background:theme.bg,color:theme.text,paddingBottom:90}}>
+<div style={{position:"fixed",top:0,left:0,right:0,padding:"6px 12px",background:"rgba(11,14,26,.85)",backdropFilter:"blur(10px)",borderBottom:"1px solid "+theme.border,fontSize:11,color:statusColor,zIndex:300,textAlign:"center",fontWeight:700}}>{statusMsg}</div>
+{annVisible&&(
+<div style={{position:"fixed",top:26,left:0,right:0,zIndex:290,padding:"6px 12px"}}>
+<div className="card grad" style={{padding:"10px 14px",display:"flex",alignItems:"center",gap:10,borderRadius:14}}>
+<span style={{fontSize:18,animation:"floaty 2s infinite"}}>📢</span>
+<div style={{flex:1,fontSize:13,fontWeight:700}}>{announce.text}</div>
+{can&&<button onClick={()=>{setAnnounceDraft(announce.text||"");setShowAnnounce(true);}} style={{background:"rgba(255,255,255,.2)",border:"none",borderRadius:8,padding:"4px 8px",color:"#fff",fontSize:12}}>✏️</button>}
+<button onClick={()=>{localStorage.setItem("ann_dismiss",String(announce.time));setAnnDismissed(String(announce.time));}} style={{background:"rgba(255,255,255,.2)",border:"none",borderRadius:8,padding:"4px 8px",color:"#fff",fontSize:12}}>✕</button>
+</div></div>)}
+{annVisible&&<div style={{height:58}}/>}
+{me&&!isSuper&&news.length>0&&(news[0].time||0)>(parseInt(localStorage.getItem("newsSeen_"+tenant)||"0"))&&(
+<div style={{maxWidth:640,margin:"0 auto",padding:"8px 16px 0"}}>
+<div className="card anim" style={{borderColor:"var(--warn)",padding:"12px 14px",display:"flex",alignItems:"center",gap:10}}>
+<span style={{fontSize:18}}>🆕</span>
+<div style={{flex:1,fontSize:13}}>{news[0].text}</div>
+<button onClick={()=>localStorage.setItem("newsSeen_"+tenant,String(news[0].time))} className="chip on">تمام 👍</button>
+</div>
+</div>)}
+{screen==="home"&&(
+<div style={{maxWidth:640,margin:"0 auto",padding:"40px 16px 20px"}}>
+<div className="anim" style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+<div style={{width:44,height:44,borderRadius:50,background:"linear-gradient(135deg,var(--vio),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,boxShadow:"0 6px 18px rgba(124,92,255,.4)"}}>{(ownerName||"؟")[0]}</div>
+<div style={{flex:1}}>
+<div style={{fontSize:12,color:theme.textDim}}>👋 مرحباً يا {ownerName}</div>
+<div style={{fontSize:20,fontWeight:900}}>{factory.fname}</div>
+</div>
+<button onClick={()=>setShowNotif(true)} style={{...hdrBtn,position:"relative"}}>🔔{notifCount>0&&<span style={{position:"absolute",top:-4,insetInlineEnd:-4,background:"var(--red)",color:"#fff",borderRadius:20,fontSize:10,padding:"2px 6px",fontWeight:800}}>{notifCount}</span>}</button>
+<button onClick={()=>setShowSearch(true)} style={hdrBtn}>🔍</button>
+<button onClick={()=>setShowMenu(true)} style={hdrBtn}>⋯</button>
+</div>
+<div className="card grad anim" style={{animationDelay:"80ms",marginBottom:12,position:"relative",overflow:"hidden"}}>
+<div style={{position:"absolute",top:14,insetInlineEnd:14,fontSize:40,animation:"floaty 3s infinite"}}>🏭</div>
+{can&&<button onClick={()=>setHeroEdit(true)} style={{position:"absolute",bottom:10,insetInlineEnd:10,background:"rgba(255,255,255,.2)",border:"none",borderRadius:10,padding:"6px 10px",color:"#fff",fontSize:13}}>✏️ تعديل</button>}
+<div style={{fontSize:13,color:"#E4DCFF"}}>{factory.heroS||"نظام إدارة أوامر الإنتاج لمصنع - متابعة المراحل"}</div>
+<div style={{fontSize:22,fontWeight:900,margin:"4px 0 10px"}}>{factory.heroT||"متابعة مراحل"}</div>
+<div style={{display:"flex",gap:6,flexWrap:"wrap"}}>{badge("rgba(255,255,255,.2)","🟢 "+onlineNames.length+" متصلين")}{badge("rgba(255,255,255,.2)","📋 "+todayLogCount+" حركة اليوم")}</div>
+</div>
+<div style={grid2}>
+<div className="card anim" onClick={()=>setScreen("stages")} style={{animationDelay:"140ms",cursor:"pointer"}}><div className="lbl">🃏 الكروت الحية</div><div style={{fontSize:26,fontWeight:900,color:"var(--vio2)"}}>{nCards}</div></div>
+<div className="card anim" onClick={()=>setShowLateList(true)} style={{animationDelay:"200ms",cursor:"pointer"}}><div className="lbl">⏰ متأخرة</div><div style={{fontSize:26,fontWeight:900,color:lateCount>0?"var(--red)":"var(--teal)"}}>{nLate}</div></div>
+<div className="card anim" onClick={()=>setShowWarehouse(true)} style={{animationDelay:"260ms",cursor:"pointer"}}><div className="lbl">📦 متبقي المخزن</div><div style={{fontSize:26,fontWeight:900,color:"var(--blue)"}}>{nRem} <span style={{fontSize:11,color:theme.textDim}}>{factory.unit}</span></div></div>
+<div className="card anim" onClick={()=>setShowDelivered(true)} style={{animationDelay:"320ms",cursor:"pointer"}}><div className="lbl">✅ اتسلم</div><div style={{fontSize:26,fontWeight:900,color:"var(--teal)"}}>{nDel}</div></div>
+</div>
+<div className="card anim" style={{animationDelay:"380ms",margin:"12px 0",display:"flex",alignItems:"center",gap:16}}>
+<Ring pct={donePct} size={110} color="var(--teal)"><b style={{fontSize:20}}>{donePct}%</b><span style={{fontSize:10,color:theme.textDim}}>إنجاز</span></Ring>
+<div style={{flex:1}}>
+<div className="lbl">نظرة عامة على المراحل</div>
+{stages.map((s,i)=>{const n=liveCards.filter(c=>c.stage===s).length;const p=liveCards.length?Math.round(n/liveCards.length*100):0;const colr=STAGE_COLORS[i%8];
+return(<div key={s} style={{marginBottom:8}}><div style={{display:"flex",justifyContent:"space-between",fontSize:11,color:theme.textDim,marginBottom:3}}><span>{s}</span><span>{n}</span></div><div className="bar"><i style={{width:p+"%",background:colr}}/></div></div>);})}
+</div>
+</div>
+{lateAll.length>0&&(<div className="card anim" style={{animationDelay:"440ms",marginBottom:12}}><div className="lbl">⚠️ تنبيهات سريعة</div>
+{lateAll.slice(0,4).map((c,i)=>(<div key={c.id} onClick={()=>jumpToCard(c)} style={{cursor:"pointer",display:"flex",alignItems:"center",gap:10,padding:"10px 0",borderTop:"1px solid "+theme.border,animation:"fadeUp .5s both",animationDelay:(i*80)+"ms"}}>
+<div style={{width:36,height:36,borderRadius:12,background:"rgba(255,92,122,.15)",display:"flex",alignItems:"center",justifyContent:"center"}}>⚠️</div>
+<div style={{flex:1}}><b style={{fontSize:13}}>{c.customer} · {c.code}</b><div style={{fontSize:11,color:theme.textDim}}>متأخر في {c.stage}</div></div>
+</div>))}</div>)}
+{recent3.length>0&&(<div className="anim" style={{animationDelay:"500ms"}}><div className="lbl">🕐 آخر الكروت المعدّلة</div>
+{recent3.map((c,i)=>{const si=stages.indexOf(c.stage);const sc=STAGE_COLORS[(si>=0?si:0)%8];
+return(<div key={c.id} className="card" onClick={()=>jumpToCard(c)} style={{cursor:"pointer",marginBottom:8,borderInlineStart:"4px solid "+sc,animationDelay:(i*90)+"ms"}}>
+<div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:14}}>{c.customer||"—"} · {c.code||"—"}</b><span className="badge" style={{background:sc}}>{c.stage}</span></div>
+<div style={{fontSize:12,color:theme.textDim,marginTop:4}}>{c.color} — {c.quantity} {factory.unit}{c.delivered?" · ✅":""}</div>
+</div>);})}</div>)}
+</div>)}
+{screen==="stages"&&(
+<div style={{maxWidth:640,margin:"0 auto",padding:"40px 16px 20px"}}>
+<div className="anim" style={{display:"flex",alignItems:"center",gap:10,marginBottom:18}}>
+<button onClick={()=>setScreen("home")} style={hdrBtn}>→</button>
+<div style={{flex:1}}>
+<div style={{fontSize:19,fontWeight:900}}>مراحل العمل</div>
+<div style={{fontSize:11,color:theme.textDim}}>تابع جميع مراحل الإنتاج</div>
+</div>
+</div>
+{(()=>{const orph=liveCards.filter(c=>!stages.includes(c.stage));return orph.length>0?(<div onClick={()=>setEditingCard(orph[0])} className="card" style={{marginBottom:14,borderColor:"var(--red)",cursor:"pointer"}}>⚠️ عندك {orph.length} كرت في مرحلة مش موجودة — دوس تصلّح</div>):null;})()}
+{stages.map((s,i)=>{const l=liveCards.filter(c=>c.stage===s);const late=l.filter(c=>daysSince(c.updatedAt||c.createdAt)>=LD).length;const q=qtySum(l);const colr=STAGE_COLORS[i%8];
+return(<div key={s} className="anim" style={{display:"flex",gap:12,marginBottom:4,animationDelay:(i*100)+"ms"}}>
+<div style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
+<div className="tldot" style={{background:colr+"22",border:"2px solid "+colr,"--g":colr+"66"}}>{S_ICONS[i%8]}</div>
+{i<stages.length-1&&<div className="tlline" style={{flex:1,minHeight:30,background:"linear-gradient(180deg,"+colr+","+STAGE_COLORS[(i+1)%8]+")"}}/>}
+</div>
+<div className="card" onClick={()=>{setActiveStage(s);setScreen("stage");}} style={{flex:1,cursor:"pointer",marginBottom:10}}>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><div><span className="badge" style={{background:colr}}>0{i+1}</span> <b style={{fontSize:15,marginInlineStart:6}}>{s}</b></div>{late>0&&<span className="badge" style={{background:"var(--red)"}}>⚠️ {late}</span>}</div>
+<div style={{fontSize:12,color:theme.textDim,marginTop:6}}>{l.length} {t.cardsPlural}{q?" · "+q+" "+factory.unit:""}</div>
+</div>
+</div>);})}
+{can&&<button onClick={()=>{const n=prompt(t.addStage);if(n&&n.trim()&&!stages.includes(n.trim()))saveStages(stages.concat([n.trim()]));}} className="btnO" style={{marginTop:8}}>➕ {t.addStage}</button>}
+</div>)}
+{screen==="stage"&&(
+<div style={{maxWidth:640,margin:"0 auto",padding:"40px 16px 20px"}}>
+<div className="anim" style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+<button onClick={()=>setScreen("stages")} style={hdrBtn}>→</button>
+<div style={{flex:1}}>
+<div style={{fontSize:19,fontWeight:900}}>{activeStage}</div>
+<div style={{fontSize:11,color:theme.textDim}}>{cardsToShow.length} كرت</div>
+</div>
+<button onClick={()=>exportSheet(liveCards.filter(c=>c.stage===activeStage),activeStage)} className="chip on">💾 تصدير</button>
+<button onClick={()=>setLateOnly(!lateOnly)} className={"chip"+(lateOnly?" on":"")}>{lateOnly?t.lateOnly:t.all}</button>
+</div>
+<div className="card anim" style={{display:"flex",alignItems:"center",gap:8,padding:"10px 14px",marginBottom:14}}>
+<span style={{fontSize:16}}>🔍</span>
+<input value={stageQ} onChange={e=>setStageQ(e.target.value)} placeholder={t.search} style={{flex:1,background:"transparent",border:"none",outline:"none",color:theme.text,fontSize:14}}/>
+{stageQ!==""&&<button onClick={()=>setStageQ("")} style={{background:"none",border:"none",color:theme.textDim,fontSize:16}}>✕</button>}
+</div>
+<div style={{position:"fixed",bottom:86,insetInlineEnd:14,display:"flex",flexDirection:"column",gap:10,zIndex:250}}>
+{can&&<button onClick={()=>{setMicText("");setShowMic(true);}} style={{width:50,height:50,borderRadius:25,border:"none",color:"#fff",fontSize:20,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 8px 20px rgba(0,0,0,.4)",background:"var(--vio)"}}>🎙️</button>}
+{can&&<button onClick={()=>setImportMenu(true)} style={{width:50,height:50,borderRadius:25,border:"none",color:"#fff",fontSize:20,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 8px 20px rgba(0,0,0,.4)",background:"var(--teal)"}}>📄</button>}
+<button onClick={()=>{scanMode.current="quick";setShowScanner(true);}} style={{width:50,height:50,borderRadius:25,border:"none",color:"#fff",fontSize:20,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 8px 20px rgba(0,0,0,.4)",background:"var(--warn)"}}>📷</button>
+</div>
+{cardsToShow.length===0&&<p style={{textAlign:"center",padding:"50px 10px",color:theme.textDim}}>{t.noCardsHere}</p>}
+{cardsToShow.map((c,i)=>{const d=daysSince(c.updatedAt||c.createdAt);const l1=d>=1&&d<LD;const l2=d>=LD;const lk=liveCards.filter(x=>x.message&&x.message===c.message&&x.id!==c.id).length;const di=dueInfo(c);const bc=c.urgent?"var(--red)":l2?"var(--red)":l1?"var(--warn)":di?di.col:STAGE_COLORS[(stages.indexOf(c.stage)>=0?stages.indexOf(c.stage):0)%8];
+return(<div key={c.id} className="card" onClick={()=>setEditingCard(c)} onContextMenu={e=>{e.preventDefault();setActionCard(c);}} style={{userSelect:"none",cursor:"pointer",marginBottom:10,borderInlineStart:"4px solid "+bc,animationDelay:(i*70)+"ms"}}>
+<div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:15}}>{c.customer||"—"} {c.pinned&&"📌"}</b><span style={{fontSize:11,color:theme.textDim}}>{c.time||fmtTime(c.updatedAt,lang)}</span></div>
+<div style={{display:"flex",flexWrap:"wrap",gap:"4px 12px",fontSize:12.5,color:theme.textDim,marginTop:5}}>
+<span>{t.code}: <b style={{color:theme.text}}>{c.code||"—"}</b></span>
+<span>{t.color}: <b style={{color:theme.text}}>{c.color||"—"}</b></span>
+<span>{t.quantity}: <b style={{color:theme.text}}>{c.quantity||"—"}</b></span>
+{c.machine&&<span>{t.machine}: <b style={{color:theme.text}}>{c.machine}</b></span>}
+{c.barcode&&<span>🔳 <b style={{color:theme.text}}>{c.barcode}</b></span>}
+</div>
+{(c.urgent||l2||l1||lk>0||di||c.delivered||c.deliveredQty)&&(<div style={{display:"flex",gap:6,marginTop:8,flexWrap:"wrap"}}>{c.urgent&&badge("var(--red)",t.urgent)}{l2&&badge("var(--red)",t.aged2)}{!l2&&l1&&badge("var(--warn)",t.aged1)}{di&&badge(di.col,di.txt)}{lk>0&&<span onClick={(e)=>{e.stopPropagation();setLinkedFrom(c);}} style={{cursor:"pointer"}}>{badge("var(--blue)",t.linkedCards+": "+lk+" ←")}</span>}{c.delivered&&badge("var(--teal)","✅ مسلّم")}{!c.delivered&&c.deliveredQty&&badge("var(--teal)","⚖️ "+c.deliveredQty)}</div>)}
+</div>);})}
+</div>)}
+{screen==="log"&&(
+<div style={{maxWidth:640,margin:"0 auto",padding:"40px 16px 20px"}}>
+<div className="anim" style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}><button onClick={()=>setScreen("home")} style={hdrBtn}>→</button><div style={{fontSize:19,fontWeight:900,flex:1}}>{t.dailyLog}</div></div>
+{(()=>{const g={};log.forEach(e=>{(g[e.date]=g[e.date]||[]).push(e)});const ds=Object.keys(g).sort((a,b)=>b.localeCompare(a));
+return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noResults}</p>:ds.map((d,i)=>(<div key={d} className="anim" style={{marginBottom:18,animationDelay:(i*80)+"ms"}}><div style={{fontSize:13,fontWeight:800,color:"var(--vio2)",marginBottom:8}}>{d}</div>
+{g[d].map(e=>(<div key={e.id} className="card" style={{marginBottom:6,padding:"10px 12px"}}><div style={{display:"flex",justifyContent:"space-between"}}><b>{e.action}</b><span style={{color:theme.textDim,fontSize:11}}>{fmtTime(e.time||e.timeLocal,lang)}</span></div><div style={{color:theme.textDim,fontSize:12}}>👤 {e.person} {e.cardCode?" · "+e.cardCode:""}</div></div>))}</div>));})()}
+</div>)}
+{screen==="archive"&&(
+<div style={{maxWidth:640,margin:"0 auto",padding:"40px 16px 20px"}}>
+<div className="anim" style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}><button onClick={()=>setScreen("home")} style={hdrBtn}>→</button><div style={{fontSize:19,fontWeight:900,flex:1}}>🗄️ {t.archive} ({archivedCards.length})</div></div>
+{archivedCards.length===0&&<p style={{color:theme.textDim,textAlign:"center"}}>{t.noResults}</p>}
+{archivedCards.map((c,i)=>(<div key={c.id} className="card" style={{display:"flex",alignItems:"center",gap:8,marginBottom:8,animationDelay:(i*60)+"ms"}}>
+<div style={{flex:1,cursor:"pointer"}} onClick={()=>setEditingCard(c)}><b>{c.customer||"—"} · {c.code||"—"}</b><div style={{fontSize:12,color:theme.textDim}}>{c.stage}</div></div>
+{can&&<button onClick={()=>toggleArchive(c)} className="chip">♻️</button>}
+</div>))}
+</div>)}
+<div className="navbar">
+<button className={"navi"+(screen==="home"?" on":"")} onClick={()=>setScreen("home")}><span>🏠</span>{t.home}</button>
+<button className={"navi"+(screen==="stages"||screen==="stage"?" on":"")} onClick={()=>setScreen("stages")}><span>🏭</span>{t.stagesLabel}</button>
+{can?<button className="navplus" onClick={()=>setEditingCard({id:uid(),stage:activeStage||stages[0]||"",code:"",customer:"",message:"",category:"",color:"",quantity:"",barcode:"",machine:"",prepare:"",dye:"",time:"",notes:"",phone:"",address:"",urgent:false,pinned:false,due:"",photo:"",archived:false,loadId:"",delivered:false,deliveredQty:0})}>＋</button>:<button className="navi" onClick={()=>{scanMode.current="quick";setShowScanner(true);}}><span>📷</span>مسح</button>}
+<button className="navi" onClick={()=>setShowWarehouse(true)}><span>📦</span>المخزن</button>
+<button className="navi" onClick={()=>setShowMenu(true)}><span>⋯</span>المزيد</button>
+</div>
+<input ref={photoInputRef} type="file" accept="image/*" capture="environment" style={{display:"none"}} onChange={handlePhotoFile}/>
+<input ref={photoGalRef} type="file" accept="image/*" style={{display:"none"}} onChange={handlePhotoFile}/>
+<input ref={importCamRef} type="file" accept="image/*" capture="environment" style={{display:"none"}} onChange={handleImportFile}/>
+<input ref={importGalRef} type="file" accept="image/*" style={{display:"none"}} onChange={handleImportFile}/>
+<input ref={restoreRef} type="file" accept="application/json" style={{display:"none"}} onChange={restoreJSON}/>
+{manageCo&&(
+<div className="modal" onClick={()=>setManageCo(null)}>
+<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:400}}>
+<h3 style={{margin:"0 0 10px"}}>🏢 إدارة الشركة — {manageCo.id}</h3>
+<div className="lbl">اسم الشركة</div>
+<div style={{display:"flex",gap:6}}>
+<input className="inp" style={{marginBottom:0}} defaultValue={manageCo.name} id="coNameBox"/>
+<button className="chip on" onClick={()=>saveCoName(document.getElementById("coNameBox").value)}>💾 حفظ</button>
+</div>
+<div style={{margin:"12px 0"}}>{manageCo.active===false?<span className="badge" style={{background:"var(--red)"}}>موقوفة</span>:<span className="badge" style={{background:"var(--teal)"}}>نشطة</span>}</div>
+<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>
+<button className="chip" onClick={()=>{db.collection("companies").doc(manageCo.id).set({active:manageCo.active===false},{merge:true});setManageCo({...manageCo,active:manageCo.active===false});}}>{manageCo.active===false?"▶️ تشغيل":"⏸️ تعطيل"}</button>
+<button className="chip on" onClick={()=>{quickEnter(manageCo);setManageCo(null);}}>🚪 دخول سريع</button>
+</div>
+<div className="lbl">👥 الحسابات والرموز</div>
+{!coData&&<p style={{color:theme.textDim,fontSize:12}}>جاري التحميل...</p>}
+{coData&&coData.users.map(x=>(
+<div key={x.id} style={{display:"flex",gap:6,alignItems:"center",marginBottom:6}}>
+<span style={{flex:1,fontSize:13}}>{x.role==="owner"?"👨💼":"👷"} {x.name} ({x.id})</span>
+<button className="chip" onClick={()=>{const p=prompt("الرمز الجديد لـ "+x.id+":");if(p)resetCoUser(x.id,p);}}>🔑</button>
+{x.role!=="owner"&&<button className="chip" onClick={()=>{if(confirm("حذف "+x.id+"؟"))deleteCoUser(x.id);}}>🗑️</button>}
+</div>))}
+<button className="btnO" style={{borderColor:"var(--red)",color:"var(--red)",marginTop:12}} onClick={()=>deleteCompany(manageCo)}>🗑️ حذف الشركة نهائياً</button>
+</div></div>)}
+{showNotif&&(
+<div className="modal" onClick={()=>setShowNotif(false)}>
+<div className="mbox" onClick={e=>e.stopPropagation()}>
+<h3 style={{margin:"0 0 12px"}}>🔔 التنبيهات ({notifCount})</h3>
+{notifCount===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center"}}>مفيش تنبيهات — كله تمام 🎉</p>}
+{lateAll.map((c,i)=>(<div key={c.id} className="card anim" onClick={()=>{setShowNotif(false);jumpToCard(c);}} style={{cursor:"pointer",padding:"10px 12px",marginBottom:8,borderInlineStart:"4px solid var(--red)",animationDelay:(i*50)+"ms"}}>
+<div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:14}}>⏰ {c.customer} · {c.code}</b><span className="badge" style={{background:"var(--red)"}}>متأخر</span></div>
+<div style={{fontSize:12,color:theme.textDim,marginTop:4}}>في مرحلة {c.stage} من {Math.floor(daysSince(c.updatedAt||c.createdAt))} يوم</div>
+</div>))}
+{lowLoadList.map((l,i)=>(<div key={l.id} className="card anim" onClick={()=>{setShowNotif(false);setShowWarehouse(true);}} style={{cursor:"pointer",padding:"10px 12px",marginBottom:8,borderInlineStart:"4px solid var(--warn)",animationDelay:(i*50)+"ms"}}>
+<div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:14}}>📦 {l.customer}</b><span className="badge" style={{background:"var(--warn)"}}>مخزن منخفض</span></div>
+<div style={{fontSize:12,color:theme.textDim,marginTop:4}}>فاضل {Math.round(loadStats(l).rem)} {factory.unit} بس</div>
+</div>))}
+</div></div>)}
+{reportSuggest&&(
+<div className="modal" onClick={()=>{localStorage.setItem("lastReport_"+tenant,localDate(new Date()));setReportSuggest(false);}}>
+<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:380}}>
+<h3 style={{margin:"0 0 10px"}}>📩 تقرير اليوم جاهز</h3>
+<p style={{color:theme.textDim,fontSize:13,marginBottom:12}}>حابب تبعت ملخص شغل النهارده لواتساب المصنع؟</p>
+<pre style={{whiteSpace:"pre-wrap",background:theme.panelAlt,borderRadius:14,padding:12,fontSize:12,maxHeight:"40vh",overflowY:"auto",color:theme.text,fontFamily:"inherit"}}>{buildReport()}</pre>
+<div style={{display:"flex",gap:8,marginTop:10}}>
+<a href={waLink(buildReport())} target="_blank" rel="noreferrer" onClick={()=>{localStorage.setItem("lastReport_"+tenant,localDate(new Date()));setReportSuggest(false);}} className="btnG" style={{textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>💬 ابعت واتساب</a>
+<button onClick={()=>{localStorage.setItem("lastReport_"+tenant,localDate(new Date()));setReportSuggest(false);}} className="btnO">مش دلوقتي</button>
+</div>
+</div></div>)}
+{showMenu&&(
+<div className="modal" onClick={()=>setShowMenu(false)}>
+<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:300}}>
+<div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}><span style={{fontSize:22}}>🏭</span><b>{factory.fname}</b></div>
+<MenuBtn onClick={()=>{setScreen("home");setShowMenu(false);}} active={screen==="home"}>🏠 {t.home}</MenuBtn>
+<MenuBtn onClick={()=>{setScreen("stages");setShowMenu(false);}} active={screen==="stages"}>🏭 {t.stagesLabel}</MenuBtn>
+<MenuBtn onClick={()=>{setShowWarehouse(true);setShowMenu(false);}}>📦 المخزن الرئيسي</MenuBtn>
+<div style={{height:1,background:theme.border,margin:"8px 0"}}/>
+<MenuBtn onClick={()=>{setReportText(buildReport());setShowMenu(false);}}>📊 {t.report}</MenuBtn>
+<MenuBtn onClick={()=>{setStatementFor(knownCustomers[0]?knownCustomers[0].name:"");setShowMenu(false);}}>👥 {t.statement}</MenuBtn>
+<MenuBtn onClick={()=>{setShowTopCust(true);setShowMenu(false);}}>🏅 أعلى العملاء</MenuBtn>
+<MenuBtn onClick={()=>{setShowWorkers(true);setShowMenu(false);}}>🏆 {t.workers}</MenuBtn>
+{can&&<MenuBtn onClick={()=>{setAnnounceDraft((announce&&announce.text)||"");setShowAnnounce(true);setShowMenu(false);}}>📢 إعلان للعمال</MenuBtn>}
+<MenuBtn onClick={()=>{exportCSV();setShowMenu(false);}}>💾 {t.backup}</MenuBtn>
+<MenuBtn onClick={()=>{setScreen("archive");setShowMenu(false);}}>🗄️ {t.archive}</MenuBtn>
+<MenuBtn onClick={()=>{setScreen("log");setShowMenu(false);}}>📋 {t.dailyLog}</MenuBtn>
+<MenuBtn onClick={()=>{setNameDraft(ownerName);setShowSettings(true);setShowMenu(false);}}>⚙️ {t.settings}</MenuBtn>
+<MenuBtn onClick={()=>{window.open("https://wa.me/"+SUPPORT_WA+"?text="+encodeURIComponent("🆘 طلب دعم\nالشركة: "+tenant+"\nالجهاز: "+navigator.userAgent.slice(0,60)),"_blank");setShowMenu(false);}}>💬 كلم الدعم</MenuBtn>
+<MenuBtn onClick={logout}>🚪 خروج / تبديل شركة</MenuBtn>
+</div></div>)}
+{showLateList&&(
+<div className="modal" onClick={()=>setShowLateList(false)}>
+<div className="mbox" onClick={e=>e.stopPropagation()}>
+<h3 style={{margin:"0 0 12px"}}>⏰ الكروت المتأخرة ({lateAll.length})</h3>
+{lateAll.length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center"}}>مفيش متأخر — كله ماشي تمام 🎉</p>}
+{lateAll.map((c,i)=>{const si=stages.indexOf(c.stage);const sc=STAGE_COLORS[(si>=0?si:0)%8];
+return(<div key={c.id} className="card anim" onClick={()=>{setShowLateList(false);jumpToCard(c);}} style={{cursor:"pointer",padding:"10px 12px",marginBottom:8,borderInlineStart:"4px solid var(--red)",animationDelay:(i*60)+"ms"}}>
+<div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:14}}>{c.customer||"—"} · {c.code||"—"}</b><span className="badge" style={{background:sc}}>{c.stage}</span></div>
+<div style={{fontSize:12,color:theme.textDim,marginTop:4}}>متأخر {Math.floor(daysSince(c.updatedAt||c.createdAt))} يوم · {c.color} — {c.quantity}</div>
+</div>);})}
+</div></div>)}
+{showDelivered&&(
+<div className="modal" onClick={()=>setShowDelivered(false)}>
+<div className="mbox" onClick={e=>e.stopPropagation()}>
+<h3 style={{margin:"0 0 12px"}}>✅ المسلّمات ({delAll.length})</h3>
+{delAll.length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center"}}>لسه مفيش تسليمات</p>}
+{delAll.map((c,i)=>{const si=stages.indexOf(c.stage);const sc=STAGE_COLORS[(si>=0?si:0)%8];
+return(<div key={c.id} className="card anim" onClick={()=>{setShowDelivered(false);jumpToCard(c);}} style={{cursor:"pointer",padding:"10px 12px",marginBottom:8,borderInlineStart:"4px solid var(--teal)",animationDelay:(i*60)+"ms"}}>
+<div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:14}}>{c.customer||"—"} · {c.code||"—"}</b><span className="badge" style={{background:sc}}>{c.stage}</span></div>
+<div style={{fontSize:12,color:theme.textDim,marginTop:4}}>{c.delivered?"مسلّم كلي "+(c.quantity||""):"مسلّم جزئي "+(c.deliveredQty||"")} · {c.color}</div>
+</div>);})}
+</div></div>)}
+{heroEdit&&(
+<div className="modal" onClick={()=>setHeroEdit(false)}>
+<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:380}}>
+<h3 style={{margin:"0 0 12px"}}>🎨 تعديل الكارت الكبير</h3>
+<div className="lbl">العنوان الكبير</div>
+<input className="inp" value={heroTDraft} onChange={e=>setHeroTDraft(e.target.value)} placeholder="متابعة مراحل"/>
+<div className="lbl">السطر الصغير</div>
+<input className="inp" value={heroSDraft} onChange={e=>setHeroSDraft(e.target.value)} placeholder="نظام إدارة أوامر الإنتاج لمصنع - متابعة المراحل"/>
+<div style={{display:"flex",gap:8}}><button onClick={saveHero} className="btnG">💾 حفظ</button><button onClick={()=>setHeroEdit(false)} className="btnO">{t.cancel}</button></div>
+</div></div>)}
+{showWarehouse&&(
+<div className="modal" onClick={()=>setShowWarehouse(false)}>
+<div className="mbox" onClick={e=>e.stopPropagation()}>
+<div className="card grad" style={{textAlign:"center",marginBottom:12,animation:"pop .4s both"}}>
+<div style={{width:64,height:64,borderRadius:20,background:"rgba(255,255,255,.18)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:30,margin:"0 auto 10px",animation:"floaty 3s infinite"}}>📦</div>
+<div style={{fontSize:18,fontWeight:900}}>المخزن الرئيسي</div>
+<div style={{fontSize:12,color:"#E4DCFF",margin:"4px 0 10px"}}>استلام وفحص وتسجيل الحمولات</div>
+{can&&<button onClick={()=>setAddLoad(!addLoad)} className="btnG" style={{background:"rgba(255,255,255,.2)",boxShadow:"none"}}>➕ إضافة حمولة</button>}
+</div>
+{addLoad&&(
+<div className="card anim" style={{marginBottom:12,borderColor:"var(--vio)"}}>
+<div className="lbl">👤 العميل / المورد</div>
+<input className="inp" list="customersList" value={loadDraft.customer} onChange={e=>setLoadDraft({...loadDraft,customer:e.target.value})}/>
+<div style={grid2}>
+<div><div className="lbl">الصنف</div><input className="inp" value={loadDraft.category||""} onChange={e=>setLoadDraft({...loadDraft,category:e.target.value})}/></div>
+<div><div className="lbl">اللون</div><input className="inp" value={loadDraft.color||""} onChange={e=>setLoadDraft({...loadDraft,color:e.target.value})}/></div>
+</div>
+<div style={grid2}>
+<div><div className="lbl">الإجمالي ({factory.unit})</div><input className="inp" type="number" value={loadDraft.total} onChange={e=>setLoadDraft({...loadDraft,total:e.target.value})}/></div>
+<div><div className="lbl">باركود</div><input className="inp" value={loadDraft.barcode||""} onChange={e=>setLoadDraft({...loadDraft,barcode:e.target.value})}/></div>
+</div>
+<div style={grid2}>
+<div><div className="lbl">التاريخ</div><input type="date" className="inp" value={loadDraft.date} onChange={e=>setLoadDraft({...loadDraft,date:e.target.value})}/></div>
+<div><div className="lbl">ماكينة</div><input className="inp" value={loadDraft.machine||""} onChange={e=>setLoadDraft({...loadDraft,machine:e.target.value})}/></div>
+</div>
+<div className="lbl">ملاحظات</div>
+<textarea rows={2} className="inp" value={loadDraft.notes} onChange={e=>setLoadDraft({...loadDraft,notes:e.target.value})}/>
+<div style={{display:"flex",gap:8}}><button onClick={saveLoad} className="btnG">💾 حفظ الحمولة</button><button onClick={()=>setAddLoad(false)} className="btnO">{t.cancel}</button></div>
+</div>)}
+<div className="card" style={{marginBottom:12,padding:12}}>
+<div className="lbl">إحصائيات المخزن</div>
+<div style={{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:"1px solid "+theme.border}}><span style={{color:theme.textDim,fontSize:13}}>📦 متبقي</span><b>{Math.round(wh.rem)} {factory.unit}</b></div>
+<div style={{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:"1px solid "+theme.border}}><span style={{color:theme.textDim,fontSize:13}}>✅ اتسلم</span><b>{Math.round(wh.del)} {factory.unit}</b></div>
+<div style={{display:"flex",justifyContent:"space-between",padding:"8px 0"}}><span style={{color:theme.textDim,fontSize:13}}>🚛 حمولات</span><b>{loads.length}</b></div>
+</div>
+{loads.length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center"}}>لا توجد حمولات مسجلة</p>}
+{loads.slice().sort((a,b)=>(b.date||"").localeCompare(a.date||"")).map((ld,i)=>{const s=loadStats(ld);const pct=Math.max(0,Math.min(100,(s.rem/(parseFloat(ld.total)||1))*100));
+return(<div key={ld.id} className="card" onClick={()=>setLoadDetail(ld.id)} style={{cursor:"pointer",marginBottom:10,animationDelay:(i*80)+"ms"}}>
+<div style={{display:"flex",justifyContent:"space-between"}}><b>{ld.customer}</b><span style={{fontSize:11,color:theme.textDim}}>{ld.date}</span></div>
+{(ld.category||ld.color||ld.barcode)&&<div style={{fontSize:12,color:theme.textDim,marginTop:4}}>{ld.category||""} {ld.color?"· "+ld.color:""} {ld.barcode?"· 🔳 "+ld.barcode:""}</div>}
+<div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:6}}>
+{badge("var(--blue)","📦 متبقي "+s.rem)}
+{badge("var(--warn)","🏭 شغال "+s.inF)}
+{badge("var(--teal)","✅ اتسلم "+s.del)}
+</div>
+<div className="bar" style={{marginTop:8}}><i style={{width:pct+"%",background:s.rem<0?"var(--red)":"var(--vio)"}}/></div>
+</div>);})}
+</div></div>)}
+{loadDetail&&(
+<div className="modal" onClick={()=>setLoadDetail(null)}>
+<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:400}}>
+{(()=>{const ld=loads.find(l=>l.id===loadDetail);if(!ld)return null;const s=loadStats(ld);const linked=cards.filter(c=>c.loadId===ld.id);
+return(<div><h3 style={{margin:"0 0 8px"}}>🚛 {ld.customer} — {ld.total} {factory.unit}</h3>
+<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{badge("var(--blue)","📦 "+s.rem)}{badge("var(--warn)","🏭 "+s.inF)}{badge("var(--teal)","✅ "+s.del)}</div>
+{linked.length===0&&<p style={{color:theme.textDim,fontSize:13}}>لا توجد كروت مرتبطة</p>}
+{linked.map(c=>(<div key={c.id} className="card" onClick={()=>{setLoadDetail(null);jumpToCard(c);}} style={{cursor:"pointer",padding:"10px 12px",marginBottom:6}}>
+<div style={{display:"flex",justifyContent:"space-between",fontSize:13}}><b>{c.code||"—"}</b><span>{c.quantity} {factory.unit}</span></div>
+<div style={{fontSize:11,color:theme.textDim}}>{c.stage}{c.delivered?" · ✅ مسلّم":c.deliveredQty?" · مسلّم جزئي "+c.deliveredQty:""}</div>
+</div>))}
+{can&&<button onClick={()=>{if(confirm("حذف الحمولة؟ الكروت هتفضل زي ما هي")){col("loads").doc(ld.id).delete();setLoadDetail(null);}}} className="btnO" style={{borderColor:"var(--red)",color:"var(--red)",marginTop:8}}>🗑️ حذف الحمولة</button>}
+</div>);})()}
+</div></div>)}
+{showAnnounce&&(
+<div className="modal" onClick={()=>setShowAnnounce(false)}>
+<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:380}}>
+<h3 style={{margin:"0 0 10px"}}>📢 إعلان لكل العمال</h3>
+<textarea id="annBox" rows={3} className="inp" defaultValue={(announce&&announce.text)||""} placeholder="اكتب الإعلان... هيظهر فوق عند كل الأجهزة فوراً"/>
+<div style={{display:"flex",gap:8}}>
+<button onClick={saveAnnounce} className="btnG">📢 نشر</button>
+<button onClick={()=>{if(!can||!db)return;col("config").doc("announce").set({text:"",by:"",time:Date.now()});setShowAnnounce(false);showToast("🗑️");}} className="btnO">🗑️ مسح الإعلان</button>
+</div>
+</div></div>)}
+{linkedFrom&&(
+<div className="modal" onClick={()=>setLinkedFrom(null)}>
+<div className="mbox" onClick={e=>e.stopPropagation()}>
+<h3 style={{margin:"0 0 10px"}}>🔗 كروت مرتبطة — رسالة {linkedFrom.message} ({liveCards.filter(x=>x.message&&x.message===linkedFrom.message&&x.id!==linkedFrom.id).length})</h3>
+<div className="card grad" style={{padding:12,marginBottom:12}}>
+<div style={{fontSize:11,color:"#E4DCFF"}}>الكرت الحالي</div>
+<div style={{fontSize:14,fontWeight:800}}>{linkedFrom.customer||"—"} · {linkedFrom.code||"—"}</div>
+<div style={{fontSize:12,marginTop:4}}>{linkedFrom.color} — {linkedFrom.quantity} · {linkedFrom.stage}</div>
+</div>
+{liveCards.filter(x=>x.message&&x.message===linkedFrom.message&&x.id!==linkedFrom.id).map((c,i)=>{const si=stages.indexOf(c.stage);const sc=STAGE_COLORS[(si>=0?si:0)%8];
+return(<div key={c.id} className="card anim" onClick={()=>{setLinkedFrom(null);jumpToCard(c);}} style={{cursor:"pointer",padding:"10px 12px",marginBottom:8,borderInlineStart:"4px solid "+sc,animationDelay:(i*50)+"ms"}}>
+<div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:14}}>{c.customer||"—"} · {c.code||"—"}</b><span className="badge" style={{background:sc}}>{c.stage}</span></div>
+<div style={{fontSize:12,color:theme.textDim,marginTop:4}}>{c.color} — {c.quantity} {factory.unit} · {fmtTime(c.updatedAt||c.createdAt,lang)}{c.delivered?" · ✅":""}</div>
+</div>);})}
+</div></div>)}
+{defectFor&&(
+<div className="modal" onClick={()=>setDefectFor(null)}>
+<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:380}}>
+<h3 style={{margin:"0 0 10px"}}>⚠️ عيب / مرتجع — {defectFor.customer}</h3>
+<div className="lbl">سبب العيب</div>
+<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{["بقعة","تثبيت ضعيف","كسرة","لون مختلف","شد خيط","عيوب نسيج","أخرى"].map(r=><button key={r} onClick={()=>setDefectDraft({...defectDraft,reason:r})} className={"chip"+(defectDraft.reason===r?" on":"")}>{r}</button>)}</div>
+<div style={grid2}>
+<div><div className="lbl">الكمية</div><input className="inp" type="number" value={defectDraft.qty} onChange={e=>setDefectDraft({...defectDraft,qty:e.target.value})}/></div>
+<div><div className="lbl">المرحلة</div><input className="inp" value={defectFor.stage||""} disabled/></div>
+</div>
+<div className="lbl">ملاحظات</div>
+<textarea rows={2} className="inp" value={defectDraft.notes} onChange={e=>setDefectDraft({...defectDraft,notes:e.target.value})}/>
+<div style={{display:"flex",gap:8}}><button onClick={saveDefect} className="btnG">💾 تسجيل</button><button onClick={()=>setDefectFor(null)} className="btnO">{t.cancel}</button></div>
+</div></div>)}
+{showDefects&&(
+<div className="modal" onClick={()=>setShowDefects(false)}>
+<div className="mbox" onClick={e=>e.stopPropagation()}>
+<h3 style={{margin:"0 0 10px"}}>🧾 سجل العيوب والمرتجعات ({defects.length})</h3>
+{(()=>{const m={};defects.forEach(d=>{if(d.reason)m[d.reason]=(m[d.reason]||0)+1;});const top=Object.entries(m).sort((a,b)=>b[1]-a[1])[0];
+return top?(<div className="card grad" style={{padding:12,marginBottom:12,textAlign:"center"}}><div style={{fontSize:12,color:"#E4DCFF"}}>أكثر عيب متكرر</div><div style={{fontSize:18,fontWeight:900}}>{top[0]} ({top[1]})</div></div>):null;})()}
+{defects.length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center"}}>مفيش عيوب مسجلة — شغل نضيف 🎉</p>}
+{defects.map((d,i)=>(<div key={d.id} className="card anim" style={{padding:"10px 12px",marginBottom:8,borderInlineStart:"4px solid var(--red)",animationDelay:(i*50)+"ms"}}>
+<div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:14}}>{d.customer} · {d.code}</b><span className="badge" style={{background:"var(--red)"}}>{d.reason}</span></div>
+<div style={{fontSize:12,color:theme.textDim,marginTop:4}}>{d.qty?"كمية "+d.qty+" · ":""}{d.stage} · {d.date} · 👤 {d.by}</div>
+{d.notes&&<div style={{fontSize:12,marginTop:4}}>{d.notes}</div>}
+</div>))}
+</div></div>)}
+{showMic&&(
+<div className="modal" onClick={()=>{setShowMic(false);stopMic();}}>
+<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:420}}>
+<h3 style={{margin:"0 0 10px"}}>🎙️ إملاء صوتي — كرت كامل بالكلام</h3>
+<div style={{display:"flex",gap:6,marginBottom:10}}><button onClick={()=>setMicLang("ar-EG")} className={"chip"+(micLang==="ar-EG"?" on":"")}>عربي مصري</button><button onClick={()=>setMicLang("en-US")} className={"chip"+(micLang==="en-US"?" on":"")}>English</button></div>
+<textarea rows={4} className="inp" value={micText} onChange={e=>setMicText(e.target.value)} placeholder="مثال: عميل أحمد فريد كود 738 رسالة 1 صنف هشيرا شتوي لون أسود خاص كمية 195 باركود 2603889 ماكينة 6 ملاحظة كسترة عالية"/>
+<div style={{display:"flex",gap:8,alignItems:"center",marginBottom:10}}>
+<button onClick={()=>micOn?stopMic():startMic()} style={{width:46,height:46,borderRadius:"50%",border:"none",background:micOn?"var(--red)":"var(--vio)",color:"#fff",fontSize:18,animation:micOn?"glow 1.5s infinite":"none"}}>{micOn?"⏹️":"🎙️"}</button>
+<span style={{fontSize:12,color:theme.textDim}}>{micOn?"بسمعك... اتكلم على راحتك":"دوس المايك واتكلم بالترتيب"}</span>
+</div>
+<div style={{display:"flex",gap:8}}><button onClick={extractVoice} className="btnG">✨ استخراج كرت</button><button onClick={()=>{setShowMic(false);stopMic();}} className="btnO">{t.cancel}</button></div>
+</div></div>)}
+{importMenu&&(
+<div className="modal" onClick={()=>setImportMenu(false)}>
+<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:260}}>
+<h3 style={{margin:"0 0 12px",fontSize:15}}>📄 {t.chooseImport}</h3>
+<button onClick={()=>importCamRef.current&&importCamRef.current.click()} className="btnO" style={{marginBottom:8}}>📷 {t.camera}</button>
+<button onClick={()=>importGalRef.current&&importGalRef.current.click()} className="btnO">🖼️ {t.gallery}</button>
+</div></div>)}
+{importBusy!==null&&(
+<div style={{position:"fixed",inset:0,background:"rgba(5,7,14,.85)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:12}}>
+<div className="spin" style={{fontSize:30}}>⏳</div>
+<div style={{color:"#fff",fontSize:14}}>{t.reading} {importBusy}%</div>
+</div>)}
+{importDraft&&(
+<div className="modal" onClick={()=>setImportDraft(null)}>
+<div className="mbox" onClick={e=>e.stopPropagation()}>
+<h3 style={{margin:"0 0 12px"}}>📄 {t.extracted}</h3>
+<div className="lbl">{t.customer}</div>
+<input className="inp" value={importDraft.customer} onChange={e=>setImportDraft({...importDraft,customer:e.target.value})}/>
+<div style={grid2}>
+<div><div className="lbl">{t.code}</div><input className="inp" value={importDraft.code} onChange={e=>setImportDraft({...importDraft,code:e.target.value})}/></div>
+<div><div className="lbl">{t.barcode}</div><input className="inp" value={importDraft.barcode} onChange={e=>setImportDraft({...importDraft,barcode:e.target.value})}/></div>
+</div>
+<div style={grid2}>
+<div><div className="lbl">{t.message}</div><input className="inp" value={importDraft.message} onChange={e=>setImportDraft({...importDraft,message:e.target.value})}/></div>
+<div><div className="lbl">{t.machine}</div><input className="inp" value={importDraft.machine} onChange={e=>setImportDraft({...importDraft,machine:e.target.value})}/></div>
+</div>
+<div style={grid2}>
+<div><div className="lbl">{t.category}</div><input className="inp" value={importDraft.category} onChange={e=>setImportDraft({...importDraft,category:e.target.value})}/></div>
+<div><div className="lbl">{t.color}</div><input className="inp" value={importDraft.color} onChange={e=>setImportDraft({...importDraft,color:e.target.value})}/></div>
+</div>
+<div style={grid2}>
+<div><div className="lbl">{t.quantity}</div><input className="inp" value={importDraft.quantity} onChange={e=>setImportDraft({...importDraft,quantity:e.target.value})}/></div>
+<div><div className="lbl">{t.time}</div><input className="inp" value={importDraft.time} onChange={e=>setImportDraft({...importDraft,time:e.target.value})}/></div>
+</div>
+<div className="lbl">{t.stagesLabel}</div>
+<select className="inp" value={importDraft.stage} onChange={e=>setImportDraft({...importDraft,stage:e.target.value})}>{stages.map(s=><option key={s}>{s}</option>)}</select>
+<div className="lbl">{t.notes}</div>
+<textarea rows={2} className="inp" value={importDraft.notes} onChange={e=>setImportDraft({...importDraft,notes:e.target.value})}/>
+<div style={{display:"flex",gap:8,marginTop:8}}>
+<button onClick={confirmImport} className="btnG">💾 {t.save}</button>
+<button onClick={()=>setImportDraft(null)} className="btnO">{t.cancel}</button>
+</div>
+</div></div>)}
+{reportText&&(
+<div className="modal" onClick={()=>setReportText(null)}>
+<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:420}}>
+<h3 style={{margin:"0 0 12px"}}>📊 {t.report}</h3>
+<pre style={{whiteSpace:"pre-wrap",background:theme.panelAlt,borderRadius:14,padding:12,fontSize:13,maxHeight:"50vh",overflowY:"auto",color:theme.text,fontFamily:"inherit"}}>{reportText}</pre>
+<div style={{display:"flex",gap:8,marginTop:12}}><button onClick={()=>{try{navigator.clipboard.writeText(reportText);showToast("✅");}catch(e){}}} className="btnO">{t.copy}</button><a href={waLink(reportText)} target="_blank" rel="noreferrer" className="btnG" style={{textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>💬 واتساب</a></div>
+<button onClick={()=>exportSheet(liveCards,"تقرير-اليوم")} className="btnO" style={{marginTop:8}}>💾 تصدير شيت Excel</button>
+</div></div>)}
+{statementFor!==null&&(
+<div className="modal" onClick={()=>setStatementFor(null)}>
+<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:420}}>
+<h3 style={{margin:"0 0 12px"}}>👥 {t.statement}</h3>
+<select value={statementFor} onChange={e=>setStatementFor(e.target.value)} className="inp">{knownCustomers.length===0&&<option value="">—</option>}{knownCustomers.map(k=><option key={k.name} value={k.name}>{k.name}</option>)}</select>
+{statementFor&&(<div>
+{(()=>{const cs=cards.filter(c=>c.customer===statementFor);const q=qtySum(cs);const inf=knownCustomers.find(k=>k.name===statementFor)||{};const ph=inf.phone||"";const addr=inf.address||"";const last=cs.reduce((m,c)=>Math.max(m,toMs(c.updatedAt||c.createdAt)),0);
+const delQ=cs.reduce((a,c)=>a+(c.delivered?(parseFloat(c.quantity)||0):(parseFloat(c.deliveredQty)||0)),0);
+const lds=loads.filter(l=>l.customer===statementFor);const lt=lds.reduce((a,l)=>a+(parseFloat(l.total)||0),0);const ldel=lds.reduce((a,l)=>a+loadStats(l).del,0);const lrem=lds.reduce((a,l)=>a+loadStats(l).rem,0);
+return(<div>
+<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>
+{badge("var(--vio)","🃏 "+cs.length)}
+{badge("var(--blue)","⚖️ "+q+" "+factory.unit)}
+{badge("var(--teal)","✅ اتسلم "+delQ)}
+{badge("var(--warn)","📦 شغال "+(q-delQ))}
+{last?badge("var(--warn)","🕐 "+fmtTime(last,lang)):null}
+</div>
+{lds.length>0&&(<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>
+{badge("var(--line)","🚛 حمولات "+lt)}
+{badge("var(--teal)","✅ اتسلم "+ldel)}
+{badge(lrem<0?"var(--red)":"var(--blue)","📦 فاضل "+lrem)}
+</div>)}
+{(ph||addr)&&(<div className="card" style={{padding:10,marginBottom:10,fontSize:13}}>
+{ph&&<div>📞 {ph}</div>}
+{addr&&<div style={{marginTop:4}}>📍 {addr}</div>}
+</div>)}
+{ph&&(<div style={{display:"flex",gap:8,marginBottom:10}}><a href={"tel:"+ph} className="btnO" style={{textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>📞 {t.call}</a><a href={"https://wa.me/"+ph.replace(/\D/g,"")} target="_blank" rel="noreferrer" className="btnO" style={{textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>💬 {t.openWhatsapp}</a></div>)}
+{cs.slice().sort((a,b)=>toMs(b.updatedAt)-toMs(a.updatedAt)).map(c=>{const si=stages.indexOf(c.stage);const sc=STAGE_COLORS[(si>=0?si:0)%8];
+return(<div key={c.id} className="card" onClick={()=>{setStatementFor(null);jumpToCard(c);}} style={{cursor:"pointer",padding:"8px 10px",marginBottom:6,borderInlineStart:"4px solid "+sc}}>
+<div style={{display:"flex",justifyContent:"space-between",fontSize:13}}><b>{c.code||"—"}</b><span style={{color:sc,fontWeight:700}}>{c.stage}</span></div>
+<div style={{fontSize:12,color:theme.textDim}}>{c.color} — {c.quantity} {factory.unit} · {fmtTime(c.updatedAt||c.createdAt,lang)}{c.delivered?" · ✅":""}</div>
+</div>);})}
+<pre style={{whiteSpace:"pre-wrap",background:theme.panelAlt,borderRadius:14,padding:12,fontSize:13,color:theme.text,fontFamily:"inherit"}}>{buildStatement(statementFor)}</pre>
+</div>);})()}
+</div>)}
+<div style={{display:"flex",gap:8,marginTop:12}}><button onClick={()=>{try{navigator.clipboard.writeText(buildStatement(statementFor));showToast("✅");}catch(e){}}} className="btnO">{t.copy}</button><a href={waLink(buildStatement(statementFor||""))} target="_blank" rel="noreferrer" className="btnG" style={{textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>💬 واتساب</a></div>
+</div></div>)}
+{showTopCust&&(
+<div className="modal" onClick={()=>setShowTopCust(false)}>
+<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:360}}>
+<h3 style={{margin:"0 0 12px"}}>🏅 أعلى العملاء هذا الشهر</h3>
+{(()=>{const now=new Date();const mk=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0");
+const m={};cards.forEach(c=>{if(c.customer&&localDate(new Date(toMs(c.createdAt||c.updatedAt))).slice(0,7)===mk){m[c.customer]=(m[c.customer]||0)+(parseFloat(c.quantity)||0);}});
+const arr=Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,10);
+if(!arr.length)return <p style={{color:theme.textDim,fontSize:13,textAlign:"center"}}>{t.noResults}</p>;
+const mx=arr[0][1]||1;
+return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10,cursor:"pointer",animationDelay:(i*70)+"ms"}} onClick={()=>{setShowTopCust(false);setStatementFor(n);}}>
+<div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:4}}><span>{i===0?"🥇":i===1?"🥈":i===2?"🥉":(i+1)+"."} {n}</span><b style={{color:"var(--vio2)"}}>{q} {factory.unit}</b></div>
+<div className="bar"><i style={{width:(q/mx)*100+"%",background:STAGE_COLORS[i%8]}}/></div>
+</div>));})()}
+</div></div>)}
+{showWorkers&&(
+<div className="modal" onClick={()=>setShowWorkers(false)}>
+<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:340}}>
+<h3 style={{margin:"0 0 12px"}}>🏆 {t.workers}</h3>
+{workerStats().length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center"}}>{t.noResults}</p>}
+{workerStats().map(([n,c],i)=>(<div key={n} className="card" style={{display:"flex",justifyContent:"space-between",padding:"10px 12px",marginBottom:8,animationDelay:(i*70)+"ms"}}><span>{i===0?"🥇":i===1?"🥈":i===2?"🥉":""} {n}</span><b style={{color:"var(--vio2)"}}>{c}</b></div>))}
+</div></div>)}
+{appQr&&(
+<div className="modal" onClick={()=>setAppQr(false)}>
+<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:340,textAlign:"center"}}>
+<h3>🔳 {t.appQr}</h3>
+<div style={{display:"flex",justifyContent:"center",margin:"10px 0"}}><QrView value={APP_URL} size={220}/></div>
+<p style={{fontSize:12,color:theme.textDim}}>اطبعه وعلّقه — أي عامل يصوره يفتح التطبيق</p>
+</div></div>)}
+{showScanner&&(
+<div style={{position:"fixed",inset:0,background:"#000",zIndex:400,display:"flex",flexDirection:"column"}}>
+<div style={{padding:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}><b style={{color:"#fff"}}>📷 {t.scanAny}</b><button onClick={()=>setShowScanner(false)} style={{background:"none",border:"none",color:"#fff",fontSize:22}}>✕</button></div>
+<div id="bc-reader" style={{width:"100%",flex:1,overflow:"hidden"}}></div>
+<div style={{padding:14,textAlign:"center"}}><button onClick={()=>scanFileRef.current&&scanFileRef.current.click()} className="btnG" style={{width:"auto",padding:"12px 22px"}}>📁 صورة من الجهاز</button></div>
+<input ref={scanFileRef} type="file" accept="image/*" style={{display:"none"}} onChange={scanFromFile}/>
+</div>)}
+{photoView&&(
+<div className="modal" onClick={()=>setPhotoView(null)}>
+<div onClick={e=>e.stopPropagation()} style={{maxWidth:520,width:"100%",textAlign:"center"}}><img src={photoView.photo} style={{width:"100%",borderRadius:16}}/><p style={{color:"#fff",fontSize:13,marginTop:10}}>{photoView.customer} · {photoView.code}</p></div>
+</div>)}
+{bcCard&&(
+<div className="modal" onClick={()=>setBcCard(null)}>
+<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:340,textAlign:"center"}}>
+<h3>🔳 {t.showBarcode}</h3>
+{bcCard.barcode?<div style={{background:"#fff",borderRadius:12,padding:10,margin:"10px 0"}}><BarcodeView value={bcCard.barcode} h={80}/></div>:<p style={{color:theme.textDim}}>—</p>}
+<p style={{fontSize:13,color:theme.textDim}}>{bcCard.customer} · {bcCard.code}</p>
+</div></div>)}
+{editingCard&&(
+<div className="modal" onClick={()=>setEditingCard(null)}>
+<div className="mbox" onClick={e=>e.stopPropagation()}>
+<div style={{display:"flex",justifyContent:"space-between",marginBottom:14}}><h3 style={{margin:0,fontSize:17}}>{cards.some(c=>c.id===editingCard.id)?t.edit:t.newCard}{!can?" 👁️":""}</h3><button onClick={()=>setEditingCard(null)} style={{background:"none",border:"none",color:theme.textDim,fontSize:20}}>✕</button></div>
+<fieldset disabled={!can}>
+{editingCard.__dupWarning&&<div className="card" style={{borderColor:"var(--red)",padding:12,marginBottom:12,fontSize:13.5}}>⚠️ {t.duplicateWarning}</div>}
+{can&&cards.some(c=>c.id===editingCard.id)&&(
+<div>
+<div className="lbl">{t.stagesLabel}</div>
+<select className="inp" value={editingCard.stage} onChange={e=>setEditingCard({...editingCard,stage:e.target.value})}>{stages.map(s=><option key={s}>{s}</option>)}</select>
+</div>)}
+<div className="lbl">{t.customer}</div>
+<input className="inp" list="customersList" value={editingCard.customer} onChange={e=>onCustomerChange(e.target.value)}/>
+<datalist id="customersList">{knownCustomers.slice(0,50).map(k=><option key={k.name} value={k.name}/>)}</datalist>
+<div style={grid2}>
+<div><div className="lbl">{t.code}</div><input className="inp" value={editingCard.code} onChange={e=>setEditingCard({...editingCard,code:e.target.value})}/></div>
+<div><div className="lbl">{t.message}</div><input className="inp" value={editingCard.message} onChange={e=>setEditingCard({...editingCard,message:e.target.value})}/></div>
+</div>
+<div style={grid2}>
+<div><div className="lbl">{t.category}</div><input className="inp" value={editingCard.category} onChange={e=>setEditingCard({...editingCard,category:e.target.value})}/></div>
+<div><div className="lbl">{t.color}</div><input className="inp" value={editingCard.color} onChange={e=>setEditingCard({...editingCard,color:e.target.value})}/></div>
+</div>
+<div className="lbl">{t.colorsLabel}</div>
+<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{allColors.map(c=><button key={c} onClick={()=>setEditingCard({...editingCard,color:c})} className={"chip"+(editingCard.color===c?" on":"")}>{c}</button>)}</div>
+<div style={grid2}>
+<div><div className="lbl">{t.quantity}</div><input className="inp" value={editingCard.quantity} onChange={e=>setEditingCard({...editingCard,quantity:e.target.value})}/></div>
+<div><div className="lbl">{t.barcode}</div><div style={{display:"flex",gap:6}}><input className="inp" style={{marginBottom:6}} value={editingCard.barcode} onChange={e=>setEditingCard({...editingCard,barcode:e.target.value})}/><button onClick={()=>{scanMode.current="form";setShowScanner(true);}} style={{flex:"0 0 auto",padding:"0 12px",borderRadius:12,border:"none",background:"var(--teal)",color:"#04211a",fontSize:16,fontWeight:800}}>📷</button></div>
+{editingCard.barcode&&<div style={{background:"#fff",borderRadius:8,padding:"6px 4px",marginBottom:8,textAlign:"center"}}><BarcodeView value={editingCard.barcode}/></div>}
+</div>
+</div>
+<div className="lbl">{t.machine}</div>
+<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{machines.map(m=><button key={m} onClick={()=>setEditingCard({...editingCard,machine:m})} className={"chip"+(editingCard.machine===m?" on":"")}>{m}</button>)}</div>
+<div style={grid2}>
+<div><div className="lbl">{t.prepare}</div><input className="inp" value={editingCard.prepare} onChange={e=>setEditingCard({...editingCard,prepare:e.target.value})}/></div>
+<div><div className="lbl">{t.dye}</div><input className="inp" value={editingCard.dye} onChange={e=>setEditingCard({...editingCard,dye:e.target.value})}/></div>
+</div>
+<div style={grid2}>
+<div><div className="lbl">{t.time}</div><input className="inp" value={editingCard.time} onChange={e=>setEditingCard({...editingCard,time:e.target.value})}/></div>
+<div><div className="lbl">{t.due}</div><input type="date" className="inp" value={editingCard.due||""} onChange={e=>setEditingCard({...editingCard,due:e.target.value})}/>
+<div style={{display:"flex",gap:6,marginBottom:8}}>{[1,3,7].map(n=><button key={n} onClick={()=>setEditingCard({...editingCard,due:localDate(new Date(Date.now()+n*86400000))})} className="chip">+{n}</button>)}</div>
+</div>
+</div>
+<div style={grid2}>
+<div><div className="lbl">{t.phone}</div><input className="inp" value={editingCard.phone} onChange={e=>setEditingCard({...editingCard,phone:e.target.value})}/></div>
+<div><div className="lbl">{t.address}</div><input className="inp" value={editingCard.address||""} onChange={e=>setEditingCard({...editingCard,address:e.target.value})}/></div>
+</div>
+{can&&(
+<div>
+<div className="lbl">🚛 الحمولة</div>
+<select className="inp" value={editingCard.loadId||""} onChange={e=>setEditingCard({...editingCard,loadId:e.target.value})}><option value="">بدون حمولة</option>{loads.filter(l=>!editingCard.customer||l.customer===editingCard.customer).map(l=>{const s=loadStats(l);return <option key={l.id} value={l.id}>{l.customer} — متبقي {s.rem}</option>;})}</select>
+<div style={{display:"flex",gap:6,alignItems:"center",marginBottom:10}}>
+<input className="inp" style={{marginBottom:0,flex:1}} type="number" placeholder="كمية مسلّمة (جزئي)" value={editingCard.deliveredQty||""} onChange={e=>setEditingCard({...editingCard,deliveredQty:e.target.value})}/>
+<button onClick={()=>setEditingCard({...editingCard,delivered:!editingCard.delivered,deliveredQty:!editingCard.delivered?(editingCard.quantity||""):""})} className={"chip"+(editingCard.delivered?" on":"")}>✅ تسليم كلي</button>
+</div>
+</div>)}
+{editingCard.phone&&(<div style={{display:"flex",gap:8,marginBottom:10}}><a href={"tel:"+editingCard.phone} className="btnO" style={{textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>📞</a><a href={"https://wa.me/"+editingCard.phone.replace(/\D/g,"")} target="_blank" rel="noreferrer" className="btnO" style={{textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>💬</a></div>)}
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><div className="lbl">{t.notes}</div><button onClick={noteMic} className={"chip"+(micOn?" on":"")}>🎙️</button></div>
+<textarea rows={2} className="inp" value={editingCard.notes} onChange={e=>setEditingCard({...editingCard,notes:e.target.value})}/>
+<label style={{display:"flex",alignItems:"center",gap:8,marginBottom:14,fontSize:14}}><input type="checkbox" checked={!!editingCard.urgent} onChange={e=>setEditingCard({...editingCard,urgent:e.target.checked})}/> ⚠️ {t.urgent}</label>
+{Array.isArray(editingCard.history)&&editingCard.history.length>0&&(<div style={{marginBottom:14}}><div className="lbl">📜 {t.history}</div>{editingCard.history.slice().reverse().map((h,i)=>(<div key={i} style={{display:"flex",gap:8,flexWrap:"wrap",fontSize:12,color:theme.textDim,padding:"6px 10px",marginBottom:4,borderInlineStart:"2px solid var(--vio)",background:theme.panelAlt,borderRadius:8}}><span>📍 {h.stage}</span><span>· {h.by}</span><span>· {fmtTime(h.at,lang)}</span></div>))}</div>)}
+{can&&<div style={{display:"flex",gap:8}}><button onClick={()=>saveCard({...editingCard,__dupWarning:undefined},!!editingCard.__dupWarning)} className="btnG">{editingCard.__dupWarning?t.saveAnyway:t.save}</button><button onClick={()=>setEditingCard(null)} className="btnO">{t.cancel}</button></div>}
+{can&&cards.some(c=>c.id===editingCard.id)&&nextStageOf(editingCard.stage)&&(<button onClick={()=>{const n=nextStageOf(editingCard.stage);const c=editingCard;setEditingCard(null);moveCardTo(c,n);}} className="btnO" style={{marginTop:8}}>⏭️ → {nextStageOf(editingCard.stage)}</button>)}
+</fieldset>
+</div></div>)}
+{actionCard&&(
+<div className="modal" onClick={()=>setActionCard(null)}>
+<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:340,padding:10}}>
+<div style={{padding:"8px 10px 12px",fontWeight:800}}>{actionCard.customer} · {actionCard.code}</div>
+{[
+...(can?[{icon:"✏️",label:t.edit,fn:()=>{setEditingCard(actionCard);setActionCard(null);}}]:[]),
+...(can&&nextStageOf(actionCard.stage)?[{icon:"⏭️",label:t.nextStage,fn:()=>moveCardTo(actionCard,nextStageOf(actionCard.stage))}]:[]),
+{icon:"👤",label:t.statement,fn:()=>{setStatementFor(actionCard.customer);setActionCard(null);}},
+...(can?[{icon:actionCard.delivered?"↩️":"✅",label:actionCard.delivered?"إلغاء التسليم":"تم التسليم",fn:()=>toggleDelivered(actionCard)},
+{icon:"⚖️",label:"تسليم جزئي",fn:()=>{const q=prompt("الكمية المسلّمة من الكرت:",actionCard.quantity||"");if(q!==null)partialDeliver(actionCard,q);}}]:[]),
+{icon:"💬",label:t.shareCard,fn:()=>{window.open(waLink(shareCardText(actionCard)),"_blank");setActionCard(null);}},
+...(can?[{icon:"⚠️",label:"تسجيل عيب / مرتجع",fn:()=>{setDefectFor(actionCard);setActionCard(null);}}]:[]),
+...(can?[{icon:"📋",label:t.copyCard,fn:()=>{setCopyCard(actionCard);setActionCard(null);}},
+{icon:"🔄",label:t.moveCard,fn:()=>{setMoveCard(actionCard);setActionCard(null);}},
+{icon:"⭐",label:actionCard.pinned?t.unpin:t.pinCard,fn:()=>togglePin(actionCard)}]:[]),
+{icon:"🖨️",label:t.printCard,fn:()=>{printCard(actionCard);setActionCard(null);}},
+{icon:"🔳",label:t.showBarcode,fn:()=>{setBcCard(actionCard);setActionCard(null);}},
+{icon:"📱",label:t.showQr,fn:()=>{setQrCard(actionCard);setActionCard(null);}},
+...(actionCard.photo?[{icon:"🖼️",label:t.viewPhoto,fn:()=>{setPhotoView(actionCard);setActionCard(null);}}]:[]),
+...(can?[{icon:"🗄️",label:actionCard.archived?t.unarchive:t.archiveCard,fn:()=>toggleArchive(actionCard)},
+{icon:"🗑️",label:t.delete,fn:()=>deleteCard(actionCard),danger:true}]:[])
+].map((it,i)=>(<button key={i} onClick={it.fn} className="anim" style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:"12px 10px",background:"transparent",border:"none",borderTop:"1px solid "+theme.border,color:it.danger?"var(--red)":theme.text,fontSize:14.5,textAlign:"start",animationDelay:(i*40)+"ms"}}>{it.icon} {it.label}</button>))}
+</div></div>)}
+{moveCard_&&(
+<div className="modal" onClick={()=>setMoveCard(null)}>
+<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:340}}>
+<h3 style={{margin:"0 0 14px"}}>{t.moveCard}</h3>
+{stages.filter((v,i,a)=>a.indexOf(v)===i).map((s,i)=>(<button key={s} onClick={()=>moveCardTo(moveCard_,s)} className="card anim" style={{width:"100%",padding:"12px 10px",textAlign:"start",marginBottom:8,animationDelay:(i*50)+"ms"}}>{s}</button>))}
+</div></div>)}
+{copyCard_&&(
+<div className="modal" onClick={()=>setCopyCard(null)}>
+<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:340}}>
+<h3 style={{margin:"0 0 14px"}}>{t.copyCard}</h3>
+{stages.map((s,i)=>(<button key={s} onClick={()=>copyCardTo(copyCard_,s)} className="card anim" style={{width:"100%",padding:"12px 10px",textAlign:"start",marginBottom:8,animationDelay:(i*50)+"ms"}}>{s}</button>))}
+</div></div>)}
+{qrCard&&(
+<div className="modal" onClick={()=>setQrCard(null)}>
+<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:340,textAlign:"center"}}>
+<h3>📱 {t.showQr}</h3>
+<div style={{display:"flex",justifyContent:"center",margin:"10px 0"}}><QrView value={pubUrl(qrCard)} size={200}/></div>
+<p style={{fontSize:13,color:theme.textDim}}>{qrCard.customer} · {qrCard.barcode||qrCard.code}</p>
+</div></div>)}
+{showSearch&&(
+<div className="modal" onClick={()=>setShowSearch(false)}>
+<div className="mbox" onClick={e=>e.stopPropagation()}>
+<h3 style={{margin:"0 0 14px"}}>{t.search}</h3>
+<SearchModal t={t} cards={liveCards} onPick={c=>{setShowSearch(false);jumpToCard(c);}}/>
+</div></div>)}
+{showSettings&&(
+<div className="modal" onClick={()=>setShowSettings(false)}>
+<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:400}}>
+<h3 style={{margin:"0 0 14px"}}>⚙️ {t.settings}</h3>
+<div className="lbl">🌐 {t.language}</div>
+<div style={{marginBottom:10}}><button onClick={()=>{const n=lang==="ar"?"en":"ar";setLang(n);localStorage.setItem("pref_lang",n);}} className="chip on">{lang==="ar"?"العربية":"English"}</button></div>
+{isOwner&&(
+<div>
+<div className="lbl">👥 إدارة العمال</div>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6}}>
+<input className="inp" placeholder="اسم مستخدم" value={userDraft.u} onChange={e=>setUserDraft({...userDraft,u:e.target.value})}/>
+<input className="inp" placeholder="الرمز" value={userDraft.p} onChange={e=>setUserDraft({...userDraft,p:e.target.value})}/>
+<input className="inp" placeholder="الاسم" value={userDraft.name} onChange={e=>setUserDraft({...userDraft,name:e.target.value})}/>
+</div>
+<button onClick={addUser} className="btnG" style={{marginBottom:10}}>➕ إضافة عامل</button>
+{users.filter(x=>x.role!=="owner").map(x=>(<div key={x.id} style={{display:"flex",gap:6,alignItems:"center",marginBottom:6}}><span style={{flex:1,fontSize:13}}>👷 {x.name} ({x.id})</span><button onClick={()=>{const p=prompt("الرمز الجديد لـ "+x.id+":");if(p)resetUserPass(x.id,p);}} className="chip">🔑</button><button onClick={()=>{if(confirm("حذف "+x.id+"؟"))deleteUser(x.id);}} className="chip">🗑️</button></div>))}
+</div>)}
+{can&&(
+<div>
+<div className="lbl">🔒 تغيير رمزي</div>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+<input className="inp" type="password" placeholder="الرمز القديم" value={passDraft.old} onChange={e=>setPassDraft({...passDraft,old:e.target.value})}/>
+<input className="inp" type="password" placeholder="الرمز الجديد" value={passDraft.new} onChange={e=>setPassDraft({...passDraft,new:e.target.value})}/>
+</div>
+<button onClick={changeMyPass} className="btnO" style={{marginBottom:10}}>🔒 تغيير رمزي</button>
+</div>)}
+<div className="lbl">🤖 مفتاح Gemini (قراءة ذكية لكل العمال)</div>
+<input className="inp" placeholder="AIza..." value={gemKey||factory.gkey||""} onChange={e=>{setGemKey(e.target.value);localStorage.setItem("gemini_key",e.target.value.trim());saveFactory({gkey:e.target.value.trim()});}}/>
+<p style={{fontSize:11,color:theme.textDim,marginBottom:8}}>مفتاح مجاني من aistudio.google.com/app/apikey</p>
+<div className="lbl">👤 {t.yourNameEdit}</div>
+<div style={{display:"flex",gap:6,marginBottom:10}}><input className="inp" style={{marginBottom:0}} value={nameDraft} onChange={e=>setNameDraft(e.target.value)}/><button onClick={()=>{if(nameDraft.trim()){setOwnerName(nameDraft.trim());showToast("✅");}}} className="chip on">{t.save}</button></div>
+<div className="lbl">🏭 {t.factoryName}</div>
+<input className="inp" value={fnameDraft} onChange={e=>setFnameDraft(e.target.value)}/>
+<div className="lbl">📱 {t.waNumber}</div>
+<input className="inp" inputMode="numeric" placeholder="201xxxxxxxxx" value={waDraft} onChange={e=>setWaDraft(e.target.value)}/>
+<div style={grid2}>
+<div><div className="lbl">⚖️ {t.unit}</div><select className="inp" value={factory.unit} onChange={e=>saveFactory({unit:e.target.value})}>{["كيلو","قطعة","متر","دستة","طن"].map(u=><option key={u}>{u}</option>)}</select></div>
+<div><div className="lbl">🖨️ {t.printSize}</div><select className="inp" value={factory.printSize} onChange={e=>saveFactory({printSize:e.target.value})}>{["A5","A4"].map(u=><option key={u}>{u}</option>)}</select></div>
+</div>
+<div className="lbl">⏰ {t.lateDays}</div>
+<input className="inp" type="number" min="1" value={lateDraft} onChange={e=>setLateDraft(e.target.value)}/>
+<button onClick={saveFactoryDrafts} className="btnG" style={{marginBottom:10}}>💾 {t.saveFactoryBtn}</button>
+<div className="lbl">🎚️ {t.manageStages}</div>
+<div style={{marginBottom:10}}>{stages.map(s=>(<div key={s} style={{display:"flex",gap:6,alignItems:"center",marginBottom:6}}><span style={{flex:1,fontSize:13}}>{s}</span><button onClick={()=>{const n=prompt(t.rename,s);if(n&&n.trim()&&n!==s)renameStage(s,n.trim());}} className="chip">✏️</button><button onClick={()=>{if(confirm(t.delete+" "+s))saveStages(stages.filter(x=>x!==s));}} className="chip">🗑️</button></div>))}
+<button onClick={()=>{const n=prompt(t.addStage);if(n&&n.trim()&&!stages.includes(n.trim()))saveStages(stages.concat([n.trim()]));}} className="chip" style={{marginTop:4}}>➕</button></div>
+<div className="lbl">🔧 {t.manageMachines}</div>
+<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{machines.map(m=><button key={m} onClick={()=>{if(confirm(t.delete+" "+m))saveMachines(machines.filter(x=>x!==m));}} className="chip">{m} ✕</button>)}<button onClick={()=>{const n=prompt(t.add);if(n&&n.trim()&&!machines.includes(n.trim()))saveMachines(machines.concat([n.trim()]));}} className="chip on">➕</button></div>
+<div className="lbl">🎨 {t.manageColors}</div>
+<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{customColors.map(c=><button key={c} onClick={()=>saveColors(customColors.filter(x=>x!==c))} className="chip">{c} ✕</button>)}<button onClick={()=>{const n=prompt(t.add);if(n&&n.trim())saveColors(customColors.concat([n.trim()]));}} className="chip on">➕</button></div>
+<div style={{...grid2,marginTop:8}}>
+<button onClick={()=>setAppQr(true)} className="btnO">🔳 {t.appQr}</button>
+<button onClick={()=>backupJSON()} className="btnO">💾 {t.backupFull}</button>
+<button onClick={()=>restoreRef.current&&restoreRef.current.click()} className="btnO">♻️ {t.restore}</button>
+<button onClick={()=>{if(wipeConfirm){wipeAll();}else{setWipeConfirm(true);setTimeout(()=>setWipeConfirm(false),3000);}}} className="btnO" style={{borderColor:"var(--red)",color:wipeConfirm?"#fff":"var(--red)",background:wipeConfirm?"var(--red)":"transparent"}}>{wipeConfirm?"⚠️ "+t.wipeSure:"🗑️ "+t.wipe}</button>
+</div>
+</div></div>)}
+{toast&&(<div style={{position:"fixed",bottom:90,left:"50%",transform:"translateX(-50%)",background:toast.kind==="danger"?"var(--red)":"var(--teal)",color:"#fff",padding:"10px 22px",borderRadius:30,fontSize:14,fontWeight:800,zIndex:999,animation:"pop .3s both",boxShadow:"0 8px 24px rgba(0,0,0,.4)"}}>{toast.msg}</div>)}
+</div>);
+}
+function SearchModal({t,cards,onPick}){
+const [q,setQ]=useState("");
+const r=q.trim()?cards.filter(c=>FIELD_KEYS.some(k=>(c[k]||"").toString().toLowerCase().includes(q.toLowerCase()))).slice(0,20):[];
+return(<div><input autoFocus value={q} onChange={e=>setQ(e.target.value)} placeholder={t.search} className="inp"/>
+{q.trim()&&r.length===0&&<p style={{color:"var(--dim)",fontSize:13,textAlign:"center"}}>{t.noResults}</p>}
+<div>{r.map((c,i)=>(<div key={c.id} onClick={()=>onPick(c)} className="card anim" style={{cursor:"pointer",padding:"10px 12px",marginBottom:8,animationDelay:(i*40)+"ms"}}><b style={{fontSize:14}}>{c.customer} · {c.code}</b><div style={{fontSize:12,color:"var(--dim)"}}>{c.stage} — {c.color}</div></div>))}</div></div>);
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+window.__booted=true;
+</script>
+</body>
+</html>
