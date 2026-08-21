@@ -525,6 +525,30 @@ if(isSuper)return(
 </div>
 </div>))}
 </div>
+{manageCo&&(
+<div className="modal" onClick={()=>setManageCo(null)}>
+<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:400}}>
+<h3 style={{margin:"0 0 10px"}}>🏢 إدارة الشركة — {manageCo.id}</h3>
+<div className="lbl">اسم الشركة</div>
+<div style={{display:"flex",gap:6}}>
+<input className="inp" style={{marginBottom:0}} defaultValue={manageCo.name} id="coNameBox"/>
+<button className="chip on" onClick={()=>saveCoName(document.getElementById("coNameBox").value)}>💾 حفظ</button>
+</div>
+<div style={{margin:"12px 0"}}>{manageCo.active===false?<span className="badge" style={{background:"var(--red)"}}>موقوفة</span>:<span className="badge" style={{background:"var(--teal)"}}>نشطة</span>}</div>
+<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>
+<button className="chip" onClick={()=>{db.collection("companies").doc(manageCo.id).set({active:manageCo.active===false},{merge:true});setManageCo({...manageCo,active:manageCo.active===false});}}>{manageCo.active===false?"▶️ تشغيل":"⏸️ تعطيل"}</button>
+<button className="chip on" onClick={()=>{quickEnter(manageCo);setManageCo(null);}}>🚪 دخول سريع</button>
+</div>
+<div className="lbl">👥 الحسابات والرموز</div>
+{!coData&&<p style={{color:theme.textDim,fontSize:12}}>جاري التحميل...</p>}
+{coData&&coData.users.map(x=>(
+<div key={x.id} style={{display:"flex",gap:6,alignItems:"center",marginBottom:6}}>
+<span style={{flex:1,fontSize:13}}>{x.role==="owner"?"👨💼":""} {x.name} ({x.id})</span>
+<button className="chip" onClick={()=>{const p=prompt("الرمز الجديد لـ "+x.id+":");if(p)resetCoUser(x.id,p);}}>🔑</button>
+{x.role!=="owner"&&<button className="chip" onClick={()=>{if(confirm("حذف "+x.id+"؟"))deleteCoUser(x.id);}}>🗑️</button>}
+</div>))}
+<button className="btnO" style={{borderColor:"var(--red)",color:"var(--red)",marginTop:12}} onClick={()=>deleteCompany(manageCo)}>🗑️ حذف الشركة نهائياً</button>
+</div></div>)}
 </div>
 </div>);
 const ocrNow=f=>{if(!window.Tesseract){showToast("❌","danger");return;}
