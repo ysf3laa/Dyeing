@@ -249,7 +249,7 @@ const [reportSuggest,setReportSuggest]=useState(false);
 const [news,setNews]=useState([]);
 const [newsDraft,setNewsDraft]=useState("");
 const [manageCo,setManageCo]=useState(null);
-const [coData,setCoData]=useState(null);
+const [masterKey,setMasterKey]=useState("");
 const [showSettings,setShowSettings]=useState(false);
 const [showSearch,setShowSearch]=useState(false);
 const [showMenu,setShowMenu]=useState(false);
@@ -320,7 +320,7 @@ const u6=col("users").onSnapshot(sn=>{setUsers(sn.docs.map(d=>({id:d.id,...d.dat
 return()=>{[u1,u2,u3,u4,u5,u6].forEach(u=>{try{u&&u();}catch(e){}});};
 },[me,tenant]);
 useEffect(()=>{if(!fbReady||!db||!isSuper)return;const u=db.collection("companies").onSnapshot(sn=>{setCompanies(sn.docs.map(d=>({id:d.id,...d.data()})));});return()=>{try{u&&u();}catch(e){}};},[isSuper]);
-useEffect(()=>{if(!fbReady||!db||!me)return;const u=db.collection("news").onSnapshot(sn=>{setNews(sn.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.time||0)-(a.time||0)));});return()=>{try{u&&u();}catch(e){}};},[me]);
+useEffect(()=>{if(!fbReady||!db||!me)return;db.collection("global").doc("config").get().then(d=>{if(d.exists)setMasterKey(d.data().gkey||"");}).catch(()=>{});},[me]);
 useEffect(()=>{if(!firebaseOk||!userId||!ownerName||!db||!me||isSuper)return;const beat=()=>{try{db.collection("presence").doc(userId).set({name:ownerName,last:Date.now()});}catch(e){}};beat();const iv=setInterval(beat,20000);const un=db.collection("presence").onSnapshot(sn=>{const n=Date.now();setOnlineUsers(sn.docs.map(d=>d.data()).filter(p=>n-(p.last||0)<60000));});return()=>{clearInterval(iv);un&&un();};},[firebaseOk,userId,ownerName,me]);
 useEffect(()=>{if(!ready||gotoDone.current)return;const g=new URLSearchParams(window.location.search).get("goto");if(!g)return;let p=null;try{p=b64d(g);}catch(e){return;}if(!p||!p.c)return;
 const f=cards.find(c=>(c.barcode&&c.barcode===p.c)||c.code===p.c);
@@ -372,7 +372,7 @@ const sl=await db.collection("logs").get();for(const d of sl.docs){await db.coll
 const so=await db.collection("loads").get();for(const d of so.docs){await db.collection("t/"+code+"/loads").doc(d.id).set(d.data());}
 showToast("📦 اتنقلت البيانات القديمة لـ "+code);};
 const postNews=async()=>{if(!isSuper||!db)return;if(!newsDraft.trim())return;await db.collection("news").doc(uid()).set({text:newsDraft.trim(),time:Date.now()});setNewsDraft("");showToast("🆕 اتنشر لكل الشركات");};
-const createDemo=async()=>{const code="DEMO";
+const saveMasterKey=async k=>{await db.collection("global").doc("config").set({gkey:k.trim()},{merge:true});setMasterKey(k.trim());showToast("🤖 اتحفظ المفتاح المركزي");};const code="DEMO";
 const ex=await db.collection("companies").doc(code).get();
 if(!ex.exists){await db.collection("companies").doc(code).set({name:"شركة تجريبية (ديمو)",active:true,createdAt:Date.now()});await db.collection("t/"+code+"/users").doc("demo").set({pass:"1234",role:"owner",name:"مدير تجريبي",createdAt:Date.now()});}
 const samples=[["خالد عيسي","411","أحمر","462","جيتات"],["امريكان","452","أبيض","21","صباغة"],["محمد الزماكة","475","غسيل","426","تجهيز"],["طارق الدهشوري","707","أبيض","457","لف"],["رفيق المنير","724","اسود خاص","251","الصالة"],["الحاج طارق","457","أبيض","464","جيتات"]];
@@ -509,7 +509,11 @@ if(isSuper)return(
 <div className="card" style={{marginTop:10,borderColor:"var(--warn)"}}>
 <div className="lbl">🆕 بث تحديث لكل الشركات</div>
 <input className="inp" placeholder="مثال: وصلنا ميزة التنبيهات الذكية 🎉" value={newsDraft} onChange={e=>setNewsDraft(e.target.value)}/>
-<button onClick={postNews} className="btnG">📡 نشر التحديث</button>
+<div className="card" style={{marginTop:10,borderColor:"var(--teal)"}}>
+<div className="lbl">🤖 مفتاح القراءة الذكية المركزي (بيشتغل لكل الشركات)</div>
+<input className="inp" placeholder="AIza..." defaultValue={masterKey} id="masterKeyBox"/>
+<button onClick={()=>saveMasterKey(document.getElementById("masterKeyBox").value)} className="btnG">💾 حفظ المفتاح المركزي</button>
+<p style={{fontSize:11,color:theme.textDim,marginTop:6}}>تحطه مرة واحدة من هنا — كل الشركات تستفيد تلقائياً، ولو خلص الحد اليومي بيكمّلوا بالقارئ المجاني الدائم</p>
 </div>
 <div style={{marginTop:12}}>
 {companies.map((c,i)=>(
@@ -581,7 +585,7 @@ d.stage=activeStage||stages[0]||"";setImportDraft(d);
 };im.src=rr3.result;};
 rr3.readAsDataURL(f);};
 const handleImportFile=e=>{const f=e.target.files?.[0];if(!f)return;setImportMenu(false);
-const key=String(factory.gkey||localStorage.getItem("gemini_key")||"").trim();
+const key=String(factory.gkey||masterKey||localStorage.getItem("gemini_key")||"").trim();
 if(key){setImportBusy(0);
 const rr4=new FileReader();
 rr4.onload=()=>{const im=new Image();im.onload=()=>{
