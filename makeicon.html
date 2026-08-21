@@ -1,1 +1,18 @@
-
+<!DOCTYPE html>
+<html dir="rtl"><body style="text-align:center;font-family:sans-serif;padding:30px">
+<h3>🖼️ اختار صورتك وحمّل الأيقونات</h3>
+<input type="file" id="f" accept="image/*">
+<br><br>
+<button onclick="mk(512)" style="display:block;margin:10px auto;padding:14px 24px;font-size:16px">تحميل icon-512x512.png</button>
+<button onclick="mk(192)" style="display:block;margin:10px auto;padding:14px 24px;font-size:16px">تحميل icon-192x192.png</button>
+<script>
+var img=null;
+document.getElementById("f").onchange=e=>{var r=new FileReader();r.onload=()=>{img=new Image();img.onload=()=>{alert("✅ الصورة جاهزة — دوس على الزرارين");};img.src=r.result;};r.readAsDataURL(e.target.files[0]);};
+function mk(s){if(!img){alert("اختار صورة الأول");return;}
+var c=document.createElement("canvas");c.width=s;c.height=s;var x=c.getContext("2d");
+x.fillStyle="#0B0E1A";x.fillRect(0,0,s,s);
+var m=Math.min(img.width,img.height);
+x.drawImage(img,(img.width-m)/2,(img.height-m)/2,m,m,0,0,s,s);
+var a=document.createElement("a");a.download="icon-"+s+"x"+s+".png";a.href=c.toDataURL("image/png");a.click();}
+</script>
+</body></html>
