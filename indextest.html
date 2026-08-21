@@ -240,6 +240,7 @@ const [tenant,setTenant]=useState(localStorage.getItem("tenant")||"");
 const [loginCo,setLoginCo]=useState(new URLSearchParams(window.location.search).get("co")||"");
 const [loginU,setLoginU]=useState("");
 const [loginP,setLoginP]=useState("");
+const [seenIntro,setSeenIntro]=useState(localStorage.getItem("seenIntro")==="1");
 const [me,setMe]=useState(()=>{try{const tt=localStorage.getItem("tenant");if(!tt)return null;const s=localStorage.getItem("session_"+tt);return s?JSON.parse(s):null;}catch(e){return null;}});
 const [companies,setCompanies]=useState([]);
 const [users,setUsers]=useState([]);
@@ -350,6 +351,7 @@ const createCompany=async(code,name,ou,op)=>{code=(code||"").trim().toUpperCase(
 const ex=await db.collection("companies").doc(code).get();if(ex.exists)return showToast("الكود موجود قبل كده","danger");
 await db.collection("companies").doc(code).set({name:name,active:true,createdAt:Date.now()});
 await db.collection("t/"+code+"/users").doc(ou).set({pass:op,role:"owner",name:name,createdAt:Date.now()});
+await db.collection("t/"+code+"/config").doc("stages").set({list:[]});
 showToast("🏢 اتعملت شركة "+code);};
 const toggleCompany=async c=>{await db.collection("companies").doc(c.id).set({active:c.active===false},{merge:true});};
 const quickEnter=c=>{const sess={user:"master-quick",role:"owner",name:"👑 المالك (دخول سريع)"};localStorage.setItem("tenant",c.id);localStorage.setItem("session_"+c.id,JSON.stringify(sess));setTenant(c.id);setMe(sess);showToast("🚪 دخلت "+c.name);};
@@ -366,8 +368,8 @@ const saveMasterKey=async k=>{await db.collection("global").doc("config").set({g
 const postNews=async()=>{if(!isSuper||!db)return;if(!newsDraft.trim())return;await db.collection("news").doc(uid()).set({text:newsDraft.trim(),time:Date.now()});setNewsDraft("");showToast("🆕 اتنشر لكل الشركات");};
 const createDemo=async()=>{const code="DEMO";
 const ex=await db.collection("companies").doc(code).get();
-if(!ex.exists){await db.collection("companies").doc(code).set({name:"شركة تجريبية (ديمو)",active:true,createdAt:Date.now()});await db.collection("t/"+code+"/users").doc("demo").set({pass:"1234",role:"owner",name:"مدير تجريبي",createdAt:Date.now()});}
-const samples=[["خالد عيسي","411","أحمر","462","جيتات"],["امريكان","452","أبيض","21","صباغة"],["محمد الزماكة","475","غسيل","426","تجهيز"],["طارق الدهشوري","707","أبيض","457","لف"],["رفيق المنير","724","اسود خاص","251","الصالة"],["الحاج طارق","457","أبيض","464","جيتات"]];
+if(!ex.exists){await db.collection("companies").doc(code).set({name:"شركة تجريبية (ديمو)",active:true,createdAt:Date.now()});await db.collection("t/"+code+"/users").doc("demo").set({pass:"1234",role:"owner",name:"مدير تجريبي",createdAt:Date.now()});await db.collection("t/"+code+"/config").doc("stages").set({list:DEFAULT_STAGES});}
+const samples=[["Test 1","101","أحمر","100","جيتات"],["Test 2","102","أزرق","150","صباغة"],["Test 3","103","أخضر","200","تجهيز"],["Test 4","104","أسود","250","لف"],["Test 5","105","أبيض","300","الصالة"]];
 for(const s of samples){await db.collection("t/"+code+"/cards").doc(uid()).set({customer:s[0],code:s[1],color:s[2],quantity:s[3],stage:s[4],message:"",category:"جاكار",barcode:"",machine:"",prepare:"",dye:"",time:"",notes:"",phone:"",address:"",urgent:false,pinned:false,due:"",photo:"",archived:false,loadId:"",delivered:false,deliveredQty:0,createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp(),createdBy:"MASTER",history:[{stage:s[4],by:"MASTER",at:nowISO()}]});}
 showToast("🎭 الديمو جاهز — دخول: DEMO / demo / 1234");};
 const addUser=async()=>{if(!isOwner||!db)return;const u=userDraft.u.trim();if(!u||!userDraft.p||!userDraft.name)return showToast("كمّل البيانات","danger");
@@ -472,6 +474,25 @@ if(pubData&&!new URLSearchParams(window.location.search).get("goto"))return(<div
 <div style={{fontSize:11,color:"#77705F",textAlign:"center",marginTop:10}}>🔒 التعديل للعاملين فقط بحساب الشركة</div>
 </div></div>);
 if(!ready)return(<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:theme.bg,color:theme.text,flexDirection:"column",gap:16}}><div style={{fontSize:48,animation:"floaty 2s infinite"}}>🏭</div><div className="spin" style={{fontSize:24}}>⚙️</div><div style={{color:theme.textDim,fontSize:14,fontWeight:700}}>🕌 صلِّ على النبي</div></div>);
+if(!me&&!seenIntro&&!loginCo)return(
+<div dir={dir} style={{minHeight:"100vh",background:theme.bg,color:theme.text,overflowY:"auto"}}>
+<div style={{maxWidth:480,margin:"0 auto",padding:"30px 16px 40px"}}>
+<div className="anim" style={{textAlign:"center",marginBottom:16}}>
+<div style={{width:70,height:70,borderRadius:22,background:"linear-gradient(135deg,var(--vio),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 12px",fontSize:34,animation:"floaty 2.5s infinite",boxShadow:"0 12px 34px rgba(124,92,255,.45)"}}>🏭</div>
+<h1 style={{margin:"0 0 4px",fontSize:24,fontWeight:900}}>متابعة مراحل</h1>
+<p style={{color:theme.textDim,fontSize:13}}>نظام إدارة أوامر الإنتاج للمصانع — كل شركة ليها عالمها الخاص 🔒</p>
+</div>
+<img src="intro.png" alt="شرح التطبيق" onError={e=>e.target.style.display="none"} style={{width:"100%",borderRadius:20,border:"1px solid "+theme.border,marginBottom:16,animation:"fadeUp .6s both"}}/>
+<div className="card anim" style={{marginBottom:10,animationDelay:"100ms",display:"flex",gap:10,alignItems:"center"}}><span style={{fontSize:24}}>🔐</span><div><b style={{fontSize:14}}>حسابات لكل شركة</b><div style={{fontSize:12,color:theme.textDim}}>كل مصنع بيدخل بكود واسم مستخدم ورمز خاص بيه</div></div></div>
+<div className="card anim" style={{marginBottom:10,animationDelay:"200ms",display:"flex",gap:10,alignItems:"center"}}><span style={{fontSize:24}}>🏭</span><div><b style={{fontSize:14}}>متابعة المراحل لحظة بلحظة</b><div style={{fontSize:12,color:theme.textDim}}>كروت الشغل بتتحرك بين المراحل بضغطة واحدة</div></div></div>
+<div className="card anim" style={{marginBottom:10,animationDelay:"300ms",display:"flex",gap:10,alignItems:"center"}}><span style={{fontSize:24}}>📊</span><div><b style={{fontSize:14}}>تقارير وتنبيهات ذكية</b><div style={{fontSize:12,color:theme.textDim}}>متأخرات، مخزن، تسليمات — كله قدامك في ثانية</div></div></div>
+<div className="card grad anim" style={{animationDelay:"400ms",textAlign:"center",padding:20,marginBottom:12}}>
+<div style={{fontSize:15,fontWeight:800,marginBottom:6}}>عايز تجرب التطبيق؟ 🎁</div>
+<div style={{fontSize:12,color:"#E4DCFF",marginBottom:12}}>كلمني واتساب وهبعتلك بيانات الدخول في ثواني</div>
+<a href={"https://wa.me/"+SUPPORT_WA+"?text="+encodeURIComponent("السلام عليكم، عايز أجرب تطبيق متابعة مراحل — ابعتلي بيانات الدخول")} target="_blank" rel="noreferrer" style={{display:"block",background:"#25D366",color:"#fff",borderRadius:14,padding:"13px",fontWeight:800,textDecoration:"none",boxShadow:"0 8px 24px rgba(37,211,102,.35)"}}>💬 اطلب بيانات الدخول واتساب</a>
+</div>
+<button onClick={()=>{localStorage.setItem("seenIntro","1");setSeenIntro(true);}} className="btnO">🔓 عندي حساب بالفعل — دخول</button>
+</div></div>);
 if(!me)return(
 <div dir={dir} style={{minHeight:"100vh",background:theme.bg,color:theme.text,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
 <div className="card" style={{padding:32,width:"100%",maxWidth:380}}>
@@ -708,6 +729,7 @@ return(<div key={c.id} className="card" onClick={()=>jumpToCard(c)} style={{curs
 <div style={{fontSize:11,color:theme.textDim}}>تابع جميع مراحل الإنتاج</div>
 </div>
 </div>
+{stages.length===0&&(<div className="card" style={{marginBottom:14,borderColor:"var(--vio)",textAlign:"center",padding:20}}><div style={{fontSize:30,marginBottom:8}}>🏭</div><b>ابدأ ببناء مراحل شركتك</b><p style={{color:theme.textDim,fontSize:12,marginTop:6}}>دوس "➕ إضافة مرحلة" وسمّي مراحل شغلك زي ما انت عايز</p></div>)}
 {(()=>{const orph=liveCards.filter(c=>!stages.includes(c.stage));return orph.length>0?(<div onClick={()=>setEditingCard(orph[0])} className="card" style={{marginBottom:14,borderColor:"var(--red)",cursor:"pointer"}}>⚠️ عندك {orph.length} كرت في مرحلة مش موجودة — دوس تصلّح</div>):null;})()}
 {stages.map((s,i)=>{const l=liveCards.filter(c=>c.stage===s);const late=l.filter(c=>daysSince(c.updatedAt||c.createdAt)>=LD).length;const q=qtySum(l);const colr=STAGE_COLORS[i%8];
 return(<div key={s} className="anim" style={{display:"flex",gap:12,marginBottom:4,animationDelay:(i*100)+"ms"}}>
