@@ -81,6 +81,7 @@ const {useState,useEffect,useRef}=React;
 function useCountUp(v,dur){const [n,setN]=useState(0);useEffect(()=>{let s=null;let raf;const step=t=>{if(s===null)s=t;const p=Math.min(1,(t-s)/(dur||900));setN(Math.round(v*(1-Math.pow(1-p,3))));if(p<1)raf=requestAnimationFrame(step);};raf=requestAnimationFrame(step);return()=>cancelAnimationFrame(raf);},[v]);return n;}
 const firebaseConfig={apiKey:"AIzaSyBEplMzCUPbZ33vpctAegDvCLFLB2d_Psc",authDomain:"dyeing-tracker-cc789.firebaseapp.com",projectId:"dyeing-tracker-cc789",storageBucket:"dyeing-tracker-cc789.firebasestorage.app",messagingSenderId:"407184511418",appId:"1:407184511418:web:16512177012e5a6ded0d83",measurementId:"G-V3ST7W6VVN"};
 const UNLOCK_CODE="202026";
+const SUPPORT_WA="201044836450";
 let db=null,auth=null,fbReady=false;
 try{firebase.initializeApp(firebaseConfig);auth=firebase.auth();db=firebase.firestore();db.enablePersistence({synchronizeTabs:true}).catch(e=>console.warn(e.code));fbReady=true;}catch(e){console.error(e);}
 const DEFAULT_STAGES=["جيتات","صباغة","تجهيز","لف","الصالة"];
@@ -244,7 +245,10 @@ const [me,setMe]=useState(null);
 const [companies,setCompanies]=useState([]);
 const [users,setUsers]=useState([]);
 const [userDraft,setUserDraft]=useState({u:"",p:"",name:""});
-const [passDraft,setPassDraft]=useState({old:"",new:""});
+const [showNotif,setShowNotif]=useState(false);
+const [reportSuggest,setReportSuggest]=useState(false);
+const [news,setNews]=useState([]);
+const [newsDraft,setNewsDraft]=useState("");
 const [showSettings,setShowSettings]=useState(false);
 const [showSearch,setShowSearch]=useState(false);
 const [showMenu,setShowMenu]=useState(false);
@@ -272,7 +276,7 @@ const restoreRef=useRef(null);
 const scanMode=useRef("form");
 const gotoDone=useRef(false);
 const uiRef=useRef({});
-uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,showTopCust,photoView,appQr,importMenu,importDraft,showMic,showWarehouse,addLoad,loadDetail,showLateList,showDelivered,heroEdit,showDefects,defectFor,showAnnounce,linkedFrom};
+uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,showTopCust,photoView,appQr,importMenu,importDraft,showMic,showWarehouse,addLoad,loadDetail,showLateList,showDelivered,heroEdit,showDefects,defectFor,showAnnounce,linkedFrom,showNotif,reportSuggest};
 const t=DICT[lang];
 const dir=lang==="ar"?"rtl":"ltr";
 const isSuper=!!(me&&me.role==="super");
@@ -284,9 +288,9 @@ const hdrBtn={width:42,height:42,borderRadius:14,border:"1px solid "+theme.borde
 const LD=+factory.lateDays||2;
 const allColors=PRESET_COLORS.concat(customColors);
 useEffect(()=>{setFnameDraft(factory.fname);setWaDraft(factory.wa);setLateDraft(factory.lateDays);setHeroTDraft(factory.heroT||"");setHeroSDraft(factory.heroS||"");},[factory.fname,factory.wa,factory.lateDays,factory.heroT,factory.heroS]);
-useEffect(()=>{if(me)setOwnerName(me.name);},[me]);
+useEffect(()=>{if(me&&!isSuper&&can){const today=localDate(new Date());if(localStorage.getItem("lastReport_"+tenant)!==today){setReportSuggest(true);}}},[me]);
 useEffect(()=>{history.pushState({guard:1},"");const onPop=()=>{const u=uiRef.current;
-if(u.showTopCust)setShowTopCust(false);else if(u.showLateList)setShowLateList(false);else if(u.showDelivered)setShowDelivered(false);else if(u.heroEdit)setHeroEdit(false);else if(u.showDefects)setShowDefects(false);else if(u.defectFor)setDefectFor(null);else if(u.showAnnounce)setShowAnnounce(false);else if(u.linkedFrom)setLinkedFrom(null);else if(u.addLoad)setAddLoad(false);else if(u.loadDetail)setLoadDetail(null);else if(u.showWarehouse)setShowWarehouse(false);else if(u.showMic)setShowMic(false);else if(u.importMenu)setImportMenu(false);else if(u.importDraft)setImportDraft(null);
+if(u.showTopCust)setShowTopCust(false);else if(u.showLateList)setShowLateList(false);else if(u.showDelivered)setShowDelivered(false);else if(u.heroEdit)setHeroEdit(false);else if(u.showDefects)setShowDefects(false);else if(u.defectFor)setDefectFor(null);else if(u.showAnnounce)setShowAnnounce(false);else if(u.linkedFrom)setLinkedFrom(null);else if(u.showNotif)setShowNotif(false);else if(u.reportSuggest)setReportSuggest(false);else if(u.addLoad)setAddLoad(false);else if(u.loadDetail)setLoadDetail(null);else if(u.showWarehouse)setShowWarehouse(false);else if(u.showMic)setShowMic(false);else if(u.importMenu)setImportMenu(false);else if(u.importDraft)setImportDraft(null);
 else if(u.reportText)setReportText(null);else if(u.showScanner)setShowScanner(false);else if(u.bcCard)setBcCard(null);
 else if(u.statementFor)setStatementFor(null);else if(u.showWorkers)setShowWorkers(false);
 else if(u.photoView)setPhotoView(null);else if(u.appQr)setAppQr(false);else if(u.showMenu)setShowMenu(false);
@@ -315,6 +319,7 @@ const u6=col("users").onSnapshot(sn=>{setUsers(sn.docs.map(d=>({id:d.id,...d.dat
 return()=>{[u1,u2,u3,u4,u5,u6].forEach(u=>{try{u&&u();}catch(e){}});};
 },[me,tenant]);
 useEffect(()=>{if(!fbReady||!db||!isSuper)return;const u=db.collection("companies").onSnapshot(sn=>{setCompanies(sn.docs.map(d=>({id:d.id,...d.data()})));});return()=>{try{u&&u();}catch(e){}};},[isSuper]);
+useEffect(()=>{if(!fbReady||!db||!me)return;const u=db.collection("news").onSnapshot(sn=>{setNews(sn.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.time||0)-(a.time||0)));});return()=>{try{u&&u();}catch(e){}};},[me]);
 useEffect(()=>{if(!firebaseOk||!userId||!ownerName||!db||!me||isSuper)return;const beat=()=>{try{db.collection("presence").doc(userId).set({name:ownerName,last:Date.now()});}catch(e){}};beat();const iv=setInterval(beat,20000);const un=db.collection("presence").onSnapshot(sn=>{const n=Date.now();setOnlineUsers(sn.docs.map(d=>d.data()).filter(p=>n-(p.last||0)<60000));});return()=>{clearInterval(iv);un&&un();};},[firebaseOk,userId,ownerName,me]);
 useEffect(()=>{if(!ready||gotoDone.current)return;const g=new URLSearchParams(window.location.search).get("goto");if(!g)return;let p=null;try{p=b64d(g);}catch(e){return;}if(!p||!p.c)return;
 const f=cards.find(c=>(c.barcode&&c.barcode===p.c)||c.code===p.c);
@@ -342,6 +347,13 @@ await db.collection("t/"+code+"/users").doc(ou).set({pass:op,role:"owner",name:n
 showToast("🏢 اتعملت شركة "+code);};
 const toggleCompany=async c=>{await db.collection("companies").doc(c.id).set({active:c.active===false},{merge:true});};
 const quickEnter=c=>{localStorage.setItem("tenant",c.id);setTenant(c.id);setMe({user:"master-quick",role:"owner",name:"👑 المالك (دخول سريع)"});showToast("🚪 دخلت "+c.name);};
+const postNews=async()=>{if(!isSuper||!db)return;if(!newsDraft.trim())return;await db.collection("news").doc(uid()).set({text:newsDraft.trim(),time:Date.now()});setNewsDraft("");showToast("🆕 اتنشر لكل الشركات");};
+const createDemo=async()=>{const code="DEMO";
+const ex=await db.collection("companies").doc(code).get();
+if(!ex.exists){await db.collection("companies").doc(code).set({name:"شركة تجريبية (ديمو)",active:true,createdAt:Date.now()});await db.collection("t/"+code+"/users").doc("demo").set({pass:"1234",role:"owner",name:"مدير تجريبي",createdAt:Date.now()});}
+const samples=[["خالد عيسي","411","أحمر","462","جيتات"],["امريكان","452","أبيض","21","صباغة"],["محمد الزماكة","475","غسيل","426","تجهيز"],["طارق الدهشوري","707","أبيض","457","لف"],["رفيق المنير","724","اسود خاص","251","الصالة"],["الحاج طارق","457","أبيض","464","جيتات"]];
+for(const s of samples){await db.collection("t/"+code+"/cards").doc(uid()).set({customer:s[0],code:s[1],color:s[2],quantity:s[3],stage:s[4],message:"",category:"جاكار",barcode:"",machine:"",prepare:"",dye:"",time:"",notes:"",phone:"",address:"",urgent:false,pinned:false,due:"",photo:"",archived:false,loadId:"",delivered:false,deliveredQty:0,createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp(),createdBy:"MASTER",history:[{stage:s[4],by:"MASTER",at:nowISO()}]});}
+showToast("🎭 الديمو جاهز — دخول: DEMO / demo / 1234");};
 const addUser=async()=>{if(!isOwner||!db)return;const u=userDraft.u.trim();if(!u||!userDraft.p||!userDraft.name)return showToast("كمّل البيانات","danger");
 const ex=await col("users").doc(u).get();if(ex.exists)return showToast("الاسم موجود","danger");
 await col("users").doc(u).set({pass:userDraft.p,role:"worker",name:userDraft.name,createdAt:Date.now()});setUserDraft({u:"",p:"",name:""});showToast("👷 اتضاف");};
@@ -428,7 +440,8 @@ const donePct=totalQty>0?Math.min(100,Math.round((wh.del/totalQty)*100)):0;
 const nCards=useCountUp(liveCards.length);const nLate=useCountUp(lateCount);const nRem=useCountUp(Math.round(wh.rem));const nDel=useCountUp(Math.round(wh.del));
 const grid2={display:"grid",gridTemplateColumns:"1fr 1fr",gap:10};
 const S_ICONS=["🚛","🧪","⚙️","🧵","","🏭","✅","🎯"];
-const annVisible=!!(announce&&announce.text)&&annDismissed!==String(announce.time);
+const lowLoadList=loads.filter(l=>{const s=loadStats(l);return s.rem<=(parseFloat(l.total)||0)*0.1;});
+const notifCount=lateAll.length+lowLoadList.length;
 const badge=(c,x)=><span className="badge" style={{background:c}}>{x}</span>;
 const rawD=(()=>{try{return new URLSearchParams(window.location.search).get("d");}catch(e){return null;}})();
 const pubData=(()=>{if(!rawD)return null;try{return b64d(rawD);}catch(e){return null;}})();
@@ -478,6 +491,14 @@ if(isSuper)return(
 </div>
 </div>
 <div style={{marginTop:12}}><NewCompanyBox onCreate={createCompany}/></div>
+<div style={{display:"flex",gap:8,marginTop:10}}>
+<button onClick={createDemo} className="btnO">🎭 تجهيز نسخة الديمو</button>
+</div>
+<div className="card" style={{marginTop:10,borderColor:"var(--warn)"}}>
+<div className="lbl">🆕 بث تحديث لكل الشركات</div>
+<input className="inp" placeholder="مثال: وصلنا ميزة التنبيهات الذكية 🎉" value={newsDraft} onChange={e=>setNewsDraft(e.target.value)}/>
+<button onClick={postNews} className="btnG">📡 نشر التحديث</button>
+</div>
 <div style={{marginTop:12}}>
 {companies.map((c,i)=>(
 <div key={c.id} className="card anim" style={{marginBottom:10,borderInlineStart:"4px solid "+(c.active===false?"var(--red)":"var(--teal)"),animationDelay:(i*60)+"ms"}}>
@@ -577,6 +598,14 @@ return(
 <button onClick={()=>{localStorage.setItem("ann_dismiss",String(announce.time));setAnnDismissed(String(announce.time));}} style={{background:"rgba(255,255,255,.2)",border:"none",borderRadius:8,padding:"4px 8px",color:"#fff",fontSize:12}}>✕</button>
 </div></div>)}
 {annVisible&&<div style={{height:58}}/>}
+{me&&!isSuper&&news.length>0&&news[0].time>(parseInt(localStorage.getItem("newsSeen_"+tenant)||"0"))&&(
+<div style={{maxWidth:640,margin:"0 auto",padding:"8px 16px 0"}}>
+<div className="card anim" style={{borderColor:"var(--warn)",padding:"12px 14px",display:"flex",alignItems:"center",gap:10}}>
+<span style={{fontSize:18}}>🆕</span>
+<div style={{flex:1,fontSize:13}}>{news[0].text}</div>
+<button onClick={()=>localStorage.setItem("newsSeen_"+tenant,String(news[0].time))} className="chip on">تمام 👍</button>
+</div>
+</div>)}
 {screen==="home"&&(
 <div style={{maxWidth:640,margin:"0 auto",padding:"40px 16px 20px"}}>
 <div className="anim" style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
@@ -585,6 +614,7 @@ return(
 <div style={{fontSize:12,color:theme.textDim}}>👋 مرحباً يا {ownerName}</div>
 <div style={{fontSize:20,fontWeight:900}}>{factory.fname}</div>
 </div>
+<button onClick={()=>setShowNotif(true)} style={{...hdrBtn,position:"relative"}}>🔔{notifCount>0&&<span style={{position:"absolute",top:-4,insetInlineEnd:-4,background:"var(--red)",color:"#fff",borderRadius:20,fontSize:10,padding:"2px 6px",fontWeight:800}}>{notifCount}</span>}</button>
 <button onClick={()=>setShowSearch(true)} style={hdrBtn}>🔍</button>
 <button onClick={()=>setShowMenu(true)} style={hdrBtn}>⋯</button>
 </div>
@@ -707,7 +737,31 @@ return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noRe
 <input ref={importCamRef} type="file" accept="image/*" capture="environment" style={{display:"none"}} onChange={handleImportFile}/>
 <input ref={importGalRef} type="file" accept="image/*" style={{display:"none"}} onChange={handleImportFile}/>
 <input ref={restoreRef} type="file" accept="application/json" style={{display:"none"}} onChange={restoreJSON}/>
-{showMenu&&(
+{showNotif&&(
+<div className="modal" onClick={()=>setShowNotif(false)}>
+<div className="mbox" onClick={e=>e.stopPropagation()}>
+<h3 style={{margin:"0 0 12px"}}>🔔 التنبيهات ({notifCount})</h3>
+{notifCount===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center"}}>مفيش تنبيهات — كله تمام 🎉</p>}
+{lateAll.map((c,i)=>(<div key={c.id} className="card anim" onClick={()=>{setShowNotif(false);jumpToCard(c);}} style={{cursor:"pointer",padding:"10px 12px",marginBottom:8,borderInlineStart:"4px solid var(--red)",animationDelay:(i*50)+"ms"}}>
+<div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:14}}>⏰ {c.customer} · {c.code}</b><span className="badge" style={{background:"var(--red)"}}>متأخر</span></div>
+<div style={{fontSize:12,color:theme.textDim,marginTop:4}}>في مرحلة {c.stage} من {Math.floor(daysSince(c.updatedAt||c.createdAt))} يوم</div>
+</div>))}
+{lowLoadList.map((l,i)=>(<div key={l.id} className="card anim" onClick={()=>{setShowNotif(false);setShowWarehouse(true);}} style={{cursor:"pointer",padding:"10px 12px",marginBottom:8,borderInlineStart:"4px solid var(--warn)",animationDelay:(i*50)+"ms"}}>
+<div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:14}}>📦 {l.customer}</b><span className="badge" style={{background:"var(--warn)"}}>مخزن منخفض</span></div>
+<div style={{fontSize:12,color:theme.textDim,marginTop:4}}>فاضل {Math.round(loadStats(l).rem)} {factory.unit} بس</div>
+</div>))}
+</div></div>)}
+{reportSuggest&&(
+<div className="modal" onClick={()=>{localStorage.setItem("lastReport_"+tenant,localDate(new Date()));setReportSuggest(false);}}>
+<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:380}}>
+<h3 style={{margin:"0 0 10px"}}>📩 تقرير اليوم جاهز</h3>
+<p style={{color:theme.textDim,fontSize:13,marginBottom:12}}>حابب تبعت ملخص شغل النهارده لواتساب المصنع؟</p>
+<pre style={{whiteSpace:"pre-wrap",background:theme.panelAlt,borderRadius:14,padding:12,fontSize:12,maxHeight:"40vh",overflowY:"auto",color:theme.text,fontFamily:"inherit"}}>{buildReport()}</pre>
+<div style={{display:"flex",gap:8,marginTop:10}}>
+<a href={waLink(buildReport())} target="_blank" rel="noreferrer" onClick={()=>{localStorage.setItem("lastReport_"+tenant,localDate(new Date()));setReportSuggest(false);}} className="btnG" style={{textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>💬 ابعت واتساب</a>
+<button onClick={()=>{localStorage.setItem("lastReport_"+tenant,localDate(new Date()));setReportSuggest(false);}} className="btnO">مش دلوقتي</button>
+</div>
+</div></div>)}
 <div className="modal" onClick={()=>setShowMenu(false)}>
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:300}}>
 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}><span style={{fontSize:22}}>🏭</span><b>{factory.fname}</b></div>
@@ -724,7 +778,7 @@ return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noRe
 <MenuBtn onClick={()=>{setScreen("archive");setShowMenu(false);}}>🗄️ {t.archive}</MenuBtn>
 <MenuBtn onClick={()=>{setScreen("log");setShowMenu(false);}}>📋 {t.dailyLog}</MenuBtn>
 <MenuBtn onClick={()=>{setNameDraft(ownerName);setShowSettings(true);setShowMenu(false);}}>⚙️ {t.settings}</MenuBtn>
-<MenuBtn onClick={logout}>🚪 خروج / تبديل شركة</MenuBtn>
+<MenuBtn onClick={()=>{window.open("https://wa.me/"+SUPPORT_WA+"?text="+encodeURIComponent("🆘 طلب دعم\nالشركة: "+tenant+"\nالجهاز: "+navigator.userAgent.slice(0,60)),"_blank");setShowMenu(false);}}>💬 كلم الدعم</MenuBtn>
 </div></div>)}
 {showLateList&&(
 <div className="modal" onClick={()=>setShowLateList(false)}>
