@@ -347,6 +347,10 @@ await db.collection("t/"+code+"/users").doc(ou).set({pass:op,role:"owner",name:n
 showToast("🏢 اتعملت شركة "+code);};
 const toggleCompany=async c=>{await db.collection("companies").doc(c.id).set({active:c.active===false},{merge:true});};
 const quickEnter=c=>{const sess={user:"master-quick",role:"owner",name:"👑 المالك (دخول سريع)"};localStorage.setItem("tenant",c.id);localStorage.setItem("session_"+c.id,JSON.stringify(sess));setTenant(c.id);setMe(sess);showToast("🚪 دخلت "+c.name);};
+const renameCompany=async c=>{const n=prompt("الاسم الجديد للشركة:",c.name);if(n&&n.trim())await db.collection("companies").doc(c.id).set({name:n.trim()},{merge:true});showToast("✏️ اتعدل الاسم");};
+const deleteCompany=async c=>{if(!confirm("حذف شركة "+c.name+" نهائياً؟ كل بياناتها هتتمسح!"))return;
+for(const cn of ["cards","logs","loads","defects","users","config"]){const sn=await db.collection("t/"+c.id+"/"+cn).get();for(const d of sn.docs){await d.ref.delete();}}
+await db.collection("companies").doc(c.id).delete();showToast("🗑️ اتحذفت "+c.id,"danger");};
 const addUser=async()=>{if(!isOwner||!db)return;const u=userDraft.u.trim();if(!u||!userDraft.p||!userDraft.name)return showToast("كمّل البيانات","danger");
 const ex=await col("users").doc(u).get();if(ex.exists)return showToast("الاسم موجود","danger");
 await col("users").doc(u).set({pass:userDraft.p,role:"worker",name:userDraft.name,createdAt:Date.now()});setUserDraft({u:"",p:"",name:""});showToast("👷 اتضاف");};
@@ -509,6 +513,8 @@ if(isSuper)return(
 </div>
 <div style={{display:"flex",gap:6,marginTop:8,flexWrap:"wrap"}}>
 <button onClick={()=>toggleCompany(c)} className="chip">{c.active===false?"▶️ تشغيل":"⏸️ تعطيل"}</button>
+<button onClick={()=>renameCompany(c)} className="chip">✏️ تعديل</button>
+<button onClick={()=>deleteCompany(c)} className="chip" style={{borderColor:"var(--red)",color:"var(--red)"}}>🗑️ حذف</button>
 <button onClick={()=>migrateOld(c.id)} className="chip">📦 استيراد القديم</button>
 <button onClick={()=>quickEnter(c)} className="chip on">🚪 دخول سريع</button>
 </div>
