@@ -80,8 +80,8 @@ setTimeout(function(){if(!window.__booted){var r=document.getElementById("root")
 const {useState,useEffect,useRef}=React;
 function useCountUp(v,dur){const [n,setN]=useState(0);useEffect(()=>{let s=null;let raf;const step=t=>{if(s===null)s=t;const p=Math.min(1,(t-s)/(dur||900));setN(Math.round(v*(1-Math.pow(1-p,3))));if(p<1)raf=requestAnimationFrame(step);};raf=requestAnimationFrame(step);return()=>cancelAnimationFrame(raf);},[v]);return n;}
 const firebaseConfig={apiKey:"AIzaSyBEplMzCUPbZ33vpctAegDvCLFLB2d_Psc",authDomain:"dyeing-tracker-cc789.firebaseapp.com",projectId:"dyeing-tracker-cc789",storageBucket:"dyeing-tracker-cc789.firebasestorage.app",messagingSenderId:"407184511418",appId:"1:407184511418:web:16512177012e5a6ded0d83",measurementId:"G-V3ST7W6VVN"};
-const UNLOCK_CODE="202026";
-const SUPPORT_WA="201000000000";
+const UNLOCK_CODE="20112005";
+const SUPPORT_WA="201044836450";
 let db=null,auth=null,fbReady=false;
 try{firebase.initializeApp(firebaseConfig);auth=firebase.auth();db=firebase.firestore();db.enablePersistence({synchronizeTabs:true}).catch(e=>console.warn(e.code));fbReady=true;}catch(e){console.error(e);}
 const DEFAULT_STAGES=["جيتات","صباغة","تجهيز","لف","الصالة"];
