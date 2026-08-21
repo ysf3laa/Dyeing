@@ -463,26 +463,44 @@ if(!me)return(<div dir={dir} style={{minHeight:"100vh",background:theme.bg,color
 <div className="lbl">الرمز</div><input className="inp" type="password" value={loginP} onChange={e=>setLoginP(e.target.value)} placeholder="••••" onKeyDown={e=>e.key==="Enter"&&doLogin()}/>
 <button onClick={doLogin} className="btnG">🔓 دخول</button>
 </div></div>);
-if(isSuper)return(<div dir={dir} style={{minHeight:"100vh",background:theme.bg,color:theme.text,paddingBottom:40}}>
+if(isSuper)return(
+<div dir={dir} style={{minHeight:"100vh",background:theme.bg,color:theme.text,paddingBottom:40}}>
 <div style={{maxWidth:640,margin:"0 auto",padding:"30px 16px"}}>
 <div className="anim" style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
 <div style={{width:44,height:44,borderRadius:50,background:"linear-gradient(135deg,var(--vio),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>👑</div>
-<div style={{flex:1}}><div style={{fontSize:20,fontWeight:900}}>لوحة المالك</div><div style={{fontSize:11,color:theme.textDim}}>{companies.length} شركة مسجلة</div></div>
+<div style={{flex:1}}>
+<div style={{fontSize:20,fontWeight:900}}>لوحة المالك</div>
+<div style={{fontSize:11,color:theme.textDim}}>{companies.length} شركة مسجلة</div>
+</div>
 <button onClick={logout} className="chip">🚪 خروج</button>
 </div>
-<div style={grid2,marginBottom:12}>
-<div className="card"><div className="lbl">🏢 شركات نشطة</div><div style={{fontSize:24,fontWeight:900,color:"var(--teal)"}}>{companies.filter(c=>c.active!==false).length}</div></div>
-<div className="card"><div className="lbl">⏸️ موقوفة</div><div style={{fontSize:24,fontWeight:900,color:"var(--red)"}}>{companies.filter(c=>c.active===false).length}</div></div>
+<div style={grid2}>
+<div className="card">
+<div className="lbl">🏢 شركات نشطة</div>
+<div style={{fontSize:24,fontWeight:900,color:"var(--teal)"}}>{companies.filter(c=>c.active!==false).length}</div>
 </div>
-<NewCompanyBox onCreate={createCompany}/>
+<div className="card">
+<div className="lbl">⏸️ موقوفة</div>
+<div style={{fontSize:24,fontWeight:900,color:"var(--red)"}}>{companies.filter(c=>c.active===false).length}</div>
+</div>
+</div>
+<div style={{marginTop:12}}><NewCompanyBox onCreate={createCompany}/></div>
 <div style={{marginTop:12}}>
-{companies.map((c,i)=>(<div key={c.id} className="card anim" style={{marginBottom:10,borderInlineStart:"4px solid "+(c.active===false?"var(--red)":"var(--teal)"),animationDelay:(i*60)+"ms"}}>
-<div style={{display:"flex",justifyContent:"space-between"}}><b>{c.name} <span style={{color:theme.textDim,fontSize:11}}>({c.id})</span></b>{c.active===false?<span className="badge" style={{background:"var(--red)"}}>موقوفة</span>:<span className="badge" style={{background:"var(--teal)"}}>نشطة</span>}</div>
+{companies.map((c,i)=>(
+<div key={c.id} className="card anim" style={{marginBottom:10,borderInlineStart:"4px solid "+(c.active===false?"var(--red)":"var(--teal)"),animationDelay:(i*60)+"ms"}}>
+<div style={{display:"flex",justifyContent:"space-between"}}>
+<b>{c.name} <span style={{color:theme.textDim,fontSize:11}}>({c.id})</span></b>
+{c.active===false?<span className="badge" style={{background:"var(--red)"}}>موقوفة</span>:<span className="badge" style={{background:"var(--teal)"}}>نشطة</span>}
+</div>
 <div style={{display:"flex",gap:6,marginTop:8,flexWrap:"wrap"}}>
 <button onClick={()=>toggleCompany(c)} className="chip">{c.active===false?"▶️ تشغيل":"⏸️ تعطيل"}</button>
+<button onClick={()=>migrateOld(c.id)} className="chip">📦 استيراد القديم</button>
 <button onClick={()=>quickEnter(c)} className="chip on">🚪 دخول سريع</button>
-</div></div>))}
-</div></div></div>);
+</div>
+</div>))}
+</div>
+</div>
+</div>);
 return(
 <div dir={dir} style={{minHeight:"100vh",background:theme.bg,color:theme.text,paddingBottom:90}}>
 <div style={{position:"fixed",top:0,left:0,right:0,padding:"6px 12px",background:"rgba(11,14,26,.85)",backdropFilter:"blur(10px)",borderBottom:"1px solid "+theme.border,fontSize:11,color:statusColor,zIndex:300,textAlign:"center",fontWeight:700}}>{statusMsg}{!can&&<span style={{color:theme.warn}}> · {t.lockedNote}</span>}</div>
