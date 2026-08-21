@@ -241,7 +241,7 @@ const [tenant,setTenant]=useState(localStorage.getItem("tenant")||"");
 const [loginCo,setLoginCo]=useState(new URLSearchParams(window.location.search).get("co")||"");
 const [loginU,setLoginU]=useState("");
 const [loginP,setLoginP]=useState("");
-const [me,setMe]=useState(null);
+const [me,setMe]=useState(()=>{try{const t=localStorage.getItem("tenant");if(!t)return null;const s=localStorage.getItem("session_"+t);return s?JSON.parse(s):null;}catch(e){return null;}});
 const [companies,setCompanies]=useState([]);
 const [users,setUsers]=useState([]);
 const [userDraft,setUserDraft]=useState({u:"",p:"",name:""});
@@ -331,22 +331,22 @@ return()=>{done=true;try{hq.stop();hq.clear();}catch(e){}};},[showScanner]);
 const showToast=(m,k)=>{setToast({msg:m,kind:k||"ok"});setTimeout(()=>setToast(null),2600);};
 const doLogin=async()=>{const code=(loginCo||"").trim().toUpperCase();const u=loginU.trim();
 if(!code||!u||!loginP){showToast("كمّل البيانات","danger");return;}
-if(code==="MASTER"){if(u==="admin"&&loginP===UNLOCK_CODE){localStorage.setItem("tenant","MASTER");setTenant("MASTER");setMe({user:"admin",role:"super",name:"المالك"});showToast("👑 أهلاً");}else showToast("بيانات المالك غلط","danger");return;}
+if(code==="MASTER"){if(u==="admin"&&loginP===UNLOCK_CODE){localStorage.setItem("tenant","MASTER");localStorage.setItem("session_MASTER",JSON.stringify({user:"admin",role:"super",name:"المالك"}));setTenant("MASTER");setMe({user:"admin",role:"super",name:"المالك"});showToast("👑 أهلاً");}else showToast("بيانات المالك غلط","danger");return;}
 try{const cs=await db.collection("companies").doc(code).get();
 if(!cs.exists){showToast("كود الشركة مش موجود","danger");return;}
 if(cs.data().active===false){showToast("الشركة موقوفة — كلم الدعم","danger");return;}
 const us=await db.collection("t/"+code+"/users").doc(u).get();
 if(!us.exists||String(us.data().pass)!==String(loginP)){showToast("اسم المستخدم أو الرمز غلط","danger");return;}
-localStorage.setItem("tenant",code);setTenant(code);setMe({user:u,role:us.data().role||"worker",name:us.data().name||u});showToast("👋 أهلاً "+(us.data().name||u));
+localStorage.setItem("tenant",code);localStorage.setItem("session_"+code,JSON.stringify({user:u,role:us.data().role||"worker",name:us.data().name||u}));setTenant(code);setMe({user:u,role:us.data().role||"worker",name:us.data().name||u});showToast("👋 أهلاً "+(us.data().name||u));
 }catch(e){showToast("خطأ: "+(e.code||e.message),"danger");}};
-const logout=()=>{localStorage.removeItem("tenant");setTenant("");setMe(null);setCards([]);setLog([]);setLoads([]);setDefects([]);};
+const logout=()=>{const tt=localStorage.getItem("tenant");if(tt)localStorage.removeItem("session_"+tt);localStorage.removeItem("tenant");setTenant("");setMe(null);setCards([]);setLog([]);setLoads([]);setDefects([]);};
 const createCompany=async(code,name,ou,op)=>{code=(code||"").trim().toUpperCase();if(!code||!name||!ou||!op)return showToast("كمّل البيانات","danger");
 const ex=await db.collection("companies").doc(code).get();if(ex.exists)return showToast("الكود موجود قبل كده","danger");
 await db.collection("companies").doc(code).set({name:name,active:true,createdAt:Date.now()});
 await db.collection("t/"+code+"/users").doc(ou).set({pass:op,role:"owner",name:name,createdAt:Date.now()});
 showToast("🏢 اتعملت شركة "+code);};
 const toggleCompany=async c=>{await db.collection("companies").doc(c.id).set({active:c.active===false},{merge:true});};
-const quickEnter=c=>{localStorage.setItem("tenant",c.id);setTenant(c.id);setMe({user:"master-quick",role:"owner",name:"👑 المالك (دخول سريع)"});showToast("🚪 دخلت "+c.name);};
+const quickEnter=c=>{localStorage.setItem("tenant",c.id);localStorage.setItem("session_"+c.id,JSON.stringify({user:"master-quick",role:"owner",name:"👑 المالك (دخول سريع)"}));setTenant(c.id);setMe({user:"master-quick",role:"owner",name:"👑 المالك (دخول سريع)"});showToast("🚪 دخلت "+c.name);};
 const postNews=async()=>{if(!isSuper||!db)return;if(!newsDraft.trim())return;await db.collection("news").doc(uid()).set({text:newsDraft.trim(),time:Date.now()});setNewsDraft("");showToast("🆕 اتنشر لكل الشركات");};
 const createDemo=async()=>{const code="DEMO";
 const ex=await db.collection("companies").doc(code).get();
