@@ -193,6 +193,14 @@ const [linkedFrom,setLinkedFrom]=useState(null);
 const [screen,setScreen]=useState("home");const [activeStage,setActiveStage]=useState(null);
 const [lateOnly,setLateOnly]=useState(false);
 const [stageQ,setStageQ]=useState("");
+const [tenant,setTenant]=useState(localStorage.getItem("tenant")||"");
+const [loginCo,setLoginCo]=useState(new URLSearchParams(window.location.search).get("co")||"");
+const [loginU,setLoginU]=useState("");const [loginP,setLoginP]=useState("");
+const [me,setMe]=useState(null);
+const [companies,setCompanies]=useState([]);
+const [users,setUsers]=useState([]);
+const [userDraft,setUserDraft]=useState({u:"",p:"",name:""});
+const [passDraft,setPassDraft]=useState({old:"",new:""});
 const [announce,setAnnounce]=useState(null);const [showAnnounce,setShowAnnounce]=useState(false);const [announceDraft,setAnnounceDraft]=useState("");const [annDismissed,setAnnDismissed]=useState(localStorage.getItem("ann_dismiss"));
 const [showSettings,setShowSettings]=useState(false);const [showSearch,setShowSearch]=useState(false);
 const [showMenu,setShowMenu]=useState(false);const [showScanner,setShowScanner]=useState(false);
@@ -209,12 +217,15 @@ const gotoDone=useRef(false);
 const uiRef=useRef({});
 uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,showTopCust,photoView,appQr,importMenu,importDraft,showMic,showWarehouse,addLoad,loadDetail,showLateList,showDelivered,heroEdit,showDefects,defectFor,showAnnounce,linkedFrom};
 const t=DICT[lang];const dir=lang==="ar"?"rtl":"ltr";
-const can=unlocked;
+const isSuper=!!(me&&me.role==="super");
+const isOwner=!!(me&&me.role==="owner");
+const can=!!me&&!isSuper;
+const col=n=>col("t/"+(tenant||"_")+"/"+n);
 const theme={bg:"#0B0E1A",panel:"#141829",panelAlt:"#1B2036",border:"#242B47",text:"#EDEFF5",textDim:"#8A93B5",accent:"#7C5CFF",accent2:"#2DD4A8",danger:"#FF5C7A",warn:"#FFB65C",input:"#1B2036"};
 const hdrBtn={width:42,height:42,borderRadius:14,border:"1px solid "+theme.border,background:theme.panel,color:theme.text,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:17};
 const LD=+factory.lateDays||2;
 const allColors=PRESET_COLORS.concat(customColors);
-useEffect(()=>{setFnameDraft(factory.fname);setWaDraft(factory.wa);setLateDraft(factory.lateDays);setHeroTDraft(factory.heroT||"");setHeroSDraft(factory.heroS||"");},[factory.fname,factory.wa,factory.lateDays,factory.heroT,factory.heroS]);
+useEffect(()=>{if(me)setOwnerName(me.name);},[me]);
 useEffect(()=>{history.pushState({guard:1},"");const onPop=()=>{const u=uiRef.current;
 if(u.showTopCust)setShowTopCust(false);else if(u.showLateList)setShowLateList(false);else if(u.showDelivered)setShowDelivered(false);else if(u.heroEdit)setHeroEdit(false);else if(u.showDefects)setShowDefects(false);else if(u.defectFor)setDefectFor(null);else if(u.showAnnounce)setShowAnnounce(false);else if(u.linkedFrom)setLinkedFrom(null);else if(u.addLoad)setAddLoad(false);else if(u.loadDetail)setLoadDetail(null);else if(u.showWarehouse)setShowWarehouse(false);else if(u.showMic)setShowMic(false);else if(u.importMenu)setImportMenu(false);else if(u.importDraft)setImportDraft(null);
 else if(u.reportText)setReportText(null);else if(u.showScanner)setShowScanner(false);else if(u.bcCard)setBcCard(null);
@@ -229,19 +240,23 @@ history.pushState({guard:1},"");};
 window.addEventListener("popstate",onPop);return()=>window.removeEventListener("popstate",onPop);},[]);
 useEffect(()=>{const on=()=>{setIsOnline(true);setSyncStatus("syncing");setTimeout(()=>{setSyncStatus("synced");setTimeout(()=>setSyncStatus("idle"),2000);},1500);};const off=()=>{setIsOnline(false);setSyncStatus("idle");};window.addEventListener("online",on);window.addEventListener("offline",off);return()=>{window.removeEventListener("online",on);window.removeEventListener("offline",off);};},[]);
 useEffect(()=>{const b=document.getElementById("syncBar");if(b)b.classList.toggle("active",syncStatus==="syncing");},[syncStatus]);
-useEffect(()=>{if(!fbReady||!auth||!db)return;const un=auth.onAuthStateChanged(async user=>{if(user){setUserId(user.uid);const s=localStorage.getItem("owner_name_"+user.uid);if(s)setOwnerName(s);
-db.collection("cards").onSnapshot(sn=>{setCards(sn.docs.map(d=>({id:d.id,...d.data()})));},e=>console.error(e));
-db.collection("logs").onSnapshot(sn=>{setLog(sn.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>toMs(b.time)-toMs(a.time)));});
-db.collection("loads").onSnapshot(sn=>{setLoads(sn.docs.map(d=>({id:d.id,...d.data()})));});
-db.collection("defects").onSnapshot(sn=>{setDefects(sn.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>toMs(b.time)-toMs(a.time)));});
-db.collection("config").onSnapshot(sn=>{const g=id=>{const d=sn.docs.find(x=>x.id===id);return d?d.data():null;};
+useEffect(()=>{if(!fbReady||!auth||!db)return;const un=auth.onAuthStateChanged(async user=>{if(user){setUserId(user.uid);}else{try{await auth.signInAnonymously();}catch(e){}}setFirebaseOk(true);setReady(true);});return()=>un&&un();},[]);
+useEffect(()=>{if(!fbReady||!db||!me||isSuper||!tenant)return;
+const u1=col("cards").onSnapshot(sn=>{setCards(sn.docs.map(d=>({id:d.id,...d.data()})));},e=>console.error(e));
+const u2=col("logs").onSnapshot(sn=>{setLog(sn.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>toMs(b.time)-toMs(a.time)));});
+const u3=col("loads").onSnapshot(sn=>{setLoads(sn.docs.map(d=>({id:d.id,...d.data()})));});
+const u4=col("defects").onSnapshot(sn=>{setDefects(sn.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>toMs(b.time)-toMs(a.time)));});
+const u5=col("config").onSnapshot(sn=>{const g=id=>{const d=sn.docs.find(x=>x.id===id);return d?d.data():null;};
 const s=g("stages"),m=g("machines"),f=g("factory"),cl=g("colors");
 if(s)setStages(s.list||DEFAULT_STAGES);if(m)setMachines(m.list||DEFAULT_MACHINES);
 if(f)setFactory({fname:f.fname||"متابعة الصباغة",wa:f.wa||"",unit:f.unit||"كيلو",lateDays:f.lateDays||2,printSize:f.printSize||"A5",gkey:f.gkey||"",heroT:f.heroT||"",heroS:f.heroS||""});
 if(cl)setCustomColors(cl.list||[]);
 const an=g("announce");if(an&&an.text)setAnnounce(an);else setAnnounce(null);});
-setFirebaseOk(true);setReady(true);}else{try{await auth.signInAnonymously();}catch(e){setReady(true);}}});return()=>un&&un();},[]);
-useEffect(()=>{if(!firebaseOk||!userId||!ownerName||!db)return;const beat=()=>{try{db.collection("presence").doc(userId).set({name:ownerName,last:Date.now()});}catch(e){}};beat();const iv=setInterval(beat,20000);const un=db.collection("presence").onSnapshot(sn=>{const n=Date.now();setOnlineUsers(sn.docs.map(d=>d.data()).filter(p=>n-(p.last||0)<60000));});return()=>{clearInterval(iv);un&&un();};},[firebaseOk,userId,ownerName]);
+const u6=col("users").onSnapshot(sn=>{setUsers(sn.docs.map(d=>({id:d.id,...d.data()})));});
+return()=>{[u1,u2,u3,u4,u5,u6].forEach(u=>{try{u&&u();}catch(e){}});};
+},[me,tenant]);
+useEffect(()=>{if(!fbReady||!db||!isSuper)return;const u=db.collection("companies").onSnapshot(sn=>{setCompanies(sn.docs.map(d=>({id:d.id,...d.data()})));});return()=>{try{u&&u();}catch(e){}};},[isSuper]);
+useEffect(()=>{if(!firebaseOk||!userId||!ownerName||!db||!me||isSuper)return;const beat=()=>{try{col("presence").doc(userId).set({name:ownerName,last:Date.now()});}catch(e){}};beat();const iv=setInterval(beat,20000);const un=col("presence").onSnapshot(sn=>{const n=Date.now();setOnlineUsers(sn.docs.map(d=>d.data()).filter(p=>n-(p.last||0)<60000));});return()=>{clearInterval(iv);un&&un();};},[firebaseOk,userId,ownerName]);
 useEffect(()=>{if(!ready||gotoDone.current)return;const g=new URLSearchParams(window.location.search).get("goto");if(!g)return;let p=null;try{p=b64d(g);}catch(e){return;}if(!p||!p.c)return;
 const f=cards.find(c=>(c.barcode&&c.barcode===p.c)||c.code===p.c);
 if(f){gotoDone.current=true;jumpToCard(f);showToast("📍 "+t.foundIn+": "+f.stage);}},[ready,cards]);
@@ -251,7 +266,36 @@ hq.start({facingMode:"environment"},Object.assign({fps:10,qrbox:{width:250,heigh
 return()=>{done=true;try{hq.stop();hq.clear();}catch(e){}};},[showScanner]);
 const showToast=(m,k)=>{setToast({msg:m,kind:k||"ok"});setTimeout(()=>setToast(null),2600);};
 const confirmName=()=>{if(!nameInput.trim())return;setOwnerName(nameInput.trim());if(userId)localStorage.setItem("owner_name_"+userId,nameInput.trim());};
-const tryUnlock=()=>{if(codeInput.trim()===UNLOCK_CODE){localStorage.setItem("dye_unlock","1");setUnlocked(true);showToast(t.unlockedMsg);}else showToast("❌","danger");};
+const doLogin=async()=>{const code=(loginCo||"").trim().toUpperCase();const u=loginU.trim();
+if(!code||!u||!loginP){showToast("كمّل البيانات","danger");return;}
+if(code==="MASTER"){if(u==="admin"&&loginP===UNLOCK_CODE){localStorage.setItem("tenant","MASTER");setTenant("MASTER");setMe({user:"admin",role:"super",name:"المالك"});showToast("👑 أهلاً");}else showToast("بيانات المالك غلط","danger");return;}
+try{const cs=await db.collection("companies").doc(code).get();
+if(!cs.exists){showToast("كود الشركة مش موجود","danger");return;}
+if(cs.data().active===false){showToast("الشركة موقوفة — كلم الدعم","danger");return;}
+const us=await db.collection("t/"+code+"/users").doc(u).get();
+if(!us.exists||String(us.data().pass)!==String(loginP)){showToast("اسم المستخدم أو الرمز غلط","danger");return;}
+localStorage.setItem("tenant",code);setTenant(code);setMe({user:u,role:us.data().role||"worker",name:us.data().name||u});showToast("👋 أهلاً "+(us.data().name||u));
+}catch(e){showToast("خطأ: "+(e.code||e.message),"danger");}};
+const logout=()=>{localStorage.removeItem("tenant");setTenant("");setMe(null);setCards([]);setLog([]);setLoads([]);setDefects([]);};
+const createCompany=async(code,name,ou,op)=>{code=(code||"").trim().toUpperCase();if(!code||!name||!ou||!op)return showToast("كمّل البيانات","danger");
+const ex=await db.collection("companies").doc(code).get();if(ex.exists)return showToast("الكود موجود قبل كده","danger");
+await db.collection("companies").doc(code).set({name:name,active:true,createdAt:Date.now()});
+await db.collection("t/"+code+"/users").doc(ou).set({pass:op,role:"owner",name:name,createdAt:Date.now()});
+showToast("🏢 اتعملت شركة "+code);};
+const toggleCompany=async c=>{await db.collection("companies").doc(c.id).set({active:c.active===false},{merge:true});};
+const addUser=async()=>{if(!isOwner||!db)return;const u=userDraft.u.trim();if(!u||!userDraft.p||!userDraft.name)return showToast("كمّل البيانات","danger");
+const ex=await col("users").doc(u).get();if(ex.exists)return showToast("الاسم موجود","danger");
+await col("users").doc(u).set({pass:userDraft.p,role:"worker",name:userDraft.name,createdAt:Date.now()});setUserDraft({u:"",p:"",name:""});showToast("👷 اتضاف");};
+const resetUserPass=async(u,p)=>{await col("users").doc(u).set({pass:p},{merge:true});showToast("🔑 اتغير");};
+const deleteUser=async u=>{await col("users").doc(u).delete();showToast("🗑️");};
+const changeMyPass=async()=>{if(!me||!db)return;const my=await col("users").doc(me.user).get();if(!my.exists||String(my.data().pass)!==String(passDraft.old))return showToast("الرمز القديم غلط","danger");
+await col("users").doc(me.user).set({pass:passDraft.new},{merge:true});setPassDraft({old:"",new:""});showToast("🔒 اتغير رمزك");};
+const migrateOld=async code=>{code=(code||"").trim().toUpperCase();if(!code)return;
+const cs=await db.collection("companies").doc(code).get();if(!cs.exists){showToast("اعمل الشركة الأول","danger");return;}
+const snap=await db.collection("cards").get();for(const d of snap.docs){await db.collection("t/"+code+"/cards").doc(d.id).set(d.data());}
+const sl=await db.collection("logs").get();for(const d of sl.docs){await db.collection("t/"+code+"/logs").doc(d.id).set(d.data());}
+const so=await db.collection("loads").get();for(const d of so.docs){await db.collection("t/"+code+"/loads").doc(d.id).set(d.data());}
+const quickEnter=c=>{localStorage.setItem("tenant",c.id);setTenant(c.id);setMe({user:"master-quick",role:"owner",name:"👑 المالك (دخول سريع)"});showToast("🚪 دخلت "+c.name);};
 const jumpToCard=c=>{setActiveStage(c.stage);setScreen("stage");setEditingCard(c);};
 const nextStageOf=s=>{const i=stages.indexOf(s);if(i===-1)return null;return i<stages.length-1?stages[i+1]:null;};
 const qtySum=l=>l.reduce((a,c)=>a+(parseFloat(c.quantity)||0),0);
@@ -282,18 +326,18 @@ const noteMic=()=>{if(micOn){stopMic();return;}const SR=window.SpeechRecognition
 rec.onresult=e=>{let s="";for(let i=0;i<e.results.length;i++)s+=e.results[i][0].transcript;setEditingCard(c=>c?{...c,notes:(c.notes?c.notes+" ":"")+s}:c);};
 rec.onend=()=>setMicOn(false);rec.onerror=()=>setMicOn(false);rec.start();recRef.current=rec;setMicOn(true);}catch(e){}};
 const loadStats=ld=>{const linked=cards.filter(c=>c.loadId===ld.id);const pulled=linked.reduce((a,c)=>a+(parseFloat(c.quantity)||0),0);const del=linked.reduce((a,c)=>a+(c.delivered?(parseFloat(c.quantity)||0):(parseFloat(c.deliveredQty)||0)),0);const inF=pulled-del;const rem=(parseFloat(ld.total)||0)-pulled;return {pulled:pulled,del:del,inF:inF,rem:rem};};
-const saveLoad=async()=>{if(!can||!db||!loadDraft.customer||!loadDraft.total)return;await db.collection("loads").doc(uid()).set({customer:loadDraft.customer.trim(),total:parseFloat(loadDraft.total)||0,date:loadDraft.date||localDate(new Date()),notes:loadDraft.notes||"",category:loadDraft.category||"",color:loadDraft.color||"",barcode:loadDraft.barcode||"",machine:loadDraft.machine||""});setAddLoad(false);setLoadDraft({customer:"",total:"",date:"",notes:"",category:"",color:"",barcode:"",machine:""});showToast("📦 ✅");};
-const toggleDelivered=async c=>{if(!can||!db)return;await db.collection("cards").doc(c.id).set({delivered:!c.delivered},{merge:true});await addLog(!c.delivered?"تسليم":"إلغاء تسليم",c);setActionCard(null);};
-const partialDeliver=async(c,q)=>{if(!can||!db)return;const v=Math.min(parseFloat(q)||0,parseFloat(c.quantity)||0);await db.collection("cards").doc(c.id).set({deliveredQty:v,delivered:v>=(parseFloat(c.quantity)||0)},{merge:true});await addLog("تسليم جزئي",c,String(v));setActionCard(null);};
+const saveLoad=async()=>{if(!can||!db||!loadDraft.customer||!loadDraft.total)return;await col("loads").doc(uid()).set({customer:loadDraft.customer.trim(),total:parseFloat(loadDraft.total)||0,date:loadDraft.date||localDate(new Date()),notes:loadDraft.notes||"",category:loadDraft.category||"",color:loadDraft.color||"",barcode:loadDraft.barcode||"",machine:loadDraft.machine||""});setAddLoad(false);setLoadDraft({customer:"",total:"",date:"",notes:"",category:"",color:"",barcode:"",machine:""});showToast("📦 ✅");};
+const toggleDelivered=async c=>{if(!can||!db)return;await col("cards").doc(c.id).set({delivered:!c.delivered},{merge:true});await addLog(!c.delivered?"تسليم":"إلغاء تسليم",c);setActionCard(null);};
+const partialDeliver=async(c,q)=>{if(!can||!db)return;const v=Math.min(parseFloat(q)||0,parseFloat(c.quantity)||0);await col("cards").doc(c.id).set({deliveredQty:v,delivered:v>=(parseFloat(c.quantity)||0)},{merge:true});await addLog("تسليم جزئي",c,String(v));setActionCard(null);};
 const saveHero=()=>{if(!can||!db)return;saveFactory({heroT:heroTDraft.trim(),heroS:heroSDraft.trim()});setHeroEdit(false);showToast("🎨 ✅");};
-const saveAnnounce=()=>{if(!can||!db)return;const el=document.getElementById("annBox");const txt=el?el.value:"";db.collection("config").doc("announce").set({text:txt.trim(),by:ownerName||"",time:Date.now()});setShowAnnounce(false);showToast("📢 اتنشر");};
-const saveDefect=async()=>{if(!can||!db||!defectFor)return;await db.collection("defects").doc(uid()).set({cardId:defectFor.id,customer:defectFor.customer||"",code:defectFor.code||"",stage:defectFor.stage||"",reason:defectDraft.reason||"",qty:defectDraft.qty||"",notes:defectDraft.notes||"",by:ownerName||"",time:Date.now(),date:localDate(new Date())});setDefectFor(null);setDefectDraft({reason:"",qty:"",notes:""});showToast("⚠️ تم التسجيل");};
-const saveFactory=patch=>{if(!can||!db)return;db.collection("config").doc("factory").set({...factory,...patch},{merge:true});};
+const saveAnnounce=()=>{if(!can||!db)return;const el=document.getElementById("annBox");const txt=el?el.value:"";col("config").doc("announce").set({text:txt.trim(),by:ownerName||"",time:Date.now()});setShowAnnounce(false);showToast("📢 اتنشر");};
+const saveDefect=async()=>{if(!can||!db||!defectFor)return;await col("defects").doc(uid()).set({cardId:defectFor.id,customer:defectFor.customer||"",code:defectFor.code||"",stage:defectFor.stage||"",reason:defectDraft.reason||"",qty:defectDraft.qty||"",notes:defectDraft.notes||"",by:ownerName||"",time:Date.now(),date:localDate(new Date())});setDefectFor(null);setDefectDraft({reason:"",qty:"",notes:""});showToast("⚠️ تم التسجيل");};
+const saveFactory=patch=>{if(!can||!db)return;col("config").doc("factory").set({...factory,...patch},{merge:true});};
 const saveFactoryDrafts=()=>{saveFactory({fname:fnameDraft.trim()||"متابعة الصباغة",wa:waDraft.trim(),lateDays:+lateDraft||2,heroT:heroTDraft.trim(),heroS:heroSDraft.trim()});showToast("✅");};
-const saveStages=l=>{if(!can||!db)return;db.collection("config").doc("stages").set({list:l});};
-const renameStage=(o,n)=>{if(!can)return;saveStages(stages.map(s=>s===o?n:s));cards.filter(c=>c.stage===o).forEach(c=>db.collection("cards").doc(c.id).set({stage:n},{merge:true}));};
-const saveMachines=l=>{if(!can||!db)return;db.collection("config").doc("machines").set({list:l});};
-const saveColors=l=>{if(!can||!db)return;db.collection("config").doc("colors").set({list:l});};
+const saveStages=l=>{if(!can||!db)return;col("config").doc("stages").set({list:l});};
+const renameStage=(o,n)=>{if(!can)return;saveStages(stages.map(s=>s===o?n:s));cards.filter(c=>c.stage===o).forEach(c=>col("cards").doc(c.id).set({stage:n},{merge:true}));};
+const saveMachines=l=>{if(!can||!db)return;col("config").doc("machines").set({list:l});};
+const saveColors=l=>{if(!can||!db)return;col("config").doc("colors").set({list:l});};
 const ocrNow=f=>{if(!window.Tesseract){showToast("❌","danger");return;}
 setImportBusy(0);
 const rr3=new FileReader();
@@ -338,7 +382,7 @@ const j=await r.json();lastErr=(j.error&&j.error.message)?j.error.message:("HTTP
 let o=null;try{o=JSON.parse(txt);}catch(err){const m2=txt.match(/\{[\s\S]*\}/);if(m2){try{o=JSON.parse(m2[0]);}catch(e2){}}}
 if(o){setImportBusy(null);const d={customer:String(o.customer||""),code:String(o.code||""),message:String(o.message||""),machine:String(o.machine||""),category:String(o.category||""),color:String(o.color||""),quantity:String(o.quantity||""),barcode:String(o.barcode||""),time:String(o.time||""),notes:String(o.notes||""),prepare:"",dye:""};d.stage=activeStage||stages[0]||"";setImportDraft(d);showToast("🤖 ✅");return;}
 }catch(err){lastErr=String(err&&err.message||err);}}
-setImportBusy(null);if(lastErr)showToast("🤖 "+lastErr,"danger");ocrNow(f);})();
+setImportBusy(null);if(lastErr)showToast(/quota|limit|429|exceeded/i.test(lastErr)?"🤖 خلص حد Gemini اليومي — بنكمّل بالقارئ العادي":"🤖 "+lastErr,"danger");ocrNow(f);})();
 };im.src=rr4.result;};
 rr4.readAsDataURL(f);
 }else{ocrNow(f);}
@@ -356,26 +400,26 @@ const shareCardText=c=>{let s="🏭 "+factory.fname+"\n👤 "+(c.customer||"—"
 const exportSheet=(list,fname)=>{const h=["المرحلة","اسم العميل","الكود","الرسالة","اللون","الصنف","الكمية","الباركود","الملاحظات"];const rows=list.map(c=>[c.stage||"",c.customer||"",c.code||"",c.message||"",c.color||"",c.category||"",c.quantity||"",c.barcode||"",c.notes||(c.stage==="موقوف"?"موقوف":"")]);const csv="\uFEFF"+[h].concat(rows).map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(",")).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download=(fname||"sheet")+".csv";a.click();showToast("💾 ✅");};
 const exportCSV=()=>{const h=["code","customer","message","category","color","quantity","barcode","machine","prepare","dye","time","notes","phone","address","stage","due"];const r=cards.map(c=>h.map(x=>'"'+String(c[x]??"" ).replace(/"/g,'""')+'"').join(","));const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\uFEFF"+h.join(",")+"\n"+r.join("\n")],{type:"text/csv"}));a.download="dyeing.csv";a.click();showToast("💾 ✅");};
 const backupJSON=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify({cards,logs:log,loads})],{type:"application/json"}));a.download="dyeing-backup.json";a.click();showToast("💾 ✅");};
-const restoreJSON=e=>{const f=e.target.files?.[0];if(!f||!can)return;const r=new FileReader();r.onload=async()=>{try{const d=JSON.parse(r.result);if(Array.isArray(d.cards))for(const c of d.cards)await db.collection("cards").doc(c.id).set(c,{merge:true});if(Array.isArray(d.loads))for(const l of d.loads)await db.collection("loads").doc(l.id).set(l,{merge:true});showToast("♻️ ✅");}catch(x){showToast("❌","danger");}};r.readAsText(f);e.target.value="";};
-const wipeAll=async()=>{for(const c of cards)await db.collection("cards").doc(c.id).delete();for(const l of log)await db.collection("logs").doc(l.id).delete();for(const l of loads)await db.collection("loads").doc(l.id).delete();setWipeConfirm(false);showToast("🗑️ ✅");};
+const restoreJSON=e=>{const f=e.target.files?.[0];if(!f||!can)return;const r=new FileReader();r.onload=async()=>{try{const d=JSON.parse(r.result);if(Array.isArray(d.cards))for(const c of d.cards)await col("cards").doc(c.id).set(c,{merge:true});if(Array.isArray(d.loads))for(const l of d.loads)await col("loads").doc(l.id).set(l,{merge:true});showToast("♻️ ✅");}catch(x){showToast("❌","danger");}};r.readAsText(f);e.target.value="";};
+const wipeAll=async()=>{for(const c of cards)await col("cards").doc(c.id).delete();for(const l of log)await col("logs").doc(l.id).delete();for(const l of loads)await col("loads").doc(l.id).delete();setWipeConfirm(false);showToast("🗑️ ✅");};
 const printCard=card=>{const bc=document.createElementNS("http://www.w3.org/2000/svg","svg");try{if(card.barcode&&window.JsBarcode)JsBarcode(bc,card.barcode,{format:"CODE128",width:2,height:60,displayValue:true,margin:0});}catch(e){}
 let qr=null;try{const qd=document.createElement("div");new QRCode(qd,{text:pubUrl(card),width:160,height:160,correctLevel:QRCode.CorrectLevel.M});const cv=qd.querySelector("canvas");if(cv)qr=cv.toDataURL();}catch(e){}
 const w=window.open("","_blank");if(!w)return;const pw=factory.printSize==="A4"?"190mm":"132mm";
 const rows=[[t.customer,card.customer],[t.code,card.code],[t.message,card.message],[t.category,card.category],[t.color,card.color],[t.quantity,card.quantity],[t.machine,card.machine],[t.due,card.due],[t.phone,card.phone],[t.address,card.address],[t.notes,card.notes]];
 w.document.write('<html dir="rtl"><head><meta charset="utf-8"><style>body{font-family:sans-serif;padding:8mm;width:'+pw+'}h2{text-align:center;font-size:16px}table{width:100%;border-collapse:collapse;font-size:12px}td{border:1px solid #000;padding:4px 6px}.c{text-align:center;margin-top:6px}</style></head><body><h2>🏭 '+factory.fname+' — '+(card.stage||"")+'</h2><table>'+rows.map(r=>'<tr><td style="width:30%"><b>'+r[0]+'</b></td><td>'+(r[1]||"—")+'</td></tr>').join("")+'</table><div class="c">'+(bc.outerHTML||"")+'</div>'+(qr?'<div class="c"><img src="'+qr+'" style="width:35mm"/></div>':"")+'<scr'+'ipt>window.onload=function(){window.print()}<\/scr'+'ipt></body></html>');w.document.close();};
 const handlePhotoFile=e=>{const f=e.target.files?.[0];if(!f||!can)return;readCompressed(f,d=>{setEditingCard(c=>c?{...c,photo:d}:c);showToast("🖼️ ✅");});e.target.value="";};
-const addLog=async(a,c,d="")=>{if(!db)return;try{await db.collection("logs").doc(uid()).set({action:a,cardCode:c?.code||"",person:ownerName||"—",details:d,time:firebase.firestore.FieldValue.serverTimestamp(),timeLocal:Date.now(),date:new Date().toISOString().slice(0,10)});}catch(e){}};
+const addLog=async(a,c,d="")=>{if(!db)return;try{await col("logs").doc(uid()).set({action:a,cardCode:c?.code||"",person:ownerName||"—",details:d,time:firebase.firestore.FieldValue.serverTimestamp(),timeLocal:Date.now(),date:new Date().toISOString().slice(0,10)});}catch(e){}};
 const saveCard=async(card,skip=false)=>{if(!can)return;card={...card};delete card.__dupWarning;card.stage=String(card.stage||"").trim();if(stages.length&&!stages.includes(card.stage))card.stage=activeStage||stages[0];if(!db)return;
 if(!skip){const d=cards.find(c=>c.id!==card.id&&String(c.code||"")===String(card.code||"")&&String(c.barcode||"")===String(card.barcode||"")&&String(c.customer||"")===String(card.customer||"")&&String(c.color||"")===String(card.color||"")&&String(c.category||"")===String(card.category||"")&&String(c.quantity||"")===String(card.quantity||""));if(d){setEditingCard({...card,__dupWarning:true});return;}}
 const ex=cards.some(c=>c.id===card.id);
-try{if(ex){await db.collection("cards").doc(card.id).set({...card,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedBy:ownerName,updatedLocal:Date.now()},{merge:true});await addLog("تعديل",card);}
-else{const id=card.id||uid();await db.collection("cards").doc(id).set({...card,id,createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp(),createdBy:ownerName,history:[{stage:card.stage,by:ownerName,at:nowISO()}]});await addLog("إضافة",card);}
+try{if(ex){await col("cards").doc(card.id).set({...card,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedBy:ownerName,updatedLocal:Date.now()},{merge:true});await addLog("تعديل",card);}
+else{const id=card.id||uid();await col("cards").doc(id).set({...card,id,createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp(),createdBy:ownerName,history:[{stage:card.stage,by:ownerName,at:nowISO()}]});await addLog("إضافة",card);}
 setEditingCard(null);showToast(isOnline?"✅":"📱");}catch(e){showToast("خطأ: "+(e.code||e.message),"danger");}};
-const deleteCard=async c=>{if(!can||!db)return;try{await db.collection("cards").doc(c.id).delete();await addLog("حذف",c);setActionCard(null);showToast("🗑️","danger");}catch(e){}};
-const moveCardTo=async(c,d)=>{if(!can||!db)return;d=d||(stages[0]||"");try{await db.collection("cards").doc(c.id).set({stage:d,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),history:firebase.firestore.FieldValue.arrayUnion({stage:d,by:ownerName,at:nowISO()})},{merge:true});await addLog("نقل",c,"→ "+d);setMoveCard(null);setActionCard(null);showToast("→ "+d);}catch(e){}};
-const copyCardTo=async(c,d)=>{if(!can||!db)return;try{const id=uid();await db.collection("cards").doc(id).set({...c,id,stage:d,pinned:false,createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp(),createdBy:ownerName,history:[{stage:d,by:ownerName,at:nowISO()}]});await addLog("نسخ",c);setCopyCard(null);setActionCard(null);showToast("📋 ✅");}catch(e){}};
-const togglePin=async c=>{if(!can||!db)return;try{await db.collection("cards").doc(c.id).set({pinned:!c.pinned},{merge:true});setActionCard(null);}catch(e){}};
-const toggleArchive=async c=>{if(!can||!db)return;try{await db.collection("cards").doc(c.id).set({archived:!c.archived},{merge:true});await addLog(c.archived?"رجوع":"أرشفة",c);setActionCard(null);}catch(e){}};
+const deleteCard=async c=>{if(!can||!db)return;try{await col("cards").doc(c.id).delete();await addLog("حذف",c);setActionCard(null);showToast("🗑️","danger");}catch(e){}};
+const moveCardTo=async(c,d)=>{if(!can||!db)return;d=d||(stages[0]||"");try{await col("cards").doc(c.id).set({stage:d,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),history:firebase.firestore.FieldValue.arrayUnion({stage:d,by:ownerName,at:nowISO()})},{merge:true});await addLog("نقل",c,"→ "+d);setMoveCard(null);setActionCard(null);showToast("→ "+d);}catch(e){}};
+const copyCardTo=async(c,d)=>{if(!can||!db)return;try{const id=uid();await col("cards").doc(id).set({...c,id,stage:d,pinned:false,createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp(),createdBy:ownerName,history:[{stage:d,by:ownerName,at:nowISO()}]});await addLog("نسخ",c);setCopyCard(null);setActionCard(null);showToast("📋 ✅");}catch(e){}};
+const togglePin=async c=>{if(!can||!db)return;try{await col("cards").doc(c.id).set({pinned:!c.pinned},{merge:true});setActionCard(null);}catch(e){}};
+const toggleArchive=async c=>{if(!can||!db)return;try{await col("cards").doc(c.id).set({archived:!c.archived},{merge:true});await addLog(c.archived?"رجوع":"أرشفة",c);setActionCard(null);}catch(e){}};
 const isLate=c=>daysSince(c.updatedAt||c.createdAt)>=1;
 const dueInfo=c=>{if(!c.due)return null;const today=localDate(new Date());if(c.due<today)return{txt:t.overdue,col:theme.danger};if((new Date(c.due).getTime()-new Date(today).getTime())/86400000<=1)return{txt:t.dueSoon,col:theme.warn};return null;};
 const liveCards=cards.filter(c=>!c.archived);
@@ -409,7 +453,36 @@ if(pubData&&!new URLSearchParams(window.location.search).get("goto"))return(<div
 <div style={{fontSize:11,color:"#77705F",textAlign:"center",marginTop:10}}>🔒 التعديل للعاملين فقط بكود التفعيل</div>
 </div></div>);
 if(!ready)return(<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:theme.bg,color:theme.text,flexDirection:"column",gap:16}}><div style={{fontSize:48,animation:"floaty 2s infinite"}}>🏭</div><div className="spin" style={{fontSize:24}}>⚙️</div></div>);
-if(!ownerName)return(<div dir={dir} style={{minHeight:"100vh",background:theme.bg,color:theme.text,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}><div className="card" style={{padding:32,width:"100%",maxWidth:380,textAlign:"center"}}><div style={{width:60,height:60,borderRadius:18,background:"linear-gradient(135deg,var(--vio),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px",fontSize:28,animation:"floaty 2.5s infinite",boxShadow:"0 10px 30px rgba(124,92,255,.4)"}}>🏭</div><h2 style={{margin:"0 0 6px",fontSize:20}}>{factory.fname}</h2><p style={{color:theme.textDim,fontSize:13,marginBottom:18}}>{t.yourName} — {t.enterNameHint}</p><input autoFocus value={nameInput} onChange={e=>setNameInput(e.target.value)} placeholder={t.yourName} className="inp" style={{textAlign:"center"}} onKeyDown={e=>e.key==="Enter"&&confirmName()}/><button onClick={confirmName} className="btnG">{t.confirmName}</button></div></div>);
+if(!me)return(<div dir={dir} style={{minHeight:"100vh",background:theme.bg,color:theme.text,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+<div className="card" style={{padding:32,width:"100%",maxWidth:380}}>
+<div style={{width:60,height:60,borderRadius:18,background:"linear-gradient(135deg,var(--vio),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px",fontSize:28,animation:"floaty 2.5s infinite",boxShadow:"0 10px 30px rgba(124,92,255,.4)"}}>🏭</div>
+<h2 style={{margin:"0 0 6px",fontSize:20,textAlign:"center"}}>{factory.fname}</h2>
+<p style={{color:theme.textDim,fontSize:13,marginBottom:18,textAlign:"center"}}>سجّل دخولك — كل شركة ليها عالمها الخاص 🔒</p>
+<div className="lbl">كود الشركة</div><input className="inp" value={loginCo} onChange={e=>setLoginCo(e.target.value)} placeholder="مثال: ALPHA"/>
+<div className="lbl">اسم المستخدم</div><input className="inp" value={loginU} onChange={e=>setLoginU(e.target.value)} placeholder="username"/>
+<div className="lbl">الرمز</div><input className="inp" type="password" value={loginP} onChange={e=>setLoginP(e.target.value)} placeholder="••••" onKeyDown={e=>e.key==="Enter"&&doLogin()}/>
+<button onClick={doLogin} className="btnG">🔓 دخول</button>
+</div></div>);
+if(isSuper)return(<div dir={dir} style={{minHeight:"100vh",background:theme.bg,color:theme.text,paddingBottom:40}}>
+<div style={{maxWidth:640,margin:"0 auto",padding:"30px 16px"}}>
+<div className="anim" style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
+<div style={{width:44,height:44,borderRadius:50,background:"linear-gradient(135deg,var(--vio),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>👑</div>
+<div style={{flex:1}}><div style={{fontSize:20,fontWeight:900}}>لوحة المالك</div><div style={{fontSize:11,color:theme.textDim}}>{companies.length} شركة مسجلة</div></div>
+<button onClick={logout} className="chip">🚪 خروج</button>
+</div>
+<div style={grid2,marginBottom:12}>
+<div className="card"><div className="lbl">🏢 شركات نشطة</div><div style={{fontSize:24,fontWeight:900,color:"var(--teal)"}}>{companies.filter(c=>c.active!==false).length}</div></div>
+<div className="card"><div className="lbl">⏸️ موقوفة</div><div style={{fontSize:24,fontWeight:900,color:"var(--red)"}}>{companies.filter(c=>c.active===false).length}</div></div>
+</div>
+<NewCompanyBox onCreate={createCompany}/>
+<div style={{marginTop:12}}>
+{companies.map((c,i)=>(<div key={c.id} className="card anim" style={{marginBottom:10,borderInlineStart:"4px solid "+(c.active===false?"var(--red)":"var(--teal)"),animationDelay:(i*60)+"ms"}}>
+<div style={{display:"flex",justifyContent:"space-between"}}><b>{c.name} <span style={{color:theme.textDim,fontSize:11}}>({c.id})</span></b>{c.active===false?<span className="badge" style={{background:"var(--red)"}}>موقوفة</span>:<span className="badge" style={{background:"var(--teal)"}}>نشطة</span>}</div>
+<div style={{display:"flex",gap:6,marginTop:8,flexWrap:"wrap"}}>
+<button onClick={()=>toggleCompany(c)} className="chip">{c.active===false?"▶️ تشغيل":"⏸️ تعطيل"}</button>
+<button onClick={()=>quickEnter(c)} className="chip on">🚪 دخول سريع</button>
+</div></div>))}
+</div></div></div>);
 return(
 <div dir={dir} style={{minHeight:"100vh",background:theme.bg,color:theme.text,paddingBottom:90}}>
 <div style={{position:"fixed",top:0,left:0,right:0,padding:"6px 12px",background:"rgba(11,14,26,.85)",backdropFilter:"blur(10px)",borderBottom:"1px solid "+theme.border,fontSize:11,color:statusColor,zIndex:300,textAlign:"center",fontWeight:700}}>{statusMsg}{!can&&<span style={{color:theme.warn}}> · {t.lockedNote}</span>}</div>
@@ -554,7 +627,7 @@ return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noRe
 <MenuBtn onClick={()=>{exportCSV();setShowMenu(false);}}>💾 {t.backup}</MenuBtn>
 <MenuBtn onClick={()=>{setScreen("archive");setShowMenu(false);}}>🗄️ {t.archive}</MenuBtn>
 <MenuBtn onClick={()=>{setScreen("log");setShowMenu(false);}}>📋 {t.dailyLog}</MenuBtn>
-<MenuBtn onClick={()=>{setNameDraft(ownerName);setShowSettings(true);setShowMenu(false);}}>⚙️ {t.settings}</MenuBtn>
+<MenuBtn onClick={logout}>🚪 خروج / تبديل شركة</MenuBtn>
 </div></div>)}
 {showLateList&&(
 <div className="modal" onClick={()=>setShowLateList(false)}>
@@ -640,7 +713,7 @@ return(<div><h3 style={{margin:"0 0 8px"}}>🚛 {ld.customer} — {ld.total} {fa
 <div style={{display:"flex",justifyContent:"space-between",fontSize:13}}><b>{c.code||"—"}</b><span>{c.quantity} {factory.unit}</span></div>
 <div style={{fontSize:11,color:theme.textDim}}>{c.stage}{c.delivered?" · ✅ مسلّم":c.deliveredQty?" · مسلّم جزئي "+c.deliveredQty:""}</div>
 </div>))}
-{can&&<button onClick={()=>{if(confirm("حذف الحمولة؟ الكروت هتفضل زي ما هي")){db.collection("loads").doc(ld.id).delete();setLoadDetail(null);}}} className="btnO" style={{borderColor:"var(--red)",color:"var(--red)",marginTop:8}}>🗑️ حذف الحمولة</button>}
+{can&&<button onClick={()=>{if(confirm("حذف الحمولة؟ الكروت هتفضل زي ما هي")){col("loads").doc(ld.id).delete();setLoadDetail(null);}}} className="btnO" style={{borderColor:"var(--red)",color:"var(--red)",marginTop:8}}>🗑️ حذف الحمولة</button>}
 </div>);})()}
 </div></div>)}
 {showAnnounce&&(
@@ -650,7 +723,7 @@ return(<div><h3 style={{margin:"0 0 8px"}}>🚛 {ld.customer} — {ld.total} {fa
 <textarea id="annBox" rows={3} className="inp" defaultValue={(announce&&announce.text)||""} placeholder="اكتب الإعلان... هيظهر فوق عند كل الأجهزة فوراً"/>
 <div style={{display:"flex",gap:8}}>
 <button onClick={saveAnnounce} className="btnG">📢 نشر</button>
-<button onClick={()=>{if(!can||!db)return;db.collection("config").doc("announce").set({text:"",by:"",time:Date.now()});setShowAnnounce(false);showToast("🗑️");}} className="btnO">🗑️ مسح الإعلان</button>
+<button onClick={()=>{if(!can||!db)return;col("config").doc("announce").set({text:"",by:"",time:Date.now()});setShowAnnounce(false);showToast("🗑️");}} className="btnO">🗑️ مسح الإعلان</button>
 </div></div></div>)}
 {linkedFrom&&(()=>{const lk=liveCards.filter(x=>x.message&&x.message===linkedFrom.message&&x.id!==linkedFrom.id);return(
 <div className="modal" onClick={()=>setLinkedFrom(null)}>
@@ -939,7 +1012,22 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <p style={{fontSize:11,color:theme.textDim,marginTop:8}}>{t.unlockHint}</p>
 </div>)}
 {can&&(<>
-<div className="lbl">🤖 مفتاح Gemini (قراءة ذكية لكل العمال)</div><input className="inp" placeholder="AIza..." value={gemKey||factory.gkey||""} onChange={e=>{setGemKey(e.target.value);localStorage.setItem("gemini_key",e.target.value.trim());saveFactory({gkey:e.target.value.trim()});}}/>
+{isOwner&&(<>
+<div className="lbl">👥 إدارة العمال</div>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6}}>
+<input className="inp" placeholder="اسم مستخدم" value={userDraft.u} onChange={e=>setUserDraft({...userDraft,u:e.target.value})}/>
+<input className="inp" placeholder="الرمز" value={userDraft.p} onChange={e=>setUserDraft({...userDraft,p:e.target.value})}/>
+<input className="inp" placeholder="الاسم" value={userDraft.name} onChange={e=>setUserDraft({...userDraft,name:e.target.value})}/>
+</div>
+<button onClick={addUser} className="btnG" style={{marginBottom:10}}>➕ إضافة عامل</button>
+{users.filter(x=>x.role!=="owner").map(x=>(<div key={x.id} style={{display:"flex",gap:6,alignItems:"center",marginBottom:6}}><span style={{flex:1,fontSize:13}}>👷 {x.name} ({x.id})</span><button onClick={()=>{const p=prompt("الرمز الجديد لـ "+x.id+":");if(p)resetUserPass(x.id,p);}} className="chip">🔑</button><button onClick={()=>{if(confirm("حذف "+x.id+"؟"))deleteUser(x.id);}} className="chip">🗑️</button></div>))}
+</>)}
+<div className="lbl">🔒 تغيير رمزي</div>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+<input className="inp" type="password" placeholder="الرمز القديم" value={passDraft.old} onChange={e=>setPassDraft({...passDraft,old:e.target.value})}/>
+<input className="inp" type="password" placeholder="الرمز الجديد" value={passDraft.new} onChange={e=>setPassDraft({...passDraft,new:e.target.value})}/>
+</div>
+<button onClick={changeMyPass} className="btnO" style={{marginBottom:10}}>🔒 تغيير رمزي</button><input className="inp" placeholder="AIza..." value={gemKey||factory.gkey||""} onChange={e=>{setGemKey(e.target.value);localStorage.setItem("gemini_key",e.target.value.trim());saveFactory({gkey:e.target.value.trim()});}}/>
 <p style={{fontSize:11,color:theme.textDim,marginBottom:8}}>مفتاح مجاني من aistudio.google.com/app/apikey — احطه مرة واحدة ويشتغل عند كل العمال تلقائياً</p>
 <div className="lbl">👤 {t.yourNameEdit}</div><div style={{display:"flex",gap:6,marginBottom:10}}><input className="inp" style={{marginBottom:0}} value={nameDraft} onChange={e=>setNameDraft(e.target.value)}/><button onClick={()=>{if(nameDraft.trim()){setOwnerName(nameDraft.trim());localStorage.setItem("owner_name_"+userId,nameDraft.trim());showToast("✅");}}} className="chip on">{t.save}</button></div>
 <div className="lbl">🏭 {t.factoryName}</div><input className="inp" value={fnameDraft} onChange={e=>setFnameDraft(e.target.value)}/>
@@ -963,7 +1051,17 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 {toast&&(<div style={{position:"fixed",bottom:90,left:"50%",transform:"translateX(-50%)",background:toast.kind==="danger"?"var(--red)":"var(--teal)",color:"#fff",padding:"10px 22px",borderRadius:30,fontSize:14,fontWeight:800,zIndex:999,animation:"pop .3s both",boxShadow:"0 8px 24px rgba(0,0,0,.4)"}}>{toast.msg}</div>)}
 </div>);
 }
-function SearchModal({t,cards,onPick}){
+function NewCompanyBox({onCreate}){const [c,setC]=useState("");const [n,setN]=useState("");const [u,setU]=useState("");const [p,setP]=useState("");
+return(<div className="card" style={{borderColor:"var(--vio)"}}>
+<div className="lbl">➕ شركة جديدة</div>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+<input className="inp" placeholder="الكود (إنجليزي)" value={c} onChange={e=>setC(e.target.value)}/>
+<input className="inp" placeholder="اسم الشركة" value={n} onChange={e=>setN(e.target.value)}/>
+<input className="inp" placeholder="اسم مستخدم المالك" value={u} onChange={e=>setU(e.target.value)}/>
+<input className="inp" placeholder="رمز المالك" value={p} onChange={e=>setP(e.target.value)}/>
+</div>
+<button onClick={()=>{onCreate(c,n,u,p);setC("");setN("");setU("");setP("");}} className="btnG">🏢 إنشاء الشركة</button>
+</div>);}
 const [q,setQ]=useState("");
 const r=q.trim()?cards.filter(c=>FIELD_KEYS.some(k=>(c[k]||"").toString().toLowerCase().includes(q.toLowerCase()))).slice(0,20):[];
 return(<div><input autoFocus value={q} onChange={e=>setQ(e.target.value)} placeholder={t.search} className="inp"/>
