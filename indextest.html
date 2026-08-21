@@ -248,6 +248,8 @@ const [showNotif,setShowNotif]=useState(false);
 const [reportSuggest,setReportSuggest]=useState(false);
 const [news,setNews]=useState([]);
 const [newsDraft,setNewsDraft]=useState("");
+const [manageCo,setManageCo]=useState(null);
+const [coData,setCoData]=useState(null);
 const [showSettings,setShowSettings]=useState(false);
 const [showSearch,setShowSearch]=useState(false);
 const [showMenu,setShowMenu]=useState(false);
@@ -274,7 +276,7 @@ const restoreRef=useRef(null);
 const scanMode=useRef("form");
 const gotoDone=useRef(false);
 const uiRef=useRef({});
-uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,showTopCust,photoView,appQr,importMenu,importDraft,showMic,showWarehouse,addLoad,loadDetail,showLateList,showDelivered,heroEdit,showDefects,defectFor,showAnnounce,linkedFrom,showNotif,reportSuggest};
+uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,showTopCust,photoView,appQr,importMenu,importDraft,showMic,showWarehouse,addLoad,loadDetail,showLateList,showDelivered,heroEdit,showDefects,defectFor,showAnnounce,linkedFrom,showNotif,reportSuggest,manageCo};
 const t=DICT[lang];
 const dir=lang==="ar"?"rtl":"ltr";
 const isSuper=!!(me&&me.role==="super");
@@ -289,7 +291,7 @@ useEffect(()=>{setFnameDraft(factory.fname);setWaDraft(factory.wa);setLateDraft(
 useEffect(()=>{if(me)setOwnerName(me.name);},[me]);
 useEffect(()=>{if(me&&!isSuper&&can){const today=localDate(new Date());if(localStorage.getItem("lastReport_"+tenant)!==today){setReportSuggest(true);}}},[me]);
 useEffect(()=>{history.pushState({guard:1},"");const onPop=()=>{const u=uiRef.current;
-if(u.showTopCust)setShowTopCust(false);else if(u.showLateList)setShowLateList(false);else if(u.showDelivered)setShowDelivered(false);else if(u.heroEdit)setHeroEdit(false);else if(u.showDefects)setShowDefects(false);else if(u.defectFor)setDefectFor(null);else if(u.showAnnounce)setShowAnnounce(false);else if(u.linkedFrom)setLinkedFrom(null);else if(u.showNotif)setShowNotif(false);else if(u.reportSuggest)setReportSuggest(false);else if(u.addLoad)setAddLoad(false);else if(u.loadDetail)setLoadDetail(null);else if(u.showWarehouse)setShowWarehouse(false);else if(u.showMic)setShowMic(false);else if(u.importMenu)setImportMenu(false);else if(u.importDraft)setImportDraft(null);
+if(u.showTopCust)setShowTopCust(false);else if(u.showLateList)setShowLateList(false);else if(u.showDelivered)setShowDelivered(false);else if(u.heroEdit)setHeroEdit(false);else if(u.showDefects)setShowDefects(false);else if(u.defectFor)setDefectFor(null);else if(u.showAnnounce)setShowAnnounce(false);else if(u.linkedFrom)setLinkedFrom(null);else if(u.showNotif)setShowNotif(false);else if(u.reportSuggest)setReportSuggest(false);else if(u.manageCo)setManageCo(null);else if(u.addLoad)setAddLoad(false);else if(u.loadDetail)setLoadDetail(null);else if(u.showWarehouse)setShowWarehouse(false);else if(u.showMic)setShowMic(false);else if(u.importMenu)setImportMenu(false);else if(u.importDraft)setImportDraft(null);
 else if(u.reportText)setReportText(null);else if(u.showScanner)setShowScanner(false);else if(u.bcCard)setBcCard(null);
 else if(u.statementFor)setStatementFor(null);else if(u.showWorkers)setShowWorkers(false);
 else if(u.photoView)setPhotoView(null);else if(u.appQr)setAppQr(false);else if(u.showMenu)setShowMenu(false);
@@ -347,10 +349,15 @@ await db.collection("t/"+code+"/users").doc(ou).set({pass:op,role:"owner",name:n
 showToast("🏢 اتعملت شركة "+code);};
 const toggleCompany=async c=>{await db.collection("companies").doc(c.id).set({active:c.active===false},{merge:true});};
 const quickEnter=c=>{const sess={user:"master-quick",role:"owner",name:"👑 المالك (دخول سريع)"};localStorage.setItem("tenant",c.id);localStorage.setItem("session_"+c.id,JSON.stringify(sess));setTenant(c.id);setMe(sess);showToast("🚪 دخلت "+c.name);};
-const renameCompany=async c=>{const n=prompt("الاسم الجديد للشركة:",c.name);if(n&&n.trim())await db.collection("companies").doc(c.id).set({name:n.trim()},{merge:true});showToast("✏️ اتعدل الاسم");};
+const openManage=async c=>{setManageCo(c);setCoData(null);
+try{const u=await db.collection("t/"+c.id+"/users").get();setCoData({users:u.docs.map(d=>({id:d.id,...d.data()}))});}catch(e){setCoData({users:[]});}};
+const saveCoName=async n=>{if(!manageCo||!n||!n.trim())return;await db.collection("companies").doc(manageCo.id).set({name:n.trim()},{merge:true});setManageCo({...manageCo,name:n.trim()});showToast("✏️ اتعدل الاسم");};
+const resetCoUser=async(u,p)=>{await db.collection("t/"+manageCo.id+"/users").doc(u).set({pass:p},{merge:true});showToast("🔑 اتغير رمز "+u);};
+const deleteCoUser=async u=>{await db.collection("t/"+manageCo.id+"/users").doc(u).delete();setCoData({...coData,users:coData.users.filter(x=>x.id!==u)});showToast("🗑️");};
 const deleteCompany=async c=>{if(!confirm("حذف شركة "+c.name+" نهائياً؟ كل بياناتها هتتمسح!"))return;
-for(const cn of ["cards","logs","loads","defects","users","config"]){const sn=await db.collection("t/"+c.id+"/"+cn).get();for(const d of sn.docs){await d.ref.delete();}}
-await db.collection("companies").doc(c.id).delete();showToast("🗑️ اتحذفت "+c.id,"danger");};
+for(const cn of ["cards","logs","loads","defects","users","config","announce"]){try{const sn=await db.collection("t/"+c.id+"/"+cn).get();for(const d of sn.docs){await d.ref.delete();}}catch(e){}}
+try{await db.collection("companies").doc(c.id).delete();}catch(e){showToast("خطأ: "+(e.code||e.message),"danger");return;}
+setManageCo(null);showToast("🗑️ اتحذفت "+c.id,"danger");};
 const addUser=async()=>{if(!isOwner||!db)return;const u=userDraft.u.trim();if(!u||!userDraft.p||!userDraft.name)return showToast("كمّل البيانات","danger");
 const ex=await col("users").doc(u).get();if(ex.exists)return showToast("الاسم موجود","danger");
 await col("users").doc(u).set({pass:userDraft.p,role:"worker",name:userDraft.name,createdAt:Date.now()});setUserDraft({u:"",p:"",name:""});showToast("👷 اتضاف");};
@@ -512,9 +519,7 @@ if(isSuper)return(
 {c.active===false?<span className="badge" style={{background:"var(--red)"}}>موقوفة</span>:<span className="badge" style={{background:"var(--teal)"}}>نشطة</span>}
 </div>
 <div style={{display:"flex",gap:6,marginTop:8,flexWrap:"wrap"}}>
-<button onClick={()=>toggleCompany(c)} className="chip">{c.active===false?"▶️ تشغيل":"⏸️ تعطيل"}</button>
-<button onClick={()=>renameCompany(c)} className="chip">✏️ تعديل</button>
-<button onClick={()=>deleteCompany(c)} className="chip" style={{borderColor:"var(--red)",color:"var(--red)"}}>🗑️ حذف</button>
+<button onClick={()=>openManage(c)} className="chip">⚙️ إدارة</button>
 <button onClick={()=>migrateOld(c.id)} className="chip">📦 استيراد القديم</button>
 <button onClick={()=>quickEnter(c)} className="chip on">🚪 دخول سريع</button>
 </div>
@@ -744,6 +749,30 @@ return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noRe
 <input ref={importCamRef} type="file" accept="image/*" capture="environment" style={{display:"none"}} onChange={handleImportFile}/>
 <input ref={importGalRef} type="file" accept="image/*" style={{display:"none"}} onChange={handleImportFile}/>
 <input ref={restoreRef} type="file" accept="application/json" style={{display:"none"}} onChange={restoreJSON}/>
+{manageCo&&(
+<div className="modal" onClick={()=>setManageCo(null)}>
+<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:400}}>
+<h3 style={{margin:"0 0 10px"}}>🏢 إدارة الشركة — {manageCo.id}</h3>
+<div className="lbl">اسم الشركة</div>
+<div style={{display:"flex",gap:6}}>
+<input className="inp" style={{marginBottom:0}} defaultValue={manageCo.name} id="coNameBox"/>
+<button className="chip on" onClick={()=>saveCoName(document.getElementById("coNameBox").value)}>💾 حفظ</button>
+</div>
+<div style={{margin:"12px 0"}}>{manageCo.active===false?<span className="badge" style={{background:"var(--red)"}}>موقوفة</span>:<span className="badge" style={{background:"var(--teal)"}}>نشطة</span>}</div>
+<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>
+<button className="chip" onClick={()=>{db.collection("companies").doc(manageCo.id).set({active:manageCo.active===false},{merge:true});setManageCo({...manageCo,active:manageCo.active===false});}}>{manageCo.active===false?"▶️ تشغيل":"⏸️ تعطيل"}</button>
+<button className="chip on" onClick={()=>{quickEnter(manageCo);setManageCo(null);}}>🚪 دخول سريع</button>
+</div>
+<div className="lbl">👥 الحسابات والرموز</div>
+{!coData&&<p style={{color:theme.textDim,fontSize:12}}>جاري التحميل...</p>}
+{coData&&coData.users.map(x=>(
+<div key={x.id} style={{display:"flex",gap:6,alignItems:"center",marginBottom:6}}>
+<span style={{flex:1,fontSize:13}}>{x.role==="owner"?"👨💼":"👷"} {x.name} ({x.id})</span>
+<button className="chip" onClick={()=>{const p=prompt("الرمز الجديد لـ "+x.id+":");if(p)resetCoUser(x.id,p);}}>🔑</button>
+{x.role!=="owner"&&<button className="chip" onClick={()=>{if(confirm("حذف "+x.id+"؟"))deleteCoUser(x.id);}}>🗑️</button>}
+</div>))}
+<button className="btnO" style={{borderColor:"var(--red)",color:"var(--red)",marginTop:12}} onClick={()=>deleteCompany(manageCo)}>🗑️ حذف الشركة نهائياً</button>
+</div></div>)}
 {showNotif&&(
 <div className="modal" onClick={()=>setShowNotif(false)}>
 <div className="mbox" onClick={e=>e.stopPropagation()}>
