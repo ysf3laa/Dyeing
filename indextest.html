@@ -372,7 +372,8 @@ const sl=await db.collection("logs").get();for(const d of sl.docs){await db.coll
 const so=await db.collection("loads").get();for(const d of so.docs){await db.collection("t/"+code+"/loads").doc(d.id).set(d.data());}
 showToast("📦 اتنقلت البيانات القديمة لـ "+code);};
 const postNews=async()=>{if(!isSuper||!db)return;if(!newsDraft.trim())return;await db.collection("news").doc(uid()).set({text:newsDraft.trim(),time:Date.now()});setNewsDraft("");showToast("🆕 اتنشر لكل الشركات");};
-const saveMasterKey=async k=>{await db.collection("global").doc("config").set({gkey:k.trim()},{merge:true});setMasterKey(k.trim());showToast("🤖 اتحفظ المفتاح المركزي");};const code="DEMO";
+const saveMasterKey=async k=>{await db.collection("global").doc("config").set({gkey:k.trim()},{merge:true});setMasterKey(k.trim());showToast("🤖 اتحفظ المفتاح المركزي");};
+const createDemo=async()=>{const code="DEMO";
 const ex=await db.collection("companies").doc(code).get();
 if(!ex.exists){await db.collection("companies").doc(code).set({name:"شركة تجريبية (ديمو)",active:true,createdAt:Date.now()});await db.collection("t/"+code+"/users").doc("demo").set({pass:"1234",role:"owner",name:"مدير تجريبي",createdAt:Date.now()});}
 const samples=[["خالد عيسي","411","أحمر","462","جيتات"],["امريكان","452","أبيض","21","صباغة"],["محمد الزماكة","475","غسيل","426","تجهيز"],["طارق الدهشوري","707","أبيض","457","لف"],["رفيق المنير","724","اسود خاص","251","الصالة"],["الحاج طارق","457","أبيض","464","جيتات"]];
