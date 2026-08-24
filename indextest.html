@@ -18,6 +18,7 @@ fieldset{border:none;margin:0;padding:0;min-width:0}
 .spin{animation:spin 1s linear infinite;display:inline-block}
 @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
 @keyframes pop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+@keyframes confFall{to{top:110%;transform:rotate(720deg)}}
 @keyframes glow{0%,100%{box-shadow:0 0 14px var(--g,rgba(124,92,255,.35))}50%{box-shadow:0 0 30px var(--g,rgba(124,92,255,.65))}}
 @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
 @keyframes growW{from{width:0}}
@@ -479,6 +480,12 @@ const weekChart=(()=>{const out=[];for(let i=6;i>=0;i--){const d=new Date(Date.n
 const weekMax=Math.max(1,...weekChart.map(w=>w.n));
 const logoSrc=factory.logo||(()=>{try{return localStorage.getItem("logo_"+(tenant||"_"))||"";}catch(e){return "";}})();
 const pinDef=factory.pin||(()=>{try{return localStorage.getItem("pin_"+(tenant||"_"))||"";}catch(e){return "";}})();
+const [confetti,setConfetti]=useState(false);
+const fireConfetti=()=>{setConfetti(true);setTimeout(()=>setConfetti(false),3000);};
+const prevUndelivered=useRef({});
+useEffect(()=>{const cur={};stages.forEach(s=>{cur[s]=liveCards.filter(c=>c.stage===s&&!c.delivered).length;});Object.keys(cur).forEach(s=>{if((prevUndelivered.current[s]||0)>0&&cur[s]===0){fireConfetti();}});prevUndelivered.current=cur;},[cards]);
+const hijri=(()=>{try{return new Intl.DateTimeFormat("ar-SA-u-ca-islamic",{day:"numeric",month:"long",year:"numeric"}).format(new Date());}catch(e){return "";}})();
+const workerWeek=(()=>{const cut=Date.now()-7*86400000;const cnt={};log.forEach(e=>{if(toMs(e.time||e.timeLocal)>=cut&&e.by){cnt[e.by]=(cnt[e.by]||0)+1;}});let best="",n=0;Object.keys(cnt).forEach(k=>{if(cnt[k]>n){n=cnt[k];best=k;}});return best?{best:best,n:n}:null;})();
 const archDef=factory.autoArch||(()=>{try{return localStorage.getItem("autoArch_"+(tenant||"_"))||"";}catch(e){return "";}})();
 useEffect(()=>{if(!can||!db)return;let ls=0;try{ls=+(localStorage.getItem("autoArch_"+(tenant||"_"))||0);}catch(e){}const days=+factory.autoArch||ls||0;if(!days)return;const cut=Date.now()-days*86400000;liveCards.filter(c=>c.delivered&&toMs(c.updatedAt||c.createdAt)<cut).forEach(c=>{col("cards").doc(c.id).set({archived:true},{merge:true});});},[factory.autoArch]);
 useEffect(()=>{let dl="";try{dl=localStorage.getItem("defLang")||"";}catch(e){}dl=dl||factory.defaultLang;if(!localStorage.getItem("pref_lang")&&dl&&dl!==lang){setLang(dl);}},[factory.defaultLang]);
@@ -700,6 +707,7 @@ const backupJSON=()=>{const a=document.createElement("a");a.href=URL.createObjec
 const restoreJSON=e=>{const f=e.target.files?.[0];if(!f||!can)return;const r=new FileReader();r.onload=async()=>{try{const d=JSON.parse(r.result);if(Array.isArray(d.cards))for(const c of d.cards)await col("cards").doc(c.id).set(c,{merge:true});if(Array.isArray(d.loads))for(const l of d.loads)await col("loads").doc(l.id).set(l,{merge:true});showToast("♻️ ✅");}catch(x){showToast("❌","danger");}};r.readAsText(f);e.target.value="";};
 const wipeAll=async()=>{for(const c of cards)await col("cards").doc(c.id).delete();for(const l of log)await col("logs").doc(l.id).delete();for(const l of loads)await col("loads").doc(l.id).delete();setWipeConfirm(false);showToast("🗑️ ✅");};
 const openSettings=()=>{const __pin=factory.pin||(()=>{try{return localStorage.getItem("pin_"+(tenant||"_"))||"";}catch(e){return "";}})();if(__pin&&sessionStorage.getItem("pinOk")!=="1"){const p=prompt("🔒 اكتب الرقم السري للإعدادات:");if(p!==String(__pin)){showToast("🔒 رمز غلط","danger");return;}sessionStorage.setItem("pinOk","1");}setShowSettings(true);};
+const notifyCustomer=c=>{window.open(waLink("أهلاً "+(c.customer||"")+" 👋\n📦 أمرك "+(c.code||"")+" تحرّك لمرحلة: "+(c.stage||"")+"\n🏭 "+factory.fname),"_blank");};
 const printCard=card=>{const bc=document.createElementNS("http://www.w3.org/2000/svg","svg");try{if(card.barcode&&window.JsBarcode)JsBarcode(bc,card.barcode,{format:"CODE128",width:2,height:60,displayValue:true,margin:0});}catch(e){}
 let qr=null;try{const qd=document.createElement("div");new QRCode(qd,{text:pubUrl(card),width:160,height:160,correctLevel:QRCode.CorrectLevel.M});const cv=qd.querySelector("canvas");if(cv)qr=cv.toDataURL();}catch(e){}
 const w=window.open("","_blank");if(!w)return;const pw=factory.printSize==="A4"?"190mm":"132mm";
@@ -731,7 +739,7 @@ return(
 <div className="anim" style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
 <div style={{width:44,height:44,borderRadius:50,background:"linear-gradient(135deg,var(--vio),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,boxShadow:"0 6px 18px rgba(124,92,255,.4)"}}>{(ownerName||"؟")[0]}</div>
 <div style={{flex:1}}>
-<div style={{fontSize:12,color:theme.textDim}}>👋 مرحباً يا {ownerName}</div>
+<div style={{fontSize:12,color:theme.textDim}}>{new Date().getHours()<12?"☀️ صباح الخير":"🌙 مساء الخير"} يا {ownerName} · 🕌 {hijri}</div>
 <div style={{fontSize:20,fontWeight:900}}>{factory.fname}</div>
 </div>
 <button onClick={()=>setShowNotif(true)} style={{...hdrBtn,position:"relative"}}>🔔{notifCount>0&&<span style={{position:"absolute",top:-4,insetInlineEnd:-4,background:"var(--red)",color:"#fff",borderRadius:20,fontSize:10,padding:"2px 6px",fontWeight:800}}>{notifCount}</span>}</button>
@@ -766,6 +774,7 @@ return(
 </div>))}
 </div>
 </div>
+{workerWeek&&(<div className="card anim" style={{animationDelay:"420ms",marginBottom:12,display:"flex",alignItems:"center",gap:10}}><span style={{fontSize:24}}>🏆</span><div style={{flex:1}}><b style={{fontSize:14}}>عامل الأسبوع: {workerWeek.best}</b><div style={{fontSize:11,color:theme.textDim}}>{workerWeek.n} حركة آخر 7 أيام</div></div></div>)}
 <div className="card anim" style={{animationDelay:"380ms",margin:"12px 0",display:"flex",alignItems:"center",gap:16}}>
 <div style={{textAlign:"center"}}>
 <Ring pct={donePct} size={110} color="var(--teal)"><b style={{fontSize:20}}>{donePct}%</b><span style={{fontSize:10,color:theme.textDim}}>إنجاز</span></Ring>
@@ -1497,6 +1506,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <button onClick={()=>{if(wipeConfirm){wipeAll();}else{setWipeConfirm(true);setTimeout(()=>setWipeConfirm(false),3000);}}} className="btnO" style={{borderColor:"var(--red)",color:wipeConfirm?"#fff":"var(--red)",background:wipeConfirm?"var(--red)":"transparent"}}>{wipeConfirm?"⚠️ "+t.wipeSure:"🗑️ "+t.wipe}</button>
 </div>
 </div></div>)}
+{confetti&&(<div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:998,overflow:"hidden"}}>{Array.from({length:40}).map((_,i)=>(<span key={i} style={{position:"absolute",top:"-10px",insetInlineStart:(i*2.5)+"%",width:8,height:12,background:["#7C5CFF","#2DD4A8","#FFB65C","#FF5C7A","#4CC9F0"][i%5],borderRadius:3,animation:"confFall 2.6s linear "+((i%10)*0.12)+"s both"}}/>))}</div>)}
 {toast&&(<div style={{position:"fixed",bottom:90,left:"50%",transform:"translateX(-50%)",background:toast.kind==="danger"?"var(--red)":"var(--teal)",color:"#fff",padding:"10px 18px",borderRadius:30,fontSize:14,fontWeight:800,zIndex:999,animation:"pop .3s both",boxShadow:"0 8px 24px rgba(0,0,0,.4)",display:"flex",alignItems:"center",gap:10}}>{toast.msg}{toast.action&&<button onClick={()=>{toast.action.fn();setToast(null);}} style={{background:"rgba(255,255,255,.25)",border:"none",color:"#fff",borderRadius:20,padding:"5px 12px",fontSize:12,fontWeight:800}}>{toast.action.label}</button>}</div>)}
 </div>);
 }
