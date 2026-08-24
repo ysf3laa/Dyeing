@@ -897,7 +897,7 @@ return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noRe
 <input ref={importCamRef} type="file" accept="image/*" capture="environment" style={{display:"none"}} onChange={handleImportFile}/>
 <input ref={importGalRef} type="file" accept="image/*" style={{display:"none"}} onChange={handleImportFile}/>
 <input ref={restoreRef} type="file" accept="application/json" style={{display:"none"}} onChange={restoreJSON}/>
-<input ref={logoInputRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>{const f=e.target.files?.[0];if(!f||!can)return;readCompressed(f,d=>{saveFactory({logo:d});showToast("🖼️ اتحفظ اللوجو");});e.target.value="";}}/>
+<input ref={logoInputRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>{const f=e.target.files?.[0];if(!f||!can)return;const done=d=>{saveFactory({logo:d});showToast("🖼️ اتحفظ اللوجو");};const r=readCompressed(f,done);if(r&&r.then)r.then(done);e.target.value="";}}/>
 {machineSched&&(
 <div className="modal" onClick={()=>setMachineSched(false)}>
 <div className="mbox" onClick={e=>e.stopPropagation()}>
