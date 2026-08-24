@@ -219,6 +219,9 @@ const [bulkMoveTo,setBulkMoveTo]=useState(false);
 const [stageMgr,setStageMgr]=useState(false);
 const [delStage,setDelStage]=useState(null);
 const [machineSched,setMachineSched]=useState(false);
+const [themeMode,setThemeMode]=useState(localStorage.getItem("themeMode")||"dark");
+const [prefVib,setPrefVib]=useState(localStorage.getItem("prefVib")!=="0");
+const [prefSnd,setPrefSnd]=useState(localStorage.getItem("prefSnd")!=="0");
 const [schedDate,setSchedDate]=useState(localDate(new Date()));
 const [cards,setCards]=useState([]);
 const [log,setLog]=useState([]);
@@ -293,7 +296,9 @@ const isSuper=!!(me&&me.role==="super");
 const isOwner=!!(me&&me.role==="owner");
 const can=!!me&&!isSuper;
 const col=n=>db.collection("t/"+(tenant||"_")+"/"+n);
-const theme={bg:"#0B0E1A",panel:"#141829",panelAlt:"#1B2036",border:"#242B47",text:"#EDEFF5",textDim:"#8A93B5",accent:"#7C5CFF",accent2:"#2DD4A8",danger:"#FF5C7A",warn:"#FFB65C",input:"#1B2036"};
+const isLight=themeMode==="light";
+const theme=isLight?{bg:"#F3F4FA",panel:"#FFFFFF",panelAlt:"#EEF0F8",border:"#D8DCEB",text:"#1A1E30",textDim:"#66708F",accent:"#6A48FF",accent2:"#12B58C",danger:"#E8466B",warn:"#E89A3C",input:"#EEF0F8"}:{bg:"#0B0E1A",panel:"#141829",panelAlt:"#1B2036",border:"#242B47",text:"#EDEFF5",textDim:"#8A93B5",accent:"#7C5CFF",accent2:"#2DD4A8",danger:"#FF5C7A",warn:"#FFB65C",input:"#1B2036"};
+useEffect(()=>{const t=isLight?{"--bg":"#F3F4FA","--panel":"#FFFFFF","--panel2":"#EEF0F8","--line":"#D8DCEB","--txt":"#1A1E30","--dim":"#66708F"}:{"--bg":"#0B0E1A","--panel":"#141829","--panel2":"#1B2036","--line":"#242B47","--txt":"#EDEFF5","--dim":"#8A93B5"};Object.keys(t).forEach(k=>document.documentElement.style.setProperty(k,t[k]));},[isLight]);
 const hdrBtn={width:42,height:42,borderRadius:14,border:"1px solid "+theme.border,background:theme.panel,color:theme.text,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:17};
 const LD=+factory.lateDays||2;
 const allColors=PRESET_COLORS.concat(customColors);
@@ -341,7 +346,7 @@ useEffect(()=>{if(!showScanner||!window.Html5Qrcode)return;let done=false;const 
 const fm=window.Html5QrcodeSupportedFormats?[Html5QrcodeSupportedFormats.QR_CODE,Html5QrcodeSupportedFormats.CODE_128,Html5QrcodeSupportedFormats.CODE_39,Html5QrcodeSupportedFormats.EAN_13]:null;
 hq.start({facingMode:"environment"},Object.assign({fps:10,qrbox:{width:250,height:190}},fm?{formatsToSupport:fm}:{}),(txt)=>{if(done)return;done=true;try{hq.stop();}catch(e){}setShowScanner(false);handleScan(String(txt).trim());},()=>{}).catch(()=>{setShowScanner(false);showToast(t.cameraErr,"danger");});
 return()=>{done=true;try{hq.stop();hq.clear();}catch(e){}};},[showScanner]);
-const showToast=(m,k)=>{setToast({msg:m,kind:k||"ok"});setTimeout(()=>setToast(null),2600);};
+const showToast=(m,k)=>{setToast({msg:m,kind:k||"ok"});setTimeout(()=>setToast(null),2600);if(localStorage.getItem("prefVib")!=="0"&&navigator.vibrate)navigator.vibrate(k==="danger"?[60,40,60]:30);if(localStorage.getItem("prefSnd")!=="0"){try{const AC=window.AudioContext||window.webkitAudioContext;const ac=new AC();const o=ac.createOscillator();const g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=k==="danger"?320:880;g.gain.value=0.05;o.start();o.stop(ac.currentTime+0.12);}catch(e){}}};
 const doLogin=async()=>{const code=(loginCo||"").trim().toUpperCase();const u=loginU.trim();
 if(!code||!u||!loginP){showToast("كمّل البيانات","danger");return;}
 if(code==="MASTER"){if(u==="admin"&&loginP===UNLOCK_CODE){localStorage.setItem("tenant","MASTER");localStorage.setItem("session_MASTER",JSON.stringify({user:"admin",role:"super",name:"المالك"}));setTenant("MASTER");setMe({user:"admin",role:"super",name:"المالك"});showToast("👑 أهلاً");}else showToast("بيانات المالك غلط","danger");return;}
@@ -442,7 +447,7 @@ const ex=cards.some(c=>c.id===card.id);
 try{if(ex){await col("cards").doc(card.id).set({...card,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedBy:ownerName,updatedLocal:Date.now()},{merge:true});await addLog("تعديل",card);}
 else{const id=card.id||uid();await col("cards").doc(id).set({...card,id,createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp(),createdBy:ownerName,history:[{stage:card.stage,by:ownerName,at:nowISO()}]});await addLog("إضافة",card);}
 setEditingCard(null);showToast(isOnline?"✅":"📱");}catch(e){showToast("خطأ: "+(e.code||e.message),"danger");}};
-const deleteCard=async c=>{if(!can||!db)return;try{await col("cards").doc(c.id).delete();await addLog("حذف",c);setActionCard(null);showToast("🗑️","danger");}catch(e){}};
+const deleteCard=async c=>{if(!can||!db)return;try{const snap={...c};await col("cards").doc(c.id).delete();await addLog("حذف",c);setActionCard(null);setToast({msg:"🗑️ اتحذف "+(c.code||c.customer||""),kind:"danger",action:{label:"↩️ تراجع",fn:()=>{col("cards").doc(snap.id).set(snap).then(()=>showToast("↩️ رجع الكرت"));}}});setTimeout(()=>setToast(null),5000);}catch(e){}};
 const moveCardTo=async(c,d)=>{if(!can||!db)return;d=d||(stages[0]||"");try{await col("cards").doc(c.id).set({stage:d,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),history:firebase.firestore.FieldValue.arrayUnion({stage:d,by:ownerName,at:nowISO()})},{merge:true});await addLog("نقل",c,"→ "+d);setMoveCard(null);setActionCard(null);showToast("→ "+d);}catch(e){}};
 const copyCardTo=async(c,d)=>{if(!can||!db)return;try{const id=uid();await col("cards").doc(id).set({...c,id,stage:d,pinned:false,createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp(),createdBy:ownerName,history:[{stage:d,by:ownerName,at:nowISO()}]});await addLog("نسخ",c);setCopyCard(null);setActionCard(null);showToast("📋 ✅");}catch(e){}};
 const togglePin=async c=>{if(!can||!db)return;try{await col("cards").doc(c.id).set({pinned:!c.pinned},{merge:true});setActionCard(null);}catch(e){}};
@@ -1379,8 +1384,16 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div className="modal" onClick={()=>setShowSettings(false)}>
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:400}}>
 <h3 style={{margin:"0 0 14px"}}>⚙️ {t.settings}</h3>
-<div className="lbl">🌐 {t.language}</div>
-<div style={{marginBottom:10}}><button onClick={()=>{const n=lang==="ar"?"en":"ar";setLang(n);localStorage.setItem("pref_lang",n);}} className="chip on">{lang==="ar"?"العربية":"English"}</button></div>
+<div className="lbl">🎨 المظهر</div>
+<div style={{display:"flex",gap:6,marginBottom:10}}>
+<button onClick={()=>{setThemeMode("light");localStorage.setItem("themeMode","light");}} className={"chip"+(themeMode==="light"?" on":"")}>☀️ فاتح</button>
+<button onClick={()=>{setThemeMode("dark");localStorage.setItem("themeMode","dark");}} className={"chip"+(themeMode==="dark"?" on":"")}>🌙 غامق</button>
+</div>
+<div className="lbl">📳 الإحساس بالضغطات</div>
+<div style={{display:"flex",gap:6,marginBottom:10}}>
+<button onClick={()=>{const v=localStorage.getItem("prefVib")!=="0";localStorage.setItem("prefVib",v?"0":"1");setPrefVib(!v);}} className={"chip"+(prefVib?" on":"")}>📳 اهتزاز</button>
+<button onClick={()=>{const v=localStorage.getItem("prefSnd")!=="0";localStorage.setItem("prefSnd",v?"0":"1");setPrefSnd(!v);}} className={"chip"+(prefSnd?" on":"")}>🔊 صوت</button>
+</div>
 {isOwner&&(
 <div>
 <div className="lbl">👥 إدارة العمال</div>
@@ -1437,7 +1450,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <button onClick={()=>{if(wipeConfirm){wipeAll();}else{setWipeConfirm(true);setTimeout(()=>setWipeConfirm(false),3000);}}} className="btnO" style={{borderColor:"var(--red)",color:wipeConfirm?"#fff":"var(--red)",background:wipeConfirm?"var(--red)":"transparent"}}>{wipeConfirm?"⚠️ "+t.wipeSure:"🗑️ "+t.wipe}</button>
 </div>
 </div></div>)}
-{toast&&(<div style={{position:"fixed",bottom:90,left:"50%",transform:"translateX(-50%)",background:toast.kind==="danger"?"var(--red)":"var(--teal)",color:"#fff",padding:"10px 22px",borderRadius:30,fontSize:14,fontWeight:800,zIndex:999,animation:"pop .3s both",boxShadow:"0 8px 24px rgba(0,0,0,.4)"}}>{toast.msg}</div>)}
+{toast&&(<div style={{position:"fixed",bottom:90,left:"50%",transform:"translateX(-50%)",background:toast.kind==="danger"?"var(--red)":"var(--teal)",color:"#fff",padding:"10px 18px",borderRadius:30,fontSize:14,fontWeight:800,zIndex:999,animation:"pop .3s both",boxShadow:"0 8px 24px rgba(0,0,0,.4)",display:"flex",alignItems:"center",gap:10}}>{toast.msg}{toast.action&&<button onClick={()=>{toast.action.fn();setToast(null);}} style={{background:"rgba(255,255,255,.25)",border:"none",color:"#fff",borderRadius:20,padding:"5px 12px",fontSize:12,fontWeight:800}}>{toast.action.label}</button>}</div>)}
 </div>);
 }
 function SearchModal({t,cards,onPick}){
