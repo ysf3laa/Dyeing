@@ -471,7 +471,11 @@ const todayLogCount=log.filter(e=>localDate(new Date(toMs(e.time||e.timeLocal)))
 const recent3=liveCards.slice().sort((a,b)=>toMs(b.updatedAt)-toMs(a.updatedAt)).slice(0,3);
 const wh=loads.reduce((a,l)=>{const s=loadStats(l);return {rem:a.rem+Math.max(0,s.rem),del:a.del+s.del};},{rem:0,del:0});
 const totalQty=qtySum(liveCards);
-const donePct=totalQty>0?Math.min(100,Math.round((wh.del/totalQty)*100)):0;
+const deliveredFull=liveCards.filter(c=>c.delivered).length;
+const deliveredPartial=liveCards.filter(c=>!c.delivered&&(parseFloat(c.deliveredQty)||0)>0).length;
+const deliveredTotal=deliveredFull+deliveredPartial;
+const remainingCards=liveCards.length-deliveredTotal;
+const donePct=liveCards.length>0?Math.min(100,Math.round((deliveredTotal/liveCards.length)*100)):0;
 const nCards=useCountUp(liveCards.length);const nLate=useCountUp(lateCount);const nRem=useCountUp(Math.round(wh.rem));const nDel=useCountUp(Math.round(wh.del));
 const grid2={display:"grid",gridTemplateColumns:"1fr 1fr",gap:10};
 const stageIcon=(s,i)=>{const n=(s||"").trim();
@@ -722,7 +726,15 @@ return(
 <div className="card anim" onClick={()=>setShowDelivered(true)} style={{animationDelay:"320ms",cursor:"pointer"}}><div className="lbl">✅ اتسلم</div><div style={{fontSize:26,fontWeight:900,color:"var(--teal)"}}>{nDel}</div></div>
 </div>
 <div className="card anim" style={{animationDelay:"380ms",margin:"12px 0",display:"flex",alignItems:"center",gap:16}}>
+<div style={{textAlign:"center"}}>
 <Ring pct={donePct} size={110} color="var(--teal)"><b style={{fontSize:20}}>{donePct}%</b><span style={{fontSize:10,color:theme.textDim}}>إنجاز</span></Ring>
+<div style={{fontSize:12,color:theme.textDim,marginTop:6}}>{deliveredTotal} من {liveCards.length} كرت</div>
+<div style={{fontSize:11,marginTop:4,display:"flex",gap:6,justifyContent:"center",flexWrap:"wrap"}}>
+<span style={{color:"var(--teal)"}}>✅ {deliveredFull}</span>
+<span style={{color:"var(--warn)"}}>⚖️ {deliveredPartial}</span>
+<span style={{color:theme.textDim}}>⏳ {remainingCards}</span>
+</div>
+</div>
 <div style={{flex:1}}>
 <div className="lbl">نظرة عامة على المراحل</div>
 {stages.map((s,i)=>{const n=liveCards.filter(c=>c.stage===s).length;const p=liveCards.length?Math.round(n/liveCards.length*100):0;const colr=STAGE_COLORS[i%8];
