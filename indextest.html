@@ -202,7 +202,7 @@ const [gemKey,setGemKey]=useState(localStorage.getItem("gemini_key")||"");
 const [importBusy,setImportBusy]=useState(null);
 const [importDraft,setImportDraft]=useState(null);
 const [importMenu,setImportMenu]=useState(false);
-const [lang,setLang]=useState(()=>localStorage.getItem("pref_lang")||"ar");
+const [lang,setLang]=useState(localStorage.getItem("pref_lang")||"ar");
 const [stages,setStages]=useState(DEFAULT_STAGES);
 const [machines,setMachines]=useState(DEFAULT_MACHINES);
 const [factory,setFactory]=useState({fname:"متابعة مراحل",wa:"",unit:"كيلو",lateDays:2,printSize:"A5",heroT:"",heroS:""});
@@ -1466,9 +1466,9 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 {logoSrc&&<button onClick={()=>{try{localStorage.removeItem("logo_"+(tenant||"_"));}catch(e){}setFactory(f=>({...f,logo:""}));if(can&&db){db.collection("t/"+tenant+"/config").doc("settings").set({logo:""},{merge:true}).catch(()=>{});}showToast("🗑️ اتشال اللوجو");}} className="chip">🗑️</button>}
 </div>
 <div className="lbl">🔒 رقم سري للإعدادات (سيبها فاضية = مقفول)</div>
-<input className="inp" type="number" placeholder="بدون رمز" defaultValue={factory.pin||""} onBlur={e=>{try{localStorage.setItem("pin_"+(tenant||"_"),e.target.value);}catch(x){}setFactory(f=>({...f,pin:e.target.value}));if(can&&db){db.collection("t/"+tenant+"/config").doc("settings").set({pin:e.target.value},{merge:true}).catch(()=>{});}}}/>
+<input className="inp" type="number" placeholder="بدون رمز" defaultValue={factory.pin||(()=>{try{return localStorage.getItem("pin_"+(tenant||"_"))||"";}catch(e){return "";}})()} onBlur={e=>{try{localStorage.setItem("pin_"+(tenant||"_"),e.target.value);}catch(x){}setFactory(f=>({...f,pin:e.target.value}));if(can&&db){db.collection("t/"+tenant+"/config").doc("settings").set({pin:e.target.value},{merge:true}).catch(()=>{});}}}/>e=>{try{localStorage.setItem("pin_"+(tenant||"_"),e.target.value);}catch(x){}setFactory(f=>({...f,pin:e.target.value}));if(can&&db){db.collection("t/"+tenant+"/config").doc("settings").set({pin:e.target.value},{merge:true}).catch(()=>{});}}}/>
 <div className="lbl">🗄️ أرشفة تلقائية للمسلّم بعد (يوم) — 0 مقفول</div>
-<input className="inp" type="number" placeholder="0" defaultValue={factory.autoArch||""} onBlur={e=>{try{localStorage.setItem("autoArch_"+(tenant||"_"),e.target.value);}catch(x){}setFactory(f=>({...f,autoArch:+e.target.value||0}));if(can&&db){db.collection("t/"+tenant+"/config").doc("settings").set({autoArch:+e.target.value||0},{merge:true}).catch(()=>{});}}}/>
+<input className="inp" type="number" placeholder="0" defaultValue={factory.autoArch||(()=>{try{return localStorage.getItem("autoArch_"+(tenant||"_"))||"";}catch(e){return "";}})()} onBlur={e=>{try{localStorage.setItem("autoArch_"+(tenant||"_"),e.target.value);}catch(x){}setFactory(f=>({...f,autoArch:+e.target.value||0}));if(can&&db){db.collection("t/"+tenant+"/config").doc("settings").set({autoArch:+e.target.value||0},{merge:true}).catch(()=>{});}}}/>e=>{try{localStorage.setItem("autoArch_"+(tenant||"_"),e.target.value);}catch(x){}setFactory(f=>({...f,autoArch:+e.target.value||0}));if(can&&db){db.collection("t/"+tenant+"/config").doc("settings").set({autoArch:+e.target.value||0},{merge:true}).catch(()=>{});}}}/>
 <div className="lbl">🌐 اللغة الافتراضية للعمال الجداد</div>
 <div style={{display:"flex",gap:6,marginBottom:10}}>
 <button onClick={()=>{try{localStorage.setItem("defLang","ar");}catch(e){}setFactory(f=>({...f,defaultLang:"ar"}));if(can&&db){db.collection("t/"+tenant+"/config").doc("settings").set({defaultLang:"ar"},{merge:true}).catch(()=>{});}localStorage.setItem("pref_lang","ar");setLang("ar");}} className={"chip"+((localStorage.getItem("defLang")||factory.defaultLang||"ar")==="ar"?" on":"")}>العربية</button>
