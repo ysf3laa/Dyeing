@@ -1361,7 +1361,6 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 {!fHide("due")&&(<div><div className="lbl">{fLabel("due",t.due)}</div><input type="date" className="inp" value={editingCard.due||""} onChange={e=>setEditingCard({...editingCard,due:e.target.value})}/></div>)}
 <div style={{display:"flex",gap:6,marginBottom:8}}>{[1,3,7].map(n=><button key={n} onClick={()=>setEditingCard({...editingCard,due:localDate(new Date(Date.now()+n*86400000))})} className="chip">+{n}</button>)}</div>
 </div>
-</div>
 <div style={grid2}>
 <div><div className="lbl">{t.phone}</div><input className="inp" value={editingCard.phone} onChange={e=>setEditingCard({...editingCard,phone:e.target.value})}/></div>
 <div><div className="lbl">{t.address}</div><input className="inp" value={editingCard.address||""} onChange={e=>setEditingCard({...editingCard,address:e.target.value})}/></div>
