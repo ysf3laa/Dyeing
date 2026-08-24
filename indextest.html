@@ -897,7 +897,7 @@ return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noRe
 <input ref={importCamRef} type="file" accept="image/*" capture="environment" style={{display:"none"}} onChange={handleImportFile}/>
 <input ref={importGalRef} type="file" accept="image/*" style={{display:"none"}} onChange={handleImportFile}/>
 <input ref={restoreRef} type="file" accept="application/json" style={{display:"none"}} onChange={restoreJSON}/>
-<input ref={logoInputRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>{const f=e.target.files?.[0];if(!f||!can)return;const done=d=>{saveFactory({logo:d});showToast("🖼️ اتحفظ اللوجو");};const r=readCompressed(f,done);if(r&&r.then)r.then(done);e.target.value="";}}/>
+<input ref={logoInputRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>{const f=e.target.files?.[0];if(!f||!can)return;const rd=new FileReader();rd.onload=()=>{const img=new Image();img.onload=()=>{const m=Math.max(img.width,img.height);const sc=Math.min(1,256/m);const c=document.createElement("canvas");c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);const x=c.getContext("2d");x.drawImage(img,0,0,c.width,c.height);saveFactory({logo:c.toDataURL("image/png")});showToast("🖼️ اتحفظ اللوجو");};img.onerror=()=>showToast("مش صورة صالحة","danger");img.src=rd.result;};rd.readAsDataURL(f);e.target.value="";}}/>
 {machineSched&&(
 <div className="modal" onClick={()=>setMachineSched(false)}>
 <div className="mbox" onClick={e=>e.stopPropagation()}>
