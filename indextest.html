@@ -707,6 +707,14 @@ const backupJSON=()=>{const a=document.createElement("a");a.href=URL.createObjec
 const restoreJSON=e=>{const f=e.target.files?.[0];if(!f||!can)return;const r=new FileReader();r.onload=async()=>{try{const d=JSON.parse(r.result);if(Array.isArray(d.cards))for(const c of d.cards)await col("cards").doc(c.id).set(c,{merge:true});if(Array.isArray(d.loads))for(const l of d.loads)await col("loads").doc(l.id).set(l,{merge:true});showToast("♻️ ✅");}catch(x){showToast("❌","danger");}};r.readAsText(f);e.target.value="";};
 const wipeAll=async()=>{for(const c of cards)await col("cards").doc(c.id).delete();for(const l of log)await col("logs").doc(l.id).delete();for(const l of loads)await col("loads").doc(l.id).delete();setWipeConfirm(false);showToast("🗑️ ✅");};
 const openSettings=()=>{const __pin=factory.pin||(()=>{try{return localStorage.getItem("pin_"+(tenant||"_"))||"";}catch(e){return "";}})();if(__pin&&sessionStorage.getItem("pinOk")!=="1"){const p=prompt("🔒 اكتب الرقم السري للإعدادات:");if(p!==String(__pin)){showToast("🔒 رمز غلط","danger");return;}sessionStorage.setItem("pinOk","1");}setShowSettings(true);};
+const cfGet=()=>{let loc={};try{loc=JSON.parse(localStorage.getItem("cardFields_"+(tenant||"_"))||"{}");}catch(e){}return Object.assign({},loc,factory.cardFields||{});};
+const fHide=k=>!!((cfGet().hidden||{})[k]);
+const fLabel=(k,d)=>(cfGet().labels||{})[k]||d;
+const setCF=o=>{const nx=Object.assign({},cfGet(),o);try{localStorage.setItem("cardFields_"+(tenant||"_"),JSON.stringify(nx));}catch(e){}setFactory(f=>({...f,cardFields:nx}));if(can&&db){db.collection("t/"+tenant+"/config").doc("settings").set({cardFields:nx},{merge:true}).catch(()=>{});}};
+const toggleField=k=>{const h=Object.assign({},cfGet().hidden||{});if(h[k]){delete h[k];}else{h[k]=true;}setCF({hidden:h});};
+const renameField=(k,d)=>{const n=prompt("اسم الخانة الجديد:",(cfGet().labels||{})[k]||d);if(n===null)return;const l=Object.assign({},cfGet().labels||{});if(n.trim()&&n.trim()!==d){l[k]=n.trim();}else{delete l[k];}setCF({labels:l});};
+const addCustomField=()=>{const n=prompt("اسم الخانة الجديدة:");if(!n||!n.trim())return;setCF({custom:(cfGet().custom||[]).concat([{id:"c"+Date.now(),name:n.trim()}])});};
+const delCustomField=id=>{setCF({custom:(cfGet().custom||[]).filter(x=>x.id!==id)});};
 const notifyCustomer=c=>{window.open(waLink("أهلاً "+(c.customer||"")+" 👋\n📦 أمرك "+(c.code||"")+" تحرّك لمرحلة: "+(c.stage||"")+"\n🏭 "+factory.fname),"_blank");};
 const printCard=card=>{const bc=document.createElementNS("http://www.w3.org/2000/svg","svg");try{if(card.barcode&&window.JsBarcode)JsBarcode(bc,card.barcode,{format:"CODE128",width:2,height:60,displayValue:true,margin:0});}catch(e){}
 let qr=null;try{const qd=document.createElement("div");new QRCode(qd,{text:pubUrl(card),width:160,height:160,correctLevel:QRCode.CorrectLevel.M});const cv=qd.querySelector("canvas");if(cv)qr=cv.toDataURL();}catch(e){}
@@ -1325,14 +1333,14 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <button onClick={()=>editingCard.customer&&toggleFav(editingCard.customer)} style={{width:44,height:44,borderRadius:12,border:"1px solid "+theme.border,background:favs.includes(editingCard.customer)?"rgba(255,182,92,.15)":"transparent",fontSize:18}}>{favs.includes(editingCard.customer)?"⭐":"☆"}</button>
 </div>
 <datalist id="customersList">{knownCustomers.slice(0,50).map(k=><option key={k.name} value={k.name}/>)}</datalist>
-<div style={grid2}>
-<div><div className="lbl">{t.code}</div><input className="inp" value={editingCard.code} onChange={e=>setEditingCard({...editingCard,code:e.target.value})}/></div>
-<div><div className="lbl">{t.message}</div><input className="inp" value={editingCard.message} onChange={e=>setEditingCard({...editingCard,message:e.target.value})}/></div>
-</div>
-<div style={grid2}>
-<div><div className="lbl">{t.category}</div><input className="inp" value={editingCard.category} onChange={e=>setEditingCard({...editingCard,category:e.target.value})}/></div>
-<div><div className="lbl">{t.color}</div><input className="inp" value={editingCard.color} onChange={e=>setEditingCard({...editingCard,color:e.target.value})}/></div>
-</div>
+{(!fHide("code")||!fHide("msg"))&&(<div style={grid2}>
+{!fHide("code")&&(<div><div className="lbl">{fLabel("code",t.code)}</div><input className="inp" value={editingCard.code} onChange={e=>setEditingCard({...editingCard,code:e.target.value})}/></div>)}
+{!fHide("msg")&&(<div><div className="lbl">{fLabel("msg",t.message)}</div><input className="inp" value={editingCard.message} onChange={e=>setEditingCard({...editingCard,message:e.target.value})}/></div>)}
+</div>)}
+{(!fHide("category")||!fHide("color"))&&(<div style={grid2}>
+{!fHide("category")&&(<div><div className="lbl">{fLabel("category",t.category)}</div><input className="inp" value={editingCard.category} onChange={e=>setEditingCard({...editingCard,category:e.target.value})}/></div>)}
+{!fHide("color")&&(<div><div className="lbl">{fLabel("color",t.color)}</div><input className="inp" value={editingCard.color} onChange={e=>setEditingCard({...editingCard,color:e.target.value})}/></div>)}
+</div>)}
 <div className="lbl">{t.colorsLabel}</div>
 <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{allColors.map(c=><button key={c} onClick={()=>setEditingCard({...editingCard,color:c})} className={"chip"+(editingCard.color===c?" on":"")}>{c}</button>)}</div>
 <div style={grid2}>
@@ -1343,10 +1351,11 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 </div>
 <div className="lbl">{t.machine}</div>
 <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{machines.map(m=><button key={m} onClick={()=>setEditingCard({...editingCard,machine:m})} className={"chip"+(editingCard.machine===m?" on":"")}>{m}</button>)}</div>
-<div style={grid2}>
-<div><div className="lbl">{t.prepare}</div><input className="inp" value={editingCard.prepare} onChange={e=>setEditingCard({...editingCard,prepare:e.target.value})}/></div>
-<div><div className="lbl">{t.dye}</div><input className="inp" value={editingCard.dye} onChange={e=>setEditingCard({...editingCard,dye:e.target.value})}/></div>
-</div>
+{(!fHide("prepare")||!fHide("dye"))&&(<div style={grid2}>
+{!fHide("prepare")&&(<div><div className="lbl">{fLabel("prepare",t.prepare)}</div><input className="inp" value={editingCard.prepare} onChange={e=>setEditingCard({...editingCard,prepare:e.target.value})}/></div>)}
+{!fHide("dye")&&(<div><div className="lbl">{fLabel("dye",t.dye)}</div><input className="inp" value={editingCard.dye} onChange={e=>setEditingCard({...editingCard,dye:e.target.value})}/></div>)}
+</div>)}
+{(cfGet().custom||[]).map(x=>(<div key={x.id} style={{marginBottom:10}}><div className="lbl">🧩 {x.name}</div><input className="inp" value={(editingCard.custom||{})[x.id]||""} onChange={e=>{const cu=Object.assign({},editingCard.custom||{});cu[x.id]=e.target.value;setEditingCard({...editingCard,custom:cu});}}/></div>))}
 <div style={grid2}>
 <div><div className="lbl">{t.time}</div><input className="inp" value={editingCard.time} onChange={e=>setEditingCard({...editingCard,time:e.target.value})}/></div>
 <div><div className="lbl">{t.due}</div><input type="date" className="inp" value={editingCard.due||""} onChange={e=>setEditingCard({...editingCard,due:e.target.value})}/>
@@ -1447,6 +1456,20 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 </div>
 <button onClick={addUser} className="btnG" style={{marginBottom:10}}>➕ إضافة عامل</button>
 {users.filter(x=>x.role!=="owner").map(x=>(<div key={x.id} style={{display:"flex",gap:6,alignItems:"center",marginBottom:6}}><span style={{flex:1,fontSize:13}}>👷 {x.name} ({x.id})</span><button onClick={()=>{const p=prompt("الرمز الجديد لـ "+x.id+":");if(p)resetUserPass(x.id,p);}} className="chip">🔑</button><button onClick={()=>{if(confirm("حذف "+x.id+"؟"))deleteUser(x.id);}} className="chip">🗑️</button></div>))}
+<div className="lbl">🃏 تخصيص الخانات (إخفاء / أسماء / إضافة)</div>
+<div style={{maxHeight:260,overflowY:"auto",marginBottom:8}}>
+{[["code","كود"],["msg","رسالة"],["category","صنف"],["color","لون"],["barcode","باركود"],["quantity","كمية"],["machine","ماكينة"],["prepare","تجهيز"],["dye","صباغة"],["date","تاريخ"],["due","موعد التسليم"],["phone","تلفون العميل"],["address","عنوان العميل"],["load","الحمولة"],["deliveredQty","كمية مسلمة"],["notes","ملاحظة"],["urgent","مستعجل"]].map(f=>(<div key={f[0]} style={{display:"flex",gap:6,alignItems:"center",marginBottom:6}}>
+<span style={{flex:1,fontSize:13}}>{fLabel(f[0],f[1])}</span>
+<button className={"chip"+(fHide(f[0])?"":" on")} onClick={()=>toggleField(f[0])}>{fHide(f[0])?"🚫 مخفية":"👁 ظاهرة"}</button>
+<button className="chip" onClick={()=>renameField(f[0],f[1])}>✏️</button>
+</div>))}
+</div>
+<div className="lbl">🧩 خانات خاصة بيك</div>
+{(cfGet().custom||[]).map(x=>(<div key={x.id} style={{display:"flex",gap:6,alignItems:"center",marginBottom:6}}>
+<span style={{flex:1,fontSize:13}}>{x.name}</span>
+<button className="chip" style={{borderColor:"var(--red)",color:"var(--red)"}} onClick={()=>delCustomField(x.id)}>🗑️</button>
+</div>))}
+<button className="btnO" style={{marginBottom:10}} onClick={addCustomField}>➕ إضافة خانة جديدة</button>
 <div className="lbl">🎛️ خانات الكارت (بتظهر لكل عمالك)</div>
 <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>
 <button onClick={()=>saveCardCfg({msg:!cardCfg.msg})} className={"chip"+(cardCfg.msg?" on":"")}>الرسالة</button>
