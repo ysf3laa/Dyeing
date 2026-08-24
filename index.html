@@ -474,7 +474,11 @@ const totalQty=qtySum(liveCards);
 const donePct=totalQty>0?Math.min(100,Math.round((wh.del/totalQty)*100)):0;
 const nCards=useCountUp(liveCards.length);const nLate=useCountUp(lateCount);const nRem=useCountUp(Math.round(wh.rem));const nDel=useCountUp(Math.round(wh.del));
 const grid2={display:"grid",gridTemplateColumns:"1fr 1fr",gap:10};
-const S_ICONS=["🚛","","️","","","🏭","✅","🎯"];
+const stageIcon=(s,i)=>{const n=(s||"").trim();
+const K=[["جيتات","🚛"],["صباغة","🎨"],["تجهيز","⚙️"],["لف","🧵"],["الصالة","🏭"],["صاله","🏭"],["مخزن","📦"],["موقوف","⏸️"],["مرتجع","↩️"],["مقص","✂️"],["شق","✂️"],["رام","🧶"],["جودة","🎯"],["معمل","🧪"],["كي","♨️"],["خياط","🪡"],["غسيل","🫧"],["طباعة","🖨️"],["فحص","🔍"],["تعبئة","📦"]];
+for(const k of K){if(n.indexOf(k[0])>-1)return k[1];}
+const F=["🚛","🎨","⚙️","🧵","","📦","✅","🎯","🔶","","🟣",""];
+return F[i%F.length];};
 const annVisible=!!(announce&&announce.text)&&annDismissed!==String(announce.time);
 const lowLoadList=loads.filter(l=>{const s=loadStats(l);return s.rem<=(parseFloat(l.total)||0)*0.1;});
 const notifCount=lateAll.length+lowLoadList.length;
@@ -752,7 +756,7 @@ return(<div key={c.id} className="card" onClick={()=>jumpToCard(c)} style={{curs
 {stages.map((s,i)=>{const l=liveCards.filter(c=>c.stage===s);const late=l.filter(c=>daysSince(c.updatedAt||c.createdAt)>=LD).length;const q=qtySum(l);const colr=STAGE_COLORS[i%8];
 return(<div key={s} className="anim" style={{display:"flex",gap:12,marginBottom:4,animationDelay:(i*100)+"ms"}}>
 <div style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
-<div className="tldot" style={{background:colr+"22",border:"2px solid "+colr,"--g":colr+"66"}}>{S_ICONS[i%8]}</div>
+<button onClick={()=>{setActiveStage(s);setScreen("stage");}} className="tldot" style={{background:colr+"22",border:"2px solid "+colr,"--g":colr+"66",cursor:"pointer"}}>{stageIcon(s,i)}</button>
 {i<stages.length-1&&<div className="tlline" style={{flex:1,minHeight:30,background:"linear-gradient(180deg,"+colr+","+STAGE_COLORS[(i+1)%8]+")"}}/>}
 </div>
 <div className="card" onClick={()=>{setActiveStage(s);setScreen("stage");}} style={{flex:1,cursor:"pointer",marginBottom:10}}>
