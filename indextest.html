@@ -222,6 +222,10 @@ const [machineSched,setMachineSched]=useState(false);
 const [themeMode,setThemeMode]=useState(localStorage.getItem("themeMode")||"dark");
 const [prefVib,setPrefVib]=useState(localStorage.getItem("prefVib")!=="0");
 const [prefSnd,setPrefSnd]=useState(localStorage.getItem("prefSnd")!=="0");
+const [favs,setFavs]=useState([]);
+useEffect(()=>{try{setFavs(JSON.parse(localStorage.getItem("favs_"+(tenant||"_"))||"[]"));}catch(e){setFavs([]);}},[tenant]);
+const toggleFav=n=>{setFavs(f=>{const nx=f.includes(n)?f.filter(x=>x!==n):f.concat([n]);localStorage.setItem("favs_"+(tenant||"_"),JSON.stringify(nx));return nx;});};
+const calcFor=field=>{const ex=prompt("🧮 اكتب العملية الحسابية:",editingCard?editingCard[field]||"":"");if(ex===null||!editingCard)return;const clean=String(ex).replace(/[٠-٩]/g,function(d){return String("٠١٢٣٤٥٦٧٨٩".indexOf(d));}).replace(/×/g,"*").replace(/÷/g,"/").replace(/[^0-9+\-*/.() ]/g,"");if(!clean.trim())return;try{const v=Function('"use strict";return ('+clean+")")();if(isFinite(v))setEditingCard({...editingCard,[field]:String(Math.round(v*100)/100)});}catch(e){showToast("عملية مش مفهومة","danger");}};
 const [schedDate,setSchedDate]=useState(localDate(new Date()));
 const [cards,setCards]=useState([]);
 const [log,setLog]=useState([]);
@@ -469,6 +473,8 @@ const liveCards=cards.filter(c=>!c.archived);
 const schedCards=liveCards.filter(c=>c.machine&&localDate(new Date(toMs(c.updatedAt||c.createdAt)))===schedDate);
 const schedByMachine=machines.map(m=>({m:m,list:schedCards.filter(c=>String(c.machine)===String(m))})).filter(g=>g.list.length>0);
 const idleMachines=machines.filter(m=>!schedCards.some(c=>String(c.machine)===String(m)));
+const weekChart=(()=>{const out=[];for(let i=6;i>=0;i--){const d=new Date(Date.now()-i*86400000);const key=localDate(d);const n=log.filter(e=>(e.date||localDate(new Date(toMs(e.time||e.timeLocal))))===key).length;out.push({key:key,n:n});}return out;})();
+const weekMax=Math.max(1,...weekChart.map(w=>w.n));
 const exportMachines=()=>{const h=["الماكينة","اسم العميل","الكود","اللون","الكمية","المرحلة"];const rows=schedCards.slice().sort((a,b)=>String(a.machine).localeCompare(String(b.machine),undefined,{numeric:true})).map(c=>[c.machine||"",c.customer||"",c.code||"",c.color||"",c.quantity||"",c.stage||""]);
 const html='<html dir="rtl"><head><meta charset="utf-8"></head><body><table border="1" style="border-collapse:collapse;font-family:Arial;font-size:12px"><tr>'+h.map(x=>'<th style="background:#1B2036;color:#fff;padding:6px 10px">'+x+'</th>').join("")+'</tr>'+rows.map(r=>'<tr>'+r.map(x=>'<td style="padding:4px 8px">'+String(x).replace(/</g,"&lt;")+'</td>').join("")+'</tr>').join("")+'</table></body></html>';const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\uFEFF"+html],{type:"application/vnd.ms-excel"}));a.download="ماكينات-"+schedDate+".xls";a.click();showToast("💾 ✅");};
 const archivedCards=cards.filter(c=>c.archived);
@@ -741,6 +747,16 @@ return(
 <span style={{fontSize:22}}>📅</span>
 <div style={{flex:1}}><b style={{fontSize:14}}>جدول الماكينات النهارده</b><div style={{fontSize:11,color:theme.textDim}}>{schedCards.length} كرت شغالين على {schedByMachine.length} ماكينة</div></div>
 <span style={{color:theme.textDim}}>←</span>
+</div>
+<div className="card anim" style={{animationDelay:"400ms",marginBottom:12}}>
+<div className="lbl">📊 حركة آخر 7 أيام</div>
+<div style={{display:"flex",alignItems:"flex-end",gap:6,height:95}}>
+{weekChart.map((w,i)=>(<div key={w.key} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
+<span style={{fontSize:10,color:theme.textDim}}>{w.n||""}</span>
+<div style={{width:"100%",height:Math.max(4,(w.n/weekMax)*65),borderRadius:6,background:i===6?"var(--teal)":"var(--vio)",animation:"growH .8s both",animationDelay:(i*60)+"ms"}}/>
+<span style={{fontSize:10,color:theme.textDim}}>{["ح","ن","ت","ر","خ","ج","س"][new Date(w.key).getDay()]}</span>
+</div>))}
+</div>
 </div>
 <div className="card anim" style={{animationDelay:"380ms",margin:"12px 0",display:"flex",alignItems:"center",gap:16}}>
 <div style={{textAlign:"center"}}>
@@ -1280,7 +1296,10 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <select className="inp" value={editingCard.stage} onChange={e=>setEditingCard({...editingCard,stage:e.target.value})}>{stages.map(s=><option key={s}>{s}</option>)}</select>
 </div>)}
 <div className="lbl">{t.customer}</div>
-<input className="inp" list="customersList" value={editingCard.customer} onChange={e=>onCustomerChange(e.target.value)}/>
+<div style={{display:"flex",gap:6,alignItems:"center"}}>
+<input className="inp" style={{flex:1,marginBottom:10}} list="customersList" value={editingCard.customer} onChange={e=>onCustomerChange(e.target.value)}/>
+<button onClick={()=>editingCard.customer&&toggleFav(editingCard.customer)} style={{width:44,height:44,borderRadius:12,border:"1px solid "+theme.border,background:favs.includes(editingCard.customer)?"rgba(255,182,92,.15)":"transparent",fontSize:18}}>{favs.includes(editingCard.customer)?"⭐":"☆"}</button>
+</div>
 <datalist id="customersList">{knownCustomers.slice(0,50).map(k=><option key={k.name} value={k.name}/>)}</datalist>
 <div style={grid2}>
 <div><div className="lbl">{t.code}</div><input className="inp" value={editingCard.code} onChange={e=>setEditingCard({...editingCard,code:e.target.value})}/></div>
@@ -1293,7 +1312,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div className="lbl">{t.colorsLabel}</div>
 <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{allColors.map(c=><button key={c} onClick={()=>setEditingCard({...editingCard,color:c})} className={"chip"+(editingCard.color===c?" on":"")}>{c}</button>)}</div>
 <div style={grid2}>
-<div><div className="lbl">{t.quantity}</div><input className="inp" value={editingCard.quantity} onChange={e=>setEditingCard({...editingCard,quantity:e.target.value})}/></div>
+<div><div className="lbl">{t.quantity}</div><div style={{display:"flex",gap:6}}><input className="inp" style={{flex:1,marginBottom:6}} value={editingCard.quantity} onChange={e=>setEditingCard({...editingCard,quantity:e.target.value})}/><button onClick={()=>calcFor("quantity")} style={{width:44,height:44,borderRadius:12,border:"1px solid "+theme.border,background:"transparent",fontSize:16}}>🧮</button></div></div>
 <div><div className="lbl">{t.barcode}</div><div style={{display:"flex",gap:6}}><input className="inp" style={{marginBottom:6}} value={editingCard.barcode} onChange={e=>setEditingCard({...editingCard,barcode:e.target.value})}/><button onClick={()=>{scanMode.current="form";setShowScanner(true);}} style={{flex:"0 0 auto",padding:"0 12px",borderRadius:12,border:"none",background:"var(--teal)",color:"#04211a",fontSize:16,fontWeight:800}}>📷</button></div>
 {editingCard.barcode&&<div style={{background:"#fff",borderRadius:8,padding:"6px 4px",marginBottom:8,textAlign:"center"}}><BarcodeView value={editingCard.barcode}/></div>}
 </div>
@@ -1378,7 +1397,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div className="modal" onClick={()=>setShowSearch(false)}>
 <div className="mbox" onClick={e=>e.stopPropagation()}>
 <h3 style={{margin:"0 0 14px"}}>{t.search}</h3>
-<SearchModal t={t} cards={liveCards} onPick={c=>{setShowSearch(false);jumpToCard(c);}}/>
+<SearchModal t={t} cards={liveCards} onPick={c=>{setShowSearch(false);jumpToCard(c);}} favs={favs}/>
 </div></div>)}
 {showSettings&&(
 <div className="modal" onClick={()=>setShowSettings(false)}>
@@ -1453,10 +1472,10 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 {toast&&(<div style={{position:"fixed",bottom:90,left:"50%",transform:"translateX(-50%)",background:toast.kind==="danger"?"var(--red)":"var(--teal)",color:"#fff",padding:"10px 18px",borderRadius:30,fontSize:14,fontWeight:800,zIndex:999,animation:"pop .3s both",boxShadow:"0 8px 24px rgba(0,0,0,.4)",display:"flex",alignItems:"center",gap:10}}>{toast.msg}{toast.action&&<button onClick={()=>{toast.action.fn();setToast(null);}} style={{background:"rgba(255,255,255,.25)",border:"none",color:"#fff",borderRadius:20,padding:"5px 12px",fontSize:12,fontWeight:800}}>{toast.action.label}</button>}</div>)}
 </div>);
 }
-function SearchModal({t,cards,onPick}){
+function SearchModal({t,cards,onPick,favs}){
 const [q,setQ]=useState("");
 const r=q.trim()?cards.filter(c=>FIELD_KEYS.some(k=>(c[k]||"").toString().toLowerCase().includes(q.toLowerCase()))).slice(0,20):[];
-return(<div><input autoFocus value={q} onChange={e=>setQ(e.target.value)} placeholder={t.search} className="inp"/>
+return(<div>{favs&&favs.length>0&&(<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>{favs.map(f=><button key={f} onClick={()=>setQ(f)} className="chip on" style={{marginBottom:4}}>⭐ {f}</button>)}</div>)}<input autoFocus value={q} onChange={e=>setQ(e.target.value)} placeholder={t.search} className="inp"/>
 {q.trim()&&r.length===0&&<p style={{color:"var(--dim)",fontSize:13,textAlign:"center"}}>{t.noResults}</p>}
 <div>{r.map((c,i)=>(<div key={c.id} onClick={()=>onPick(c)} className="card anim" style={{cursor:"pointer",padding:"10px 12px",marginBottom:8,animationDelay:(i*40)+"ms"}}><b style={{fontSize:14}}>{c.customer} · {c.code}</b><div style={{fontSize:12,color:"var(--dim)"}}>{c.stage} — {c.color}</div></div>))}</div></div>);
 }
