@@ -218,6 +218,8 @@ const [selected,setSelected]=useState([]);
 const [bulkMoveTo,setBulkMoveTo]=useState(false);
 const [stageMgr,setStageMgr]=useState(false);
 const [delStage,setDelStage]=useState(null);
+const [machineSched,setMachineSched]=useState(false);
+const [schedDate,setSchedDate]=useState(localDate(new Date()));
 const [cards,setCards]=useState([]);
 const [log,setLog]=useState([]);
 const [loads,setLoads]=useState([]);
@@ -284,7 +286,7 @@ const restoreRef=useRef(null);
 const scanMode=useRef("form");
 const gotoDone=useRef(false);
 const uiRef=useRef({});
-uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,showTopCust,photoView,appQr,importMenu,importDraft,showMic,showWarehouse,addLoad,loadDetail,showLateList,showDelivered,heroEdit,showDefects,defectFor,showAnnounce,linkedFrom,showNotif,reportSuggest,manageCo,bulkMoveTo,stageMgr,delStage};
+uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,showTopCust,photoView,appQr,importMenu,importDraft,showMic,showWarehouse,addLoad,loadDetail,showLateList,showDelivered,heroEdit,showDefects,defectFor,showAnnounce,linkedFrom,showNotif,reportSuggest,manageCo,bulkMoveTo,stageMgr,delStage,machineSched};
 const t=DICT[lang];
 const dir=lang==="ar"?"rtl":"ltr";
 const isSuper=!!(me&&me.role==="super");
@@ -299,7 +301,7 @@ useEffect(()=>{setFnameDraft(factory.fname);setWaDraft(factory.wa);setLateDraft(
 useEffect(()=>{if(me)setOwnerName(me.name);},[me]);
 useEffect(()=>{if(me&&!isSuper&&can){const today=localDate(new Date());if(localStorage.getItem("lastReport_"+tenant)!==today){setReportSuggest(true);}}},[me]);
 useEffect(()=>{history.pushState({guard:1},"");const onPop=()=>{const u=uiRef.current;
-if(u.showTopCust)setShowTopCust(false);else if(u.showLateList)setShowLateList(false);else if(u.showDelivered)setShowDelivered(false);else if(u.heroEdit)setHeroEdit(false);else if(u.showDefects)setShowDefects(false);else if(u.defectFor)setDefectFor(null);else if(u.showAnnounce)setShowAnnounce(false);else if(u.linkedFrom)setLinkedFrom(null);else if(u.showNotif)setShowNotif(false);else if(u.reportSuggest)setReportSuggest(false);else if(u.manageCo)setManageCo(null);else if(u.bulkMoveTo)setBulkMoveTo(false);else if(u.stageMgr)setStageMgr(false);else if(u.delStage)setDelStage(null);else if(u.addLoad)setAddLoad(false);else if(u.loadDetail)setLoadDetail(null);else if(u.showWarehouse)setShowWarehouse(false);else if(u.showMic)setShowMic(false);else if(u.importMenu)setImportMenu(false);else if(u.importDraft)setImportDraft(null);
+if(u.showTopCust)setShowTopCust(false);else if(u.showLateList)setShowLateList(false);else if(u.showDelivered)setShowDelivered(false);else if(u.heroEdit)setHeroEdit(false);else if(u.showDefects)setShowDefects(false);else if(u.defectFor)setDefectFor(null);else if(u.showAnnounce)setShowAnnounce(false);else if(u.linkedFrom)setLinkedFrom(null);else if(u.showNotif)setShowNotif(false);else if(u.reportSuggest)setReportSuggest(false);else if(u.manageCo)setManageCo(null);else if(u.bulkMoveTo)setBulkMoveTo(false);else if(u.stageMgr)setStageMgr(false);else if(u.delStage)setDelStage(null);else if(u.machineSched)setMachineSched(false);else if(u.addLoad)setAddLoad(false);else if(u.loadDetail)setLoadDetail(null);else if(u.showWarehouse)setShowWarehouse(false);else if(u.showMic)setShowMic(false);else if(u.importMenu)setImportMenu(false);else if(u.importDraft)setImportDraft(null);
 else if(u.reportText)setReportText(null);else if(u.showScanner)setShowScanner(false);else if(u.bcCard)setBcCard(null);
 else if(u.statementFor)setStatementFor(null);else if(u.showWorkers)setShowWorkers(false);
 else if(u.photoView)setPhotoView(null);else if(u.appQr)setAppQr(false);else if(u.showMenu)setShowMenu(false);
@@ -459,6 +461,11 @@ const deleteStageMove=(s,dest)=>{cards.filter(c=>c.stage===s).forEach(c=>col("ca
 const isLate=c=>daysSince(c.updatedAt||c.createdAt)>=1;
 const dueInfo=c=>{if(!c.due)return null;const today=localDate(new Date());if(c.due<today)return{txt:t.overdue,col:theme.danger};if((new Date(c.due).getTime()-new Date(today).getTime())/86400000<=1)return{txt:t.dueSoon,col:theme.warn};return null;};
 const liveCards=cards.filter(c=>!c.archived);
+const schedCards=liveCards.filter(c=>c.machine&&localDate(new Date(toMs(c.updatedAt||c.createdAt)))===schedDate);
+const schedByMachine=machines.map(m=>({m:m,list:schedCards.filter(c=>String(c.machine)===String(m))})).filter(g=>g.list.length>0);
+const idleMachines=machines.filter(m=>!schedCards.some(c=>String(c.machine)===String(m)));
+const exportMachines=()=>{const h=["الماكينة","اسم العميل","الكود","اللون","الكمية","المرحلة"];const rows=schedCards.slice().sort((a,b)=>String(a.machine).localeCompare(String(b.machine),undefined,{numeric:true})).map(c=>[c.machine||"",c.customer||"",c.code||"",c.color||"",c.quantity||"",c.stage||""]);
+const html='<html dir="rtl"><head><meta charset="utf-8"></head><body><table border="1" style="border-collapse:collapse;font-family:Arial;font-size:12px"><tr>'+h.map(x=>'<th style="background:#1B2036;color:#fff;padding:6px 10px">'+x+'</th>').join("")+'</tr>'+rows.map(r=>'<tr>'+r.map(x=>'<td style="padding:4px 8px">'+String(x).replace(/</g,"&lt;")+'</td>').join("")+'</tr>').join("")+'</table></body></html>';const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\uFEFF"+html],{type:"application/vnd.ms-excel"}));a.download="ماكينات-"+schedDate+".xls";a.click();showToast("💾 ✅");};
 const archivedCards=cards.filter(c=>c.archived);
 const cardsToShow=activeStage?liveCards.filter(c=>c.stage===activeStage).filter(c=>!lateOnly||isLate(c)).filter(c=>{const q=stageQ.trim().toLowerCase();if(!q)return true;return FIELD_KEYS.some(k=>((c[k]||"")+"").toLowerCase().includes(q));}).sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||toMs(b.updatedAt)-toMs(a.updatedAt)):[];
 const statusMsg=syncStatus==="syncing"?t.syncing:syncStatus==="synced"?t.synced:(isOnline?t.online:t.offline);
@@ -725,6 +732,11 @@ return(
 <div className="card anim" onClick={()=>setShowWarehouse(true)} style={{animationDelay:"260ms",cursor:"pointer"}}><div className="lbl">📦 متبقي المخزن</div><div style={{fontSize:26,fontWeight:900,color:"var(--blue)"}}>{nRem} <span style={{fontSize:11,color:theme.textDim}}>{factory.unit}</span></div></div>
 <div className="card anim" onClick={()=>setShowDelivered(true)} style={{animationDelay:"320ms",cursor:"pointer"}}><div className="lbl">✅ اتسلم</div><div style={{fontSize:26,fontWeight:900,color:"var(--teal)"}}>{nDel}</div></div>
 </div>
+<div className="card anim" onClick={()=>{setSchedDate(localDate(new Date()));setMachineSched(true);}} style={{animationDelay:"360ms",marginBottom:12,display:"flex",alignItems:"center",gap:10,cursor:"pointer"}}>
+<span style={{fontSize:22}}>📅</span>
+<div style={{flex:1}}><b style={{fontSize:14}}>جدول الماكينات النهارده</b><div style={{fontSize:11,color:theme.textDim}}>{schedCards.length} كرت شغالين على {schedByMachine.length} ماكينة</div></div>
+<span style={{color:theme.textDim}}>←</span>
+</div>
 <div className="card anim" style={{animationDelay:"380ms",margin:"12px 0",display:"flex",alignItems:"center",gap:16}}>
 <div style={{textAlign:"center"}}>
 <Ring pct={donePct} size={110} color="var(--teal)"><b style={{fontSize:20}}>{donePct}%</b><span style={{fontSize:10,color:theme.textDim}}>إنجاز</span></Ring>
@@ -863,6 +875,30 @@ return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noRe
 <input ref={importCamRef} type="file" accept="image/*" capture="environment" style={{display:"none"}} onChange={handleImportFile}/>
 <input ref={importGalRef} type="file" accept="image/*" style={{display:"none"}} onChange={handleImportFile}/>
 <input ref={restoreRef} type="file" accept="application/json" style={{display:"none"}} onChange={restoreJSON}/>
+{machineSched&&(
+<div className="modal" onClick={()=>setMachineSched(false)}>
+<div className="mbox" onClick={e=>e.stopPropagation()}>
+<div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+<h3 style={{margin:0,flex:1}}>📅 جدول الماكينات</h3>
+<input type="date" className="inp" style={{marginBottom:0,width:150}} value={schedDate} onChange={e=>setSchedDate(e.target.value)}/>
+</div>
+<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>
+{badge("var(--vio)","🔧 "+schedByMachine.length+" شغالة")}
+{badge("var(--blue)","🃏 "+schedCards.length+" كرت")}
+{badge("var(--teal)","⚖️ "+qtySum(schedCards)+" "+factory.unit)}
+</div>
+{schedCards.length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center"}}>مفيش شغل مسجل في اليوم ده</p>}
+{schedByMachine.map((g,i)=>(
+<div key={g.m} className="card anim" style={{marginBottom:10,borderInlineStart:"4px solid "+STAGE_COLORS[i%8],animationDelay:(i*60)+"ms"}}>
+<div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}><b>🔧 ماكينة {g.m}</b><span style={{fontSize:11,color:theme.textDim}}>{g.list.length} كرت · {qtySum(g.list)} {factory.unit}</span></div>
+{g.list.map(c=>(<div key={c.id} onClick={()=>{setMachineSched(false);jumpToCard(c);}} style={{cursor:"pointer",display:"flex",justifyContent:"space-between",fontSize:12.5,padding:"7px 4px",borderTop:"1px solid "+theme.border}}>
+<span>{c.customer||"—"} · {c.code||"—"} · {c.color||"—"}</span>
+<b>{c.quantity||""} {c.delivered?"✅":""}</b>
+</div>))}
+</div>))}
+{idleMachines.length>0&&<div style={{fontSize:12,color:theme.textDim,marginTop:6}}>⚪ فاضية النهارده: {idleMachines.join("، ")}</div>}
+<button onClick={exportMachines} className="btnO" style={{marginTop:10}}>💾 تصدير الجدول</button>
+</div></div>)}
 {bulkMoveTo&&(
 <div className="modal" onClick={()=>setBulkMoveTo(false)}>
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:340}}>
@@ -921,6 +957,7 @@ return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noRe
 <MenuBtn onClick={()=>{setScreen("home");setShowMenu(false);}} active={screen==="home"}>🏠 {t.home}</MenuBtn>
 <MenuBtn onClick={()=>{setScreen("stages");setShowMenu(false);}} active={screen==="stages"}>🏭 {t.stagesLabel}</MenuBtn>
 <MenuBtn onClick={()=>{setShowWarehouse(true);setShowMenu(false);}}>📦 المخزن الرئيسي</MenuBtn>
+<MenuBtn onClick={()=>{setSchedDate(localDate(new Date()));setMachineSched(true);setShowMenu(false);}}>📅 جدول الماكينات</MenuBtn>
 <div style={{height:1,background:theme.border,margin:"8px 0"}}/>
 <MenuBtn onClick={()=>{setReportText(buildReport());setShowMenu(false);}}>📊 {t.report}</MenuBtn>
 <MenuBtn onClick={()=>{setStatementFor(knownCustomers[0]?knownCustomers[0].name:"");setShowMenu(false);}}>👥 {t.statement}</MenuBtn>
