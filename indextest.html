@@ -290,6 +290,7 @@ const importCamRef=useRef(null);
 const importGalRef=useRef(null);
 const scannerRef=useRef(null);
 const restoreRef=useRef(null);
+const logoInputRef=useRef(null);
 const scanMode=useRef("form");
 const gotoDone=useRef(false);
 const uiRef=useRef({});
@@ -731,7 +732,7 @@ return(
 <button onClick={()=>setShowMenu(true)} style={hdrBtn}>⋯</button>
 </div>
 <div className="card grad anim" style={{animationDelay:"80ms",marginBottom:12,position:"relative",overflow:"hidden"}}>
-<div style={{position:"absolute",top:14,insetInlineEnd:14,fontSize:40,animation:"floaty 3s infinite"}}>🏭</div>
+<div style={{position:"absolute",top:14,insetInlineEnd:14,fontSize:40,animation:"floaty 3s infinite"}}>{factory.logo?<img src={factory.logo} style={{width:46,height:46,borderRadius:12,objectFit:"cover",border:"2px solid rgba(255,255,255,.4)"}}/>:"🏭"}</div>
 {can&&<button onClick={()=>setHeroEdit(true)} style={{position:"absolute",bottom:10,insetInlineEnd:10,background:"rgba(255,255,255,.2)",border:"none",borderRadius:10,padding:"6px 10px",color:"#fff",fontSize:13}}>✏️ تعديل</button>}
 <div style={{fontSize:13,color:"#E4DCFF"}}>{factory.heroS||"نظام إدارة أوامر الإنتاج لمصنع - متابعة المراحل"}</div>
 <div style={{fontSize:22,fontWeight:900,margin:"4px 0 10px"}}>{factory.heroT||"متابعة مراحل"}</div>
@@ -896,6 +897,7 @@ return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noRe
 <input ref={importCamRef} type="file" accept="image/*" capture="environment" style={{display:"none"}} onChange={handleImportFile}/>
 <input ref={importGalRef} type="file" accept="image/*" style={{display:"none"}} onChange={handleImportFile}/>
 <input ref={restoreRef} type="file" accept="application/json" style={{display:"none"}} onChange={restoreJSON}/>
+<input ref={logoInputRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>{const f=e.target.files?.[0];if(!f||!can)return;readCompressed(f,d=>{saveFactory({logo:d});showToast("🖼️ اتحفظ اللوجو");});e.target.value="";}}/>
 {machineSched&&(
 <div className="modal" onClick={()=>setMachineSched(false)}>
 <div className="mbox" onClick={e=>e.stopPropagation()}>
@@ -1446,8 +1448,12 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div style={{display:"flex",gap:6,marginBottom:10}}><input className="inp" style={{marginBottom:0}} value={nameDraft} onChange={e=>setNameDraft(e.target.value)}/><button onClick={()=>{if(nameDraft.trim()){setOwnerName(nameDraft.trim());showToast("✅");}}} className="chip on">{t.save}</button></div>
 <div className="lbl">🏭 {t.factoryName}</div>
 <input className="inp" value={fnameDraft} onChange={e=>setFnameDraft(e.target.value)}/>
-<div className="lbl">📱 {t.waNumber}</div>
-<input className="inp" inputMode="numeric" placeholder="201xxxxxxxxx" value={waDraft} onChange={e=>setWaDraft(e.target.value)}/>
+<div className="lbl">🖼️ لوجو الشركة</div>
+<div style={{display:"flex",gap:6,alignItems:"center",marginBottom:10}}>
+{factory.logo&&<img src={factory.logo} style={{width:44,height:44,borderRadius:10,objectFit:"cover"}}/>}
+<button onClick={()=>logoInputRef.current&&logoInputRef.current.click()} className="chip on">📤 رفع لوجو</button>
+{factory.logo&&<button onClick={()=>saveFactory({logo:""})} className="chip">🗑️</button>}
+</div>
 <div style={grid2}>
 <div><div className="lbl">⚖️ {t.unit}</div><select className="inp" value={factory.unit} onChange={e=>saveFactory({unit:e.target.value})}>{["كيلو","قطعة","متر","دستة","طن"].map(u=><option key={u}>{u}</option>)}</select></div>
 <div><div className="lbl">🖨️ {t.printSize}</div><select className="inp" value={factory.printSize} onChange={e=>saveFactory({printSize:e.target.value})}>{["A5","A4"].map(u=><option key={u}>{u}</option>)}</select></div>
