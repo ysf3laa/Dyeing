@@ -196,6 +196,8 @@ const [selectMode,setSelectMode]=useState(false);const [selected,setSelected]=us
 const toggleSelect=id=>{setSelected(s=>s.includes(id)?s.filter(x=>x!==id):s.concat([id]));};
 const bulkPatch=o=>{selected.forEach(id=>{db.collection("cards").doc(id).set({...o,updatedAt:Date.now()},{merge:true});});setSelected([]);setSelectMode(false);};
 const bulkDel=()=>{if(!confirm("حذف "+selected.length+" كرت؟"))return;selected.forEach(id=>db.collection("cards").doc(id).delete());setSelected([]);setSelectMode(false);};
+const [showBulkMove,setShowBulkMove]=useState(false);const [showStageMgr,setShowStageMgr]=useState(false);const [delStagePick,setDelStagePick]=useState(null);
+const stDelTo=(s,to)=>{saveStages(stages.filter(x=>x!==s));cards.filter(c=>c.stage===s).forEach(c=>db.collection("cards").doc(c.id).set({stage:to},{merge:true}));};
 const bulkPrint=()=>{const list=cards.filter(c=>selected.includes(c.id));const rows=list.map(c=>"<tr><td>"+(c.customer||"")+"</td><td>"+(c.code||"")+"</td><td>"+(c.color||"")+"</td><td>"+(c.quantity||"")+"</td><td>"+(c.stage||"")+"</td><td>"+(c.machine||"")+"</td></tr>").join("");const w=window.open("","_blank");if(!w)return;w.document.write('<html dir="rtl"><head><meta charset="utf-8"><style>table{width:100%;border-collapse:collapse}td,th{border:1px solid #000;padding:6px;font-size:12px}</style></head><body><h2>🏭 '+(factory.fname||"")+'</h2><table><tr><th>عميل</th><th>كود</th><th>لون</th><th>كمية</th><th>مرحلة</th><th>ماكينة</th></tr>'+rows+'</table><scr'+'ipt>window.onload=function(){window.print()}<\/scr'+'ipt></body></html>');w.document.close();};
 const stRename=s=>{const n=prompt("اسم جديد للمرحلة:",s);if(n&&n.trim()&&n!==s){saveStages(stages.map(x=>x===s?n.trim():x));cards.filter(c=>c.stage===s).forEach(c=>db.collection("cards").doc(c.id).set({stage:n.trim()},{merge:true}));}};
 const stOrder=(s,dir)=>{const i2=stages.indexOf(s);const j=i2+dir;if(j<0||j>=stages.length)return;const l=[...stages];l[i2]=l[j];l[j]=s;saveStages(l);};
@@ -474,6 +476,7 @@ return(<div key={c.id} className="card" onClick={()=>jumpToCard(c)} style={{curs
 <div className="anim" style={{display:"flex",alignItems:"center",gap:10,marginBottom:18}}>
 <button onClick={()=>setScreen("home")} style={hdrBtn}>→</button>
 <div style={{flex:1}}><div style={{fontSize:19,fontWeight:900}}>مراحل العمل</div><div style={{fontSize:11,color:theme.textDim}}>تابع جميع مراحل الإنتاج</div></div>
+{can&&<button onClick={()=>setShowStageMgr(true)} style={hdrBtn}>⚙️</button>}
 </div>
 {(()=>{const orph=liveCards.filter(c=>!stages.includes(c.stage));return orph.length>0?(<div onClick={()=>setEditingCard(orph[0])} className="card" style={{marginBottom:14,borderColor:"var(--red)",cursor:"pointer"}}>⚠️ عندك {orph.length} كرت في مرحلة مش موجودة — دوس تصلّح</div>):null;})()}
 {stages.map((s,i)=>{const l=liveCards.filter(c=>c.stage===s);const late=l.filter(c=>daysSince(c.updatedAt||c.createdAt)>=LD).length;const q=qtySum(l);const col=STAGE_COLORS[i%8];
@@ -484,12 +487,6 @@ return(<div key={s} className="anim" style={{display:"flex",gap:12,marginBottom:
 </div>
 <div className="card" onClick={()=>{setActiveStage(s);setScreen("stage");}} style={{flex:1,cursor:"pointer",marginBottom:10}}>
 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><div><span className="badge" style={{background:col}}>0{i+1}</span> <b style={{fontSize:15,marginInlineStart:6}}>{s}</b></div>{late>0&&<span className="badge" style={{background:"var(--red)"}}>⚠️ {late}</span>}</div>
-{can&&(<div style={{display:"flex",gap:6,marginTop:8}} onClick={e=>e.stopPropagation()}>
-<button className="chip" onClick={()=>stOrder(s,-1)}>⬆️</button>
-<button className="chip" onClick={()=>stOrder(s,1)}>️</button>
-<button className="chip" onClick={()=>stRename(s)}>✏️</button>
-<button className="chip" style={{borderColor:"var(--red)",color:"var(--red)"}} onClick={()=>stDel(s)}>🗑️</button>
-</div>)}
 <div style={{fontSize:12,color:theme.textDim,marginTop:6}}>{l.length} {t.cardsPlural}{q?" · "+q+" "+factory.unit:""}</div>
 </div></div>);})}
 {can&&<button onClick={()=>{const n=prompt(t.addStage);if(n&&n.trim()&&!stages.includes(n.trim()))saveStages(stages.concat([n.trim()]));}} className="btnO" style={{marginTop:8}}>➕ {t.addStage}</button>}
@@ -508,18 +505,6 @@ return(<div key={s} className="anim" style={{display:"flex",gap:12,marginBottom:
 <input value={stageQ} onChange={e=>setStageQ(e.target.value)} placeholder={t.search} style={{flex:1,background:"transparent",border:"none",outline:"none",color:theme.text,fontSize:14}}/>
 {stageQ!==""&&<button onClick={()=>setStageQ("")} style={{background:"none",border:"none",color:theme.textDim,fontSize:16}}>✕</button>}
 </div>
-{selectMode&&selected.length>0&&(<div className="card" style={{borderColor:"var(--vio)",marginBottom:12}}>
-<div style={{fontSize:12,marginBottom:6}}>☑️ {selected.length} محدد</div>
-<div style={{display:"flex",gap:6,flexWrap:"wrap",alignItems:"center"}}>
-<select className="inp" style={{flex:1,marginBottom:0}} value={bulkMoveTo} onChange={e=>setBulkMoveTo(e.target.value)}><option value="">نقل لـ...</option>{stages.map(s=><option key={s}>{s}</option>)}</select>
-{bulkMoveTo&&<button className="chip on" onClick={()=>bulkPatch({stage:bulkMoveTo})}>📦 نقل</button>}
-<button className="chip on" onClick={()=>bulkPatch({delivered:true,deliveredAt:Date.now()})}>✅ تسليم</button>
-<button className="chip" onClick={()=>exportSheet(cards.filter(c=>selected.includes(c.id)),"bulk")}>💾</button>
-<button className="chip" onClick={bulkPrint}>🖨️</button>
-<button className="chip" style={{borderColor:"var(--red)",color:"var(--red)"}} onClick={bulkDel}>🗑️</button>
-<button className="chip" onClick={()=>{setSelected([]);setSelectMode(false);}}>✕</button>
-</div>
-</div>)}
 <div style={{position:"fixed",bottom:86,insetInlineEnd:14,display:"flex",flexDirection:"column",gap:10,zIndex:250}}>
 {can&&<button onClick={()=>{setMicText("");setShowMic(true);}} style={{width:50,height:50,borderRadius:25,border:"none",color:"#fff",fontSize:20,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 8px 20px rgba(0,0,0,.4)",background:"var(--vio)"}}>🎙️</button>}
 {can&&<button onClick={()=>setImportMenu(true)} style={{width:50,height:50,borderRadius:25,border:"none",color:"#fff",fontSize:20,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 8px 20px rgba(0,0,0,.4)",background:"var(--teal)"}}>📄</button>}
@@ -538,6 +523,36 @@ return(<div key={c.id} className="card" onClick={()=>selectMode?toggleSelect(c.i
 {(c.urgent||l2||l1||lk>0||di||c.delivered||c.deliveredQty)&&(<div style={{display:"flex",gap:6,marginTop:8,flexWrap:"wrap"}}>{c.urgent&&badge("var(--red)",t.urgent)}{l2&&badge("var(--red)",t.aged2)}{!l2&&l1&&badge("var(--warn)",t.aged1)}{di&&badge(di.col,di.txt)}{lk>0&&<span onClick={(e)=>{e.stopPropagation();setLinkedFrom(c);}} style={{cursor:"pointer"}}>{badge("var(--blue)",t.linkedCards+": "+lk+" ←")}</span>}{c.delivered&&badge("var(--teal)","✅ مسلّم")}{!c.delivered&&c.deliveredQty&&badge("var(--teal)","⚖️ "+c.deliveredQty)}</div>)}
 </div>);})}
 </div>)}
+{selectMode&&(<div style={{position:"fixed",bottom:70,left:0,right:0,zIndex:400,display:"flex",justifyContent:"center",pointerEvents:"none"}}>
+<div style={{pointerEvents:"auto",background:theme.panel,border:"1px solid "+theme.border,borderRadius:20,padding:"8px 10px",display:"flex",gap:6,flexWrap:"wrap",justifyContent:"center",maxWidth:600,boxShadow:"0 10px 30px rgba(0,0,0,.5)"}}>
+<span className="chip on">{selected.length}</span>
+<button className="chip" onClick={()=>setSelected(cardsToShow.map(c=>c.id))}>☑️ الكل</button>
+<button className="chip" onClick={()=>setShowBulkMove(true)}>📦 نقل</button>
+<button className="chip" onClick={()=>bulkPatch({delivered:true,deliveredAt:Date.now()})}>✅ تسليم</button>
+<button className="chip" onClick={bulkPrint}>🖨️</button>
+<button className="chip" onClick={()=>exportSheet(cards.filter(c=>selected.includes(c.id)),"bulk")}>💾</button>
+<button className="chip" style={{borderColor:"var(--red)",color:"var(--red)"}} onClick={bulkDel}>🗑️</button>
+<button className="chip" onClick={()=>{setSelected([]);setSelectMode(false);}}>✕</button>
+</div></div>)}
+{showBulkMove&&(<div className="modal" onClick={()=>setShowBulkMove(false)}><div className="mbox" style={{maxWidth:360}} onClick={e=>e.stopPropagation()}>
+<h3 style={{margin:"0 0 10px"}}>📦 نقل {selected.length} كرت لمرحلة:</h3>
+{stages.map(s=><button key={s} className="chip" style={{margin:4}} onClick={()=>{bulkPatch({stage:s});setShowBulkMove(false);}}>{s}</button>)}
+</div></div>)}
+{showStageMgr&&(<div className="modal" onClick={()=>setShowStageMgr(false)}><div className="mbox" style={{maxWidth:420}} onClick={e=>e.stopPropagation()}>
+<h3 style={{margin:"0 0 10px"}}>🎚️ إدارة المراحل</h3>
+{stages.map((s,i)=><div key={s} style={{display:"flex",gap:6,alignItems:"center",marginBottom:8}}>
+<span style={{flex:1,fontSize:14}}>{S_ICONS[i%8]} {s}</span>
+<button className="chip" onClick={()=>stOrder(s,-1)}>⬆️</button>
+<button className="chip" onClick={()=>stOrder(s,1)}>⬇️</button>
+<button className="chip" onClick={()=>stRename(s)}>✏️</button>
+<button className="chip" style={{borderColor:"var(--red)",color:"var(--red)"}} onClick={()=>setDelStagePick(s)}>🗑️</button>
+</div>)}
+<button className="btnG" onClick={()=>{const n=prompt(t.addStage);if(n&&n.trim()&&!stages.includes(n.trim()))saveStages(stages.concat([n.trim()]));}}>➕ {t.addStage}</button>
+</div></div>)}
+{delStagePick&&(<div className="modal" onClick={()=>setDelStagePick(null)}><div className="mbox" style={{maxWidth:360}} onClick={e=>e.stopPropagation()}>
+<h3 style={{margin:"0 0 10px"}}>🗑️ حذف "{delStagePick}" — كروتها تروح فين؟</h3>
+{stages.filter(x=>x!==delStagePick).map(s=><button key={s} className="chip" style={{margin:4}} onClick={()=>{stDelTo(delStagePick,s);setDelStagePick(null);setShowStageMgr(false);}}>{s}</button>)}
+</div></div>)}
 {screen==="log"&&(
 <div style={{maxWidth:640,margin:"0 auto",padding:"40px 16px 20px"}}>
 <div className="anim" style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}><button onClick={()=>setScreen("home")} style={hdrBtn}>→</button><div style={{fontSize:19,fontWeight:900,flex:1}}>{t.dailyLog}</div></div>
