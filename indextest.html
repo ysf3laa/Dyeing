@@ -196,6 +196,10 @@ const [selectMode,setSelectMode]=useState(false);const [selected,setSelected]=us
 const toggleSelect=id=>{setSelected(s=>s.includes(id)?s.filter(x=>x!==id):s.concat([id]));};
 const bulkPatch=o=>{selected.forEach(id=>{db.collection("cards").doc(id).set({...o,updatedAt:Date.now()},{merge:true});});setSelected([]);setSelectMode(false);};
 const bulkDel=()=>{if(!confirm("حذف "+selected.length+" كرت؟"))return;selected.forEach(id=>db.collection("cards").doc(id).delete());setSelected([]);setSelectMode(false);};
+const bulkPrint=()=>{const list=cards.filter(c=>selected.includes(c.id));const rows=list.map(c=>"<tr><td>"+(c.customer||"")+"</td><td>"+(c.code||"")+"</td><td>"+(c.color||"")+"</td><td>"+(c.quantity||"")+"</td><td>"+(c.stage||"")+"</td><td>"+(c.machine||"")+"</td></tr>").join("");const w=window.open("","_blank");if(!w)return;w.document.write('<html dir="rtl"><head><meta charset="utf-8"><style>table{width:100%;border-collapse:collapse}td,th{border:1px solid #000;padding:6px;font-size:12px}</style></head><body><h2>🏭 '+(factory.fname||"")+'</h2><table><tr><th>عميل</th><th>كود</th><th>لون</th><th>كمية</th><th>مرحلة</th><th>ماكينة</th></tr>'+rows+'</table><scr'+'ipt>window.onload=function(){window.print()}<\/scr'+'ipt></body></html>');w.document.close();};
+const stRename=s=>{const n=prompt("اسم جديد للمرحلة:",s);if(n&&n.trim()&&n!==s){saveStages(stages.map(x=>x===s?n.trim():x));cards.filter(c=>c.stage===s).forEach(c=>db.collection("cards").doc(c.id).set({stage:n.trim()},{merge:true}));}};
+const stOrder=(s,dir)=>{const i2=stages.indexOf(s);const j=i2+dir;if(j<0||j>=stages.length)return;const l=[...stages];l[i2]=l[j];l[j]=s;saveStages(l);};
+const stDel=s=>{const rest=stages.filter(x=>x!==s);const to=prompt("⚠️ كروت "+s+" هتنتقل لمرحلة:\n"+rest.join(" ، "));if(!to||!rest.includes(to.trim()))return;saveStages(rest);cards.filter(c=>c.stage===s).forEach(c=>db.collection("cards").doc(c.id).set({stage:to.trim()},{merge:true}));};
 const [stageQ,setStageQ]=useState("");
 const [announce,setAnnounce]=useState(null);const [showAnnounce,setShowAnnounce]=useState(false);const [announceDraft,setAnnounceDraft]=useState("");const [annDismissed,setAnnDismissed]=useState(localStorage.getItem("ann_dismiss"));
 const [showSettings,setShowSettings]=useState(false);const [showSearch,setShowSearch]=useState(false);
@@ -480,6 +484,12 @@ return(<div key={s} className="anim" style={{display:"flex",gap:12,marginBottom:
 </div>
 <div className="card" onClick={()=>{setActiveStage(s);setScreen("stage");}} style={{flex:1,cursor:"pointer",marginBottom:10}}>
 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><div><span className="badge" style={{background:col}}>0{i+1}</span> <b style={{fontSize:15,marginInlineStart:6}}>{s}</b></div>{late>0&&<span className="badge" style={{background:"var(--red)"}}>⚠️ {late}</span>}</div>
+{can&&(<div style={{display:"flex",gap:6,marginTop:8}} onClick={e=>e.stopPropagation()}>
+<button className="chip" onClick={()=>stOrder(s,-1)}>⬆️</button>
+<button className="chip" onClick={()=>stOrder(s,1)}>️</button>
+<button className="chip" onClick={()=>stRename(s)}>✏️</button>
+<button className="chip" style={{borderColor:"var(--red)",color:"var(--red)"}} onClick={()=>stDel(s)}>🗑️</button>
+</div>)}
 <div style={{fontSize:12,color:theme.textDim,marginTop:6}}>{l.length} {t.cardsPlural}{q?" · "+q+" "+factory.unit:""}</div>
 </div></div>);})}
 {can&&<button onClick={()=>{const n=prompt(t.addStage);if(n&&n.trim()&&!stages.includes(n.trim()))saveStages(stages.concat([n.trim()]));}} className="btnO" style={{marginTop:8}}>➕ {t.addStage}</button>}
@@ -505,6 +515,7 @@ return(<div key={s} className="anim" style={{display:"flex",gap:12,marginBottom:
 {bulkMoveTo&&<button className="chip on" onClick={()=>bulkPatch({stage:bulkMoveTo})}>📦 نقل</button>}
 <button className="chip on" onClick={()=>bulkPatch({delivered:true,deliveredAt:Date.now()})}>✅ تسليم</button>
 <button className="chip" onClick={()=>exportSheet(cards.filter(c=>selected.includes(c.id)),"bulk")}>💾</button>
+<button className="chip" onClick={bulkPrint}>🖨️</button>
 <button className="chip" style={{borderColor:"var(--red)",color:"var(--red)"}} onClick={bulkDel}>🗑️</button>
 <button className="chip" onClick={()=>{setSelected([]);setSelectMode(false);}}>✕</button>
 </div>
