@@ -619,6 +619,10 @@ return(<div key={c.id} className="card" onClick={()=>selectMode?toggleSelect(c.i
 {delStagePick&&(<div className="modal" onClick={()=>setDelStagePick(null)}><div className="mbox" style={{maxWidth:360}} onClick={e=>e.stopPropagation()}>
 <h3 style={{margin:"0 0 10px"}}>🗑️ حذف "{delStagePick}" — كروتها تروح فين؟</h3>
 {stages.filter(x=>x!==delStagePick).map(s=><button key={s} className="chip" style={{margin:4}} onClick={()=>{stDelTo(delStagePick,s);setDelStagePick(null);setShowStageMgr(false);}}>{s}</button>)}
+<div style={{marginTop:12,display:"flex",gap:6,flexWrap:"wrap"}}>
+<button className="chip" style={{borderColor:"var(--warn)",color:"var(--warn)"}} onClick={()=>{saveStages(stages.filter(x=>x!==delStagePick));setDelStagePick(null);setShowStageMgr(false);}}>✂️ حذف المرحلة بس (الكروت تفضل موجودة)</button>
+<button className="chip" style={{borderColor:"var(--red)",color:"var(--red)"}} onClick={()=>{if(confirm("⚠️ حذف المرحلة وكل كروتها نهائياً؟")){cards.filter(c=>c.stage===delStagePick).forEach(c=>db.collection("cards").doc(c.id).delete());saveStages(stages.filter(x=>x!==delStagePick));setDelStagePick(null);setShowStageMgr(false);}}}>🗑️ حذف المرحلة وكروتها</button>
+</div>
 </div></div>)}
 {showSched&&(<div className="modal" onClick={()=>setShowSched(false)}><div className="mbox" onClick={e=>e.stopPropagation()}>
 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><h3 style={{flex:1,margin:0}}>📅 جدول الماكينات</h3><button className="chip on" onClick={()=>exportSheet(schedCards(),"machines-"+schedDate)}>💾 تصدير</button></div>
