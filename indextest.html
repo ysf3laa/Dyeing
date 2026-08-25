@@ -464,7 +464,7 @@ return(
 <button onClick={()=>setShowMenu(true)} style={hdrBtn}>️</button>
 </div>
 <div className="card grad anim" style={{animationDelay:"80ms",marginBottom:12,position:"relative",overflow:"hidden"}}>
-<div style={{position:"absolute",top:14,insetInlineEnd:14,fontSize:40,animation:"floaty 3s infinite"}}>🏭</div>
+<div style={{position:"absolute",top:14,insetInlineEnd:14,fontSize:40,animation:"floaty 3s infinite"}}>{logoSrc?<img src={logoSrc} style={{width:56,height:56,borderRadius:16,objectFit:"cover",boxShadow:"0 4px 14px rgba(0,0,0,.35)"}}/>:"🏭"}</div>
 {can&&<button onClick={()=>setHeroEdit(true)} style={{position:"absolute",bottom:10,insetInlineEnd:10,background:"rgba(255,255,255,.2)",border:"none",borderRadius:10,padding:"6px 10px",color:"#fff",fontSize:13}}>✏️ تعديل</button>}
 <div style={{fontSize:13,color:"#E4DCFF"}}>{factory.heroS||"حل متكامل لإدارة مراحل الإنتاج"}</div>
 <div style={{fontSize:22,fontWeight:900,margin:"4px 0 10px"}}>{factory.heroT||"نظام إدارة الصباغة"}</div>
