@@ -206,7 +206,10 @@ const [favs,setFavs]=useState([]);
 useEffect(()=>{try{setFavs(JSON.parse(localStorage.getItem("favs_"+(userId||"_"))||"[]"));}catch(e){setFavs([]);}},[userId]);
 const toggleFav=n=>{if(!n)return;setFavs(f=>{const nx=f.includes(n)?f.filter(x=>x!==n):f.concat([n]);localStorage.setItem("favs_"+(userId||"_"),JSON.stringify(nx));return nx;});};
 useEffect(()=>{const seen={};const l=stages.filter(s=>{if(seen[s])return false;seen[s]=1;return true;});if(l.length!==stages.length){setStages(l);saveStages(l);}},[stages]);
+const [pinTry,setPinTry]=useState("");
+const openSettingsGuard=()=>{const p=localStorage.getItem("pin_"+(userId||"_"))||"";if(!p){openSettingsGuard();return;}const x=prompt("🔒 اكتب الرقم السري:");if(x===p){openSettingsGuard();}else if(x!==null){alert("رمز غلط!");}};
 const [confetti,setConfetti]=useState(false);
+useEffect(()=>{const days=+(localStorage.getItem("autoArch_"+(userId||"_"))||0);if(!days)return;const cut=Date.now()-days*86400000;liveCards.filter(c=>c.delivered&&toMs(c.updatedAt||c.createdAt)<cut).forEach(c=>db.collection("cards").doc(c.id).set({archived:true},{merge:true}));},[cards]);
 const prevStageCounts=useRef({});
 useEffect(()=>{const cur={};stages.forEach(s=>{cur[s]=liveCards.filter(c=>c.stage===s&&!c.delivered).length;});let fired=false;Object.keys(cur).forEach(s=>{if((prevStageCounts.current[s]||0)>0&&cur[s]===0)fired=true;});prevStageCounts.current=cur;if(fired){setConfetti(true);setTimeout(()=>setConfetti(false),3000);}},[cards]);
 const [undoInfo,setUndoInfo]=useState(null);
@@ -472,7 +475,7 @@ return(
 <div className="card anim" onClick={()=>setShowWarehouse(true)} style={{animationDelay:"260ms",cursor:"pointer"}}><div className="lbl">📦 متبقي المخزن</div><div style={{fontSize:26,fontWeight:900,color:"var(--blue)"}}>{nRem} <span style={{fontSize:11,color:theme.textDim}}>{factory.unit}</span></div></div>
 <div className="card anim" onClick={()=>setShowDelivered(true)} style={{animationDelay:"320ms",cursor:"pointer"}}><div className="lbl">✅ اتسلم</div><div style={{fontSize:26,fontWeight:900,color:"var(--teal)"}}>{nDel}</div></div>
 </div>
-<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",margin:"10px 0",fontSize:12,color:theme.textDim}}><span>🕌 {(()=>{try{return new Intl.DateTimeFormat("ar-SA-u-ca-islamic",{day:"numeric",month:"long",year:"numeric"}).format(new Date());}catch(e){return "";}})()}</span><span>{new Date().getHours()<12?"☀️ صباح الخير":"🌙 مساء الخير"} · {ownerName}</span></div>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",margin:"10px 0",fontSize:12,color:theme.textDim}}><span style={{display:"flex",alignItems:"center",gap:6}}>{factory.logo&&<img src={factory.logo} style={{width:26,height:26,borderRadius:8,objectFit:"cover"}}/>}🕌 {(()=>{try{return new Intl.DateTimeFormat("ar-SA-u-ca-islamic",{day:"numeric",month:"long",year:"numeric"}).format(new Date());}catch(e){return "";}})()}</span><span>{new Date().getHours()<12?"☀️ صباح الخير":"🌙 مساء الخير"} · {ownerName}</span></div>
 <div className="card anim" onClick={()=>setShowSched(true)} style={{animationDelay:"340ms",margin:"12px 0",cursor:"pointer",background:"linear-gradient(135deg,rgba(45,212,168,.15),rgba(76,201,240,.10))",border:"1px solid rgba(45,212,168,.35)"}}>
 <div style={{display:"flex",alignItems:"center",gap:12}}>
 <div style={{width:52,height:52,borderRadius:16,background:"linear-gradient(135deg,var(--teal),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,boxShadow:"0 6px 18px rgba(45,212,168,.35)"}}>📅</div>
@@ -682,7 +685,7 @@ return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noRe
 <MenuBtn onClick={()=>{exportCSV();setShowMenu(false);}}>💾 {t.backup}</MenuBtn>
 <MenuBtn onClick={()=>{setScreen("archive");setShowMenu(false);}}>🗄️ {t.archive}</MenuBtn>
 <MenuBtn onClick={()=>{setScreen("log");setShowMenu(false);}}>📋 {t.dailyLog}</MenuBtn>
-<MenuBtn onClick={()=>{setNameDraft(ownerName);setShowSettings(true);setShowMenu(false);}}>⚙️ {t.settings}</MenuBtn>
+<MenuBtn onClick={()=>{setNameDraft(ownerName);openSettingsGuard();setShowMenu(false);}}>⚙️ {t.settings}</MenuBtn>
 </div></div>)}
 {showLateList&&(
 <div className="modal" onClick={()=>setShowLateList(false)}>
@@ -1067,6 +1070,16 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <button onClick={()=>{setPrefVib(v=>{const nv=!v;localStorage.setItem("prefVib",nv?"1":"0");return nv;});}} className={"chip"+(prefVib?" on":"")} style={{flex:1}}>📳 اهتزاز {prefVib?"ON":"OFF"}</button>
 <button onClick={()=>{setPrefSnd(v=>{const nv=!v;localStorage.setItem("prefSnd",nv?"1":"0");return nv;});}} className={"chip"+(prefSnd?" on":"")} style={{flex:1}}>🔊 صوت {prefSnd?"ON":"OFF"}</button>
 </div>
+<div className="lbl">🖼️ لوجو الشركة</div>
+<div style={{display:"flex",gap:6,alignItems:"center",marginBottom:10}}>
+{factory.logo&&<img src={factory.logo} style={{width:44,height:44,borderRadius:10,objectFit:"cover"}}/>}
+<button className="chip on" onClick={()=>{const inp=document.createElement("input");inp.type="file";inp.accept="image/*";inp.onchange=()=>{const f=inp.files&&inp.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{const img=new Image();img.onload=()=>{const m=Math.max(img.width,img.height);const sc=Math.min(1,256/m);const c=document.createElement("canvas");c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);c.getContext("2d").drawImage(img,0,0,c.width,c.height);saveFactory({logo:c.toDataURL("image/png")});};img.src=rd.result;};rd.readAsDataURL(f);};document.body.appendChild(inp);inp.click();setTimeout(()=>inp.remove(),2000);}}>📤 رفع لوجو</button>
+{factory.logo&&<button className="chip" onClick={()=>saveFactory({logo:""})}>🗑️</button>}
+</div>
+<div className="lbl">🔒 رقم سري للإعدادات (سيبه فاضي = مفتوح)</div>
+<input className="inp" type="number" placeholder="بدون رمز" defaultValue={localStorage.getItem("pin_"+(userId||"_"))||""} onBlur={e=>localStorage.setItem("pin_"+(userId||"_"),e.target.value)}/>
+<div className="lbl">🗄️ أرشفة تلقائية للمسلّم بعد (يوم) — 0 = مقفول</div>
+<input className="inp" type="number" placeholder="0" defaultValue={localStorage.getItem("autoArch_"+(userId||"_"))||""} onBlur={e=>localStorage.setItem("autoArch_"+(userId||"_"),e.target.value)}/>
 {!can&&(<div className="card" style={{padding:14,marginBottom:10}}>
 <div className="lbl">🔑 {t.unlockTitle}</div>
 <input className="inp" inputMode="numeric" value={codeInput} onChange={e=>setCodeInput(e.target.value)} placeholder="******"/>
