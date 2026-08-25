@@ -60,13 +60,15 @@ fieldset{border:none;margin:0;padding:0;min-width:0}
 </head>
 <body>
 <div id="syncBar" class="syncing-bar"></div>
-<div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:16px"><div style="font-size:40px;animation:floaty 2s infinite">🏭</div><div style="color:var(--dim)">جاري التحميل...</div></div></div>
+<style>@keyframes confFall{to{top:110%;transform:rotate(720deg)}}</style>
+<div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:16px"><div style="font-size:64px">🏭</div><div style="color:#8A93B5;font-size:14px">جاري التحميل...</div></div></div>
 <script>
 window.onerror=function(m,u,l){if(m&&m!=="Script error."&&!window.__booted){var r=document.getElementById("root");if(r)r.innerHTML='<div style="padding:16px;color:#FF5C7A;font-size:12px;word-break:break-all;text-align:center">خطأ: '+m+'<br>سطر: '+l+'</div>';}};
 window.addEventListener("unhandledrejection",function(e){e.preventDefault();console.warn(e.reason);});
 setTimeout(function(){if(!window.__booted){var r=document.getElementById("root");if(r&&r.innerHTML.indexOf("خطأ")===-1){var d=document.createElement("div");d.style.cssText="position:fixed;bottom:10px;left:10px;right:10px;background:#1B2036;color:#FF5C7A;border:1px solid #FF5C7A;border-radius:14px;padding:12px;font-size:12px;text-align:center;z-index:99999";d.innerHTML="⚠️ المكتبات لسه بتتحمل — دوس إعادة أو غيّر الشبكة<br><button onclick='location.reload()' style='margin-top:8px;background:#7C5CFF;color:#fff;border:none;border-radius:10px;padding:9px 22px;font-size:13px;font-weight:700'>🔄 إعادة المحاولة</button>";r.appendChild(d);}}},45000);
 </script>
-<script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script><script src="lib/react.js"></script>
+<script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script>
+<script src="lib/react.js"></script>
 <script src="lib/reactdom.js"></script>
 <script src="lib/babel.js"></script>
 <script src="lib/fbapp.js"></script>
@@ -192,6 +194,32 @@ const [defects,setDefects]=useState([]);const [showDefects,setShowDefects]=useSt
 const [linkedFrom,setLinkedFrom]=useState(null);
 const [screen,setScreen]=useState("home");const [activeStage,setActiveStage]=useState(null);
 const [lateOnly,setLateOnly]=useState(false);
+const [selectMode,setSelectMode]=useState(false);const [selected,setSelected]=useState([]);const [bulkMoveTo,setBulkMoveTo]=useState("");
+const toggleSelect=id=>{setSelected(s=>s.includes(id)?s.filter(x=>x!==id):s.concat([id]));};
+const bulkPatch=o=>{selected.forEach(id=>{db.collection("cards").doc(id).set({...o,updatedAt:Date.now()},{merge:true});});setSelected([]);setSelectMode(false);};
+const bulkDel=()=>{if(!confirm("حذف "+selected.length+" كرت؟"))return;selected.forEach(id=>db.collection("cards").doc(id).delete());setSelected([]);setSelectMode(false);};
+const [showBulkMove,setShowBulkMove]=useState(false);const [showStageMgr,setShowStageMgr]=useState(false);const [delStagePick,setDelStagePick]=useState(null);
+const [showSched,setShowSched]=useState(false);const [schedDate,setSchedDate]=useState((()=>{const x=new Date();return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0");})());const [schedShift,setSchedShift]=useState("all");
+const dkey=v=>{const x=new Date(toMs(v));return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0");};
+const schedCards=()=>liveCards.filter(c=>c.machine&&dkey(c.updatedAt||c.createdAt)===schedDate&&(schedShift==="all"||((h=>schedShift==="day"?(h>=6&&h<18):(h>=18||h<6)))(new Date(toMs(c.updatedAt||c.createdAt)).getHours())));
+const [favs,setFavs]=useState([]);
+useEffect(()=>{try{setFavs(JSON.parse(localStorage.getItem("favs_"+(userId||"_"))||"[]"));}catch(e){setFavs([]);}},[userId]);
+const toggleFav=n=>{if(!n)return;setFavs(f=>{const nx=f.includes(n)?f.filter(x=>x!==n):f.concat([n]);localStorage.setItem("favs_"+(userId||"_"),JSON.stringify(nx));return nx;});};
+useEffect(()=>{const seen={};const l=stages.filter(s=>{if(seen[s])return false;seen[s]=1;return true;});if(l.length!==stages.length){setStages(l);saveStages(l);}},[stages]);
+const [pinTry,setPinTry]=useState("");
+const openSettingsGuard=()=>{const p=localStorage.getItem("pin_"+(userId||"_"))||"";if(!p){setShowSettings(true);return;}const x=prompt("🔒 اكتب الرقم السري:");if(x===p){setShowSettings(true);}else if(x!==null){alert("رمز غلط!");}};
+const [confetti,setConfetti]=useState(false);
+useEffect(()=>{const days=+(localStorage.getItem("autoArch_"+(userId||"_"))||0);if(!days)return;const cut=Date.now()-days*86400000;liveCards.filter(c=>c.delivered&&toMs(c.updatedAt||c.createdAt)<cut).forEach(c=>db.collection("cards").doc(c.id).set({archived:true},{merge:true}));},[cards]);
+const prevStageCounts=useRef({});
+useEffect(()=>{const cur={};stages.forEach(s=>{cur[s]=liveCards.filter(c=>c.stage===s&&!c.delivered).length;});let fired=false;Object.keys(cur).forEach(s=>{if((prevStageCounts.current[s]||0)>0&&cur[s]===0)fired=true;});prevStageCounts.current=cur;if(fired){setConfetti(true);setTimeout(()=>setConfetti(false),3000);}},[cards]);
+const [undoInfo,setUndoInfo]=useState(null);
+const undoDelete=c=>{const snap={...c};setActionCard(null);fx("danger");deleteCard(c);setUndoInfo(snap);setTimeout(()=>setUndoInfo(null),6000);};
+const undoRestore=()=>{if(!undoInfo)return;db.collection("cards").doc(undoInfo.id).set(undoInfo).then(()=>{fx();setUndoInfo(null);});};
+const stDelTo=(s,to)=>{saveStages(stages.filter(x=>x!==s));cards.filter(c=>c.stage===s).forEach(c=>db.collection("cards").doc(c.id).set({stage:to},{merge:true}));};
+const bulkPrint=()=>{const list=cards.filter(c=>selected.includes(c.id));const rows=list.map(c=>"<tr><td>"+(c.customer||"")+"</td><td>"+(c.code||"")+"</td><td>"+(c.color||"")+"</td><td>"+(c.quantity||"")+"</td><td>"+(c.stage||"")+"</td><td>"+(c.machine||"")+"</td></tr>").join("");const w=window.open("","_blank");if(!w)return;w.document.write('<html dir="rtl"><head><meta charset="utf-8"><style>table{width:100%;border-collapse:collapse}td,th{border:1px solid #000;padding:6px;font-size:12px}</style></head><body><h2>🏭 '+(factory.fname||"")+'</h2><table><tr><th>عميل</th><th>كود</th><th>لون</th><th>كمية</th><th>مرحلة</th><th>ماكينة</th></tr>'+rows+'</table><scr'+'ipt>window.onload=function(){window.print()}<\/scr'+'ipt></body></html>');w.document.close();};
+const stRename=s=>{const n=prompt("اسم جديد للمرحلة:",s);if(!n||!n.trim()||n===s)return;if(stages.includes(n.trim())){alert("الاسم ده موجود بالفعل!");return;}const l=stages.map(x=>x===s?n.trim():x);setStages(l);saveStages(l);cards.filter(c=>c.stage===s).forEach(c=>db.collection("cards").doc(c.id).set({stage:n.trim()},{merge:true}));};
+const stOrder=(s,dir)=>{const i2=stages.indexOf(s);const j=i2+dir;if(j<0||j>=stages.length)return;const l=[...stages];l[i2]=l[j];l[j]=s;setStages(l);saveStages(l);};
+const stDel=s=>{const rest=stages.filter(x=>x!==s);const to=prompt("⚠️ كروت "+s+" هتنتقل لمرحلة:\n"+rest.join(" ، "));if(!to||!rest.includes(to.trim()))return;saveStages(rest);cards.filter(c=>c.stage===s).forEach(c=>db.collection("cards").doc(c.id).set({stage:to.trim()},{merge:true}));};
 const [stageQ,setStageQ]=useState("");
 const [announce,setAnnounce]=useState(null);const [showAnnounce,setShowAnnounce]=useState(false);const [announceDraft,setAnnounceDraft]=useState("");const [annDismissed,setAnnDismissed]=useState(localStorage.getItem("ann_dismiss"));
 const [showSettings,setShowSettings]=useState(false);const [showSearch,setShowSearch]=useState(false);
@@ -210,7 +238,12 @@ const uiRef=useRef({});
 uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,showTopCust,photoView,appQr,importMenu,importDraft,showMic,showWarehouse,addLoad,loadDetail,showLateList,showDelivered,heroEdit,showDefects,defectFor,showAnnounce,linkedFrom};
 const t=DICT[lang];const dir=lang==="ar"?"rtl":"ltr";
 const can=unlocked;
-const theme={bg:"#0B0E1A",panel:"#141829",panelAlt:"#1B2036",border:"#242B47",text:"#EDEFF5",textDim:"#8A93B5",accent:"#7C5CFF",accent2:"#2DD4A8",danger:"#FF5C7A",warn:"#FFB65C",input:"#1B2036"};
+const [themeMode,setThemeMode]=useState(localStorage.getItem("themeMode")||"dark");
+const [prefVib,setPrefVib]=useState(localStorage.getItem("prefVib")!=="0");
+const [prefSnd,setPrefSnd]=useState(localStorage.getItem("prefSnd")!=="0");
+const fx=(kind)=>{if(prefVib&&navigator.vibrate)navigator.vibrate(kind==="danger"?[60,40,60]:30);if(prefSnd){try{const AC=window.AudioContext||window.webkitAudioContext;const ac=new AC();const o=ac.createOscillator();const g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=kind==="danger"?320:880;g.gain.value=.06;o.start();o.stop(ac.currentTime+.12);}catch(e){}}};
+const logoSrc=factory.logo||localStorage.getItem("logo_local")||"";
+const theme=themeMode==="light"?{bg:"#F3F4FA",panel:"#FFFFFF",panelAlt:"#EEF0F8",border:"#D8DCEB",text:"#1A1E30",textDim:"#66708F",accent:"#7C5CFF",accent2:"#2DD4A8",danger:"#FF5C7A",warn:"#FFB65C",input:"#EEF0F8"}:{bg:"#0B0E1A",panel:"#141829",panelAlt:"#1B2036",border:"#242B47",text:"#EDEFF5",textDim:"#8A93B5",accent:"#7C5CFF",accent2:"#2DD4A8",danger:"#FF5C7A",warn:"#FFB65C",input:"#1B2036"};
 const hdrBtn={width:42,height:42,borderRadius:14,border:"1px solid "+theme.border,background:theme.panel,color:theme.text,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:17};
 const LD=+factory.lateDays||2;
 const allColors=PRESET_COLORS.concat(customColors);
@@ -431,7 +464,7 @@ return(
 <button onClick={()=>setShowMenu(true)} style={hdrBtn}>️</button>
 </div>
 <div className="card grad anim" style={{animationDelay:"80ms",marginBottom:12,position:"relative",overflow:"hidden"}}>
-<div style={{position:"absolute",top:14,insetInlineEnd:14,fontSize:40,animation:"floaty 3s infinite"}}>🏭</div>
+<div style={{position:"absolute",top:14,insetInlineEnd:14,fontSize:40,animation:"floaty 3s infinite"}}>{logoSrc?<img src={logoSrc} style={{width:56,height:56,borderRadius:16,objectFit:"cover",boxShadow:"0 4px 14px rgba(0,0,0,.35)"}}/>:"🏭"}</div>
 {can&&<button onClick={()=>setHeroEdit(true)} style={{position:"absolute",bottom:10,insetInlineEnd:10,background:"rgba(255,255,255,.2)",border:"none",borderRadius:10,padding:"6px 10px",color:"#fff",fontSize:13}}>✏️ تعديل</button>}
 <div style={{fontSize:13,color:"#E4DCFF"}}>{factory.heroS||"حل متكامل لإدارة مراحل الإنتاج"}</div>
 <div style={{fontSize:22,fontWeight:900,margin:"4px 0 10px"}}>{factory.heroT||"نظام إدارة الصباغة"}</div>
@@ -443,8 +476,54 @@ return(
 <div className="card anim" onClick={()=>setShowWarehouse(true)} style={{animationDelay:"260ms",cursor:"pointer"}}><div className="lbl">📦 متبقي المخزن</div><div style={{fontSize:26,fontWeight:900,color:"var(--blue)"}}>{nRem} <span style={{fontSize:11,color:theme.textDim}}>{factory.unit}</span></div></div>
 <div className="card anim" onClick={()=>setShowDelivered(true)} style={{animationDelay:"320ms",cursor:"pointer"}}><div className="lbl">✅ اتسلم</div><div style={{fontSize:26,fontWeight:900,color:"var(--teal)"}}>{nDel}</div></div>
 </div>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",margin:"10px 0",fontSize:12,color:theme.textDim}}><span style={{display:"flex",alignItems:"center",gap:6}}>{logoSrc&&<img src={logoSrc} style={{width:26,height:26,borderRadius:8,objectFit:"cover"}}/>}🕌 {(()=>{try{return new Intl.DateTimeFormat("ar-SA-u-ca-islamic",{day:"numeric",month:"long",year:"numeric"}).format(new Date());}catch(e){return "";}})()}</span><span>{new Date().getHours()<12?"☀️ صباح الخير":"🌙 مساء الخير"} · {ownerName}</span></div>
+<div className="card anim" onClick={()=>setShowSched(true)} style={{animationDelay:"340ms",margin:"12px 0",cursor:"pointer",background:"linear-gradient(135deg,rgba(45,212,168,.15),rgba(76,201,240,.10))",border:"1px solid rgba(45,212,168,.35)"}}>
+<div style={{display:"flex",alignItems:"center",gap:12}}>
+<div style={{width:52,height:52,borderRadius:16,background:"linear-gradient(135deg,var(--teal),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,boxShadow:"0 6px 18px rgba(45,212,168,.35)"}}>📅</div>
+<div style={{flex:1}}>
+<div style={{fontSize:15,fontWeight:800}}>جدول الماكينات النهارده</div>
+<div style={{fontSize:11.5,color:theme.textDim,marginTop:3}}>{schedCards().length} كرت شغال · {machines.filter(m=>!schedCards().some(c=>String(c.machine)===String(m))).length} ماكينة فاضية</div>
+</div>
+<span style={{color:theme.textDim,fontSize:18}}>←</span>
+</div>
+</div>
+<div className="card anim" style={{animationDelay:"360ms",margin:"12px 0"}}>
+<div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><span style={{fontSize:20}}>🏆</span><b style={{fontSize:15}}>الانجازات</b></div>
+{(()=>{const cut=Date.now()-7*86400000;const wk=log.filter(e=>toMs(e.time||e.timeLocal)>=cut);const per={};wk.forEach(e=>{if(e.person)per[e.person]=(per[e.person]||0)+1;});const arr=Object.entries(per).sort((a,b)=>b[1]-a[1]);const best=arr[0];
+const days=Array.from({length:7},(_,i)=>{const d=new Date(Date.now()-(6-i)*86400000);const k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");return {k:k,n:log.filter(e=>e.date===k).length};});const mx=Math.max(1,...days.map(x=>x.n));
+return(<div>
+<div style={{display:"flex",gap:8,marginBottom:12}}>
+<div style={{flex:1,background:"linear-gradient(135deg,rgba(255,182,92,.15),rgba(255,92,122,.10))",border:"1px solid rgba(255,182,92,.35)",borderRadius:14,padding:10,textAlign:"center"}}>
+<div style={{fontSize:22}}>🥇</div>
+<div style={{fontSize:12,fontWeight:800,marginTop:2}}>{best?best[0]:"—"}</div>
+<div style={{fontSize:10,color:theme.textDim}}>عامل الأسبوع · {best?best[1]:0} حركة</div>
+</div>
+<div style={{flex:1,background:"linear-gradient(135deg,rgba(124,92,255,.15),rgba(94,143,214,.10))",border:"1px solid rgba(124,92,255,.35)",borderRadius:14,padding:10,textAlign:"center"}}>
+<div style={{fontSize:22}}>⚡</div>
+<div style={{fontSize:12,fontWeight:800,marginTop:2}}>{wk.length}</div>
+<div style={{fontSize:10,color:theme.textDim}}>حركة آخر 7 أيام</div>
+</div>
+</div>
+{(()=>{const tot=liveCards.length;const del=liveCards.filter(c=>c.delivered).length;const par=liveCards.filter(c=>!c.delivered&&c.deliveredQty).length;const rem=tot-del-par;const pct=tot?Math.round((del/tot)*100):0;
+return(<div style={{marginBottom:12}}>
+<div style={{display:"flex",gap:8,marginBottom:8}}>
+<div style={{flex:1,background:"rgba(45,212,168,.12)",border:"1px solid rgba(45,212,168,.35)",borderRadius:14,padding:8,textAlign:"center"}}><div style={{fontSize:18,fontWeight:900,color:"var(--teal)"}}>{del}</div><div style={{fontSize:10,color:theme.textDim}}>✅ مسلّم</div></div>
+<div style={{flex:1,background:"rgba(76,201,240,.12)",border:"1px solid rgba(76,201,240,.35)",borderRadius:14,padding:8,textAlign:"center"}}><div style={{fontSize:18,fontWeight:900,color:"var(--blue)"}}>{par}</div><div style={{fontSize:10,color:theme.textDim}}>⚖️ جزئي</div></div>
+<div style={{flex:1,background:"rgba(255,182,92,.12)",border:"1px solid rgba(255,182,92,.35)",borderRadius:14,padding:8,textAlign:"center"}}><div style={{fontSize:18,fontWeight:900,color:"var(--warn)"}}>{rem}</div><div style={{fontSize:10,color:theme.textDim}}>⏳ باقي</div></div>
+</div>
+<div style={{fontSize:11,color:theme.textDim,marginBottom:4}}>من {tot} كرت · إنجاز التسليم {pct}%</div>
+<div className="bar"><i style={{width:pct+"%",background:"linear-gradient(90deg,var(--teal),var(--blue))"}}/></div>
+</div>);})()}
+<div style={{display:"flex",alignItems:"flex-end",gap:6,height:70}}>
+{days.map((d,i)=>(<div key={d.k} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:3}}>
+<div style={{width:"100%",height:Math.max(4,(d.n/mx)*45),borderRadius:5,background:i===6?"var(--teal)":"var(--vio)"}}/>
+<span style={{fontSize:9,color:theme.textDim}}>{["أ","ن","ث","ر","خ","ج","س"][new Date(d.k).getDay()]}</span>
+</div>))}
+</div>
+</div>);})()}
+</div>
 <div className="card anim" style={{animationDelay:"380ms",margin:"12px 0",display:"flex",alignItems:"center",gap:16}}>
-<Ring pct={donePct} size={110} color="var(--teal)"><b style={{fontSize:20}}>{donePct}%</b><span style={{fontSize:10,color:theme.textDim}}>إنجاز</span></Ring>
+<Ring pct={liveCards.length?Math.round((liveCards.filter(c=>c.delivered).length/liveCards.length)*100):0} size={110} color="var(--teal)"><b style={{fontSize:20}}>{liveCards.length?Math.round((liveCards.filter(c=>c.delivered).length/liveCards.length)*100):0}%</b><span style={{fontSize:10,color:theme.textDim}}>إنجاز تسليم</span></Ring>
 <div style={{flex:1}}><div className="lbl">نظرة عامة على المراحل</div>
 {stages.map((s,i)=>{const n=liveCards.filter(c=>c.stage===s).length;const p=liveCards.length?Math.round(n/liveCards.length*100):0;const col=STAGE_COLORS[i%8];
 return(<div key={s} style={{marginBottom:8}}><div style={{display:"flex",justifyContent:"space-between",fontSize:11,color:theme.textDim,marginBottom:3}}><span>{s}</span><span>{n}</span></div><div className="bar"><i style={{width:p+"%",background:col}}/></div></div>);})}
@@ -466,6 +545,8 @@ return(<div key={c.id} className="card" onClick={()=>jumpToCard(c)} style={{curs
 <div className="anim" style={{display:"flex",alignItems:"center",gap:10,marginBottom:18}}>
 <button onClick={()=>setScreen("home")} style={hdrBtn}>→</button>
 <div style={{flex:1}}><div style={{fontSize:19,fontWeight:900}}>مراحل العمل</div><div style={{fontSize:11,color:theme.textDim}}>تابع جميع مراحل الإنتاج</div></div>
+{can&&<button onClick={()=>setShowStageMgr(true)} style={hdrBtn}>⚙️</button>}
+<button onClick={()=>setShowSched(true)} style={hdrBtn}>📅</button>
 </div>
 {(()=>{const orph=liveCards.filter(c=>!stages.includes(c.stage));return orph.length>0?(<div onClick={()=>setEditingCard(orph[0])} className="card" style={{marginBottom:14,borderColor:"var(--red)",cursor:"pointer"}}>⚠️ عندك {orph.length} كرت في مرحلة مش موجودة — دوس تصلّح</div>):null;})()}
 {stages.map((s,i)=>{const l=liveCards.filter(c=>c.stage===s);const late=l.filter(c=>daysSince(c.updatedAt||c.createdAt)>=LD).length;const q=qtySum(l);const col=STAGE_COLORS[i%8];
@@ -487,6 +568,8 @@ return(<div key={s} className="anim" style={{display:"flex",gap:12,marginBottom:
 <div style={{flex:1}}><div style={{fontSize:19,fontWeight:900}}>{activeStage}</div><div style={{fontSize:11,color:theme.textDim}}>{cardsToShow.length} كرت</div></div>
 <button onClick={()=>exportSheet(liveCards.filter(c=>c.stage===activeStage),activeStage)} className="chip on">💾 تصدير</button>
 <button onClick={()=>setLateOnly(!lateOnly)} className={"chip"+(lateOnly?" on":"")}>{lateOnly?t.lateOnly:t.all}</button>
+<button onClick={()=>{setSelectMode(!selectMode);setSelected([]);}} className={"chip"+(selectMode?" on":"")}>☑️</button>
+<button onClick={()=>setShowSched(true)} className="chip">📅</button>
 </div>
 <div className="card anim" style={{display:"flex",alignItems:"center",gap:8,padding:"10px 14px",marginBottom:14}}>
 <span style={{fontSize:16}}>🔍</span>
@@ -500,8 +583,8 @@ return(<div key={s} className="anim" style={{display:"flex",gap:12,marginBottom:
 </div>
 {cardsToShow.length===0&&<p style={{textAlign:"center",padding:"50px 10px",color:theme.textDim}}>{t.noCardsHere}</p>}
 {cardsToShow.map((c,i)=>{const d=daysSince(c.updatedAt||c.createdAt);const l1=d>=1&&d<LD;const l2=d>=LD;const lk=liveCards.filter(x=>x.message&&x.message===c.message&&x.id!==c.id).length;const di=dueInfo(c);const bc=c.urgent?"var(--red)":l2?"var(--red)":l1?"var(--warn)":di?di.col:STAGE_COLORS[(stages.indexOf(c.stage)>=0?stages.indexOf(c.stage):0)%8];
-return(<div key={c.id} className="card" onClick={()=>setEditingCard(c)} onContextMenu={e=>{e.preventDefault();setActionCard(c);}} style={{userSelect:"none",cursor:"pointer",marginBottom:10,borderInlineStart:"4px solid "+bc,animationDelay:(i*70)+"ms"}}>
-<div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:15}}>{c.customer||"—"} {c.pinned&&"📌"}</b><span style={{fontSize:11,color:theme.textDim}}>{c.time||fmtTime(c.updatedAt,lang)}</span></div>
+return(<div key={c.id} className="card" onClick={()=>selectMode?toggleSelect(c.id):setEditingCard(c)} onContextMenu={e=>{e.preventDefault();setActionCard(c);}} style={{userSelect:"none",cursor:"pointer",marginBottom:10,borderInlineStart:"4px solid "+(selected.includes(c.id)?"var(--teal)":bc),boxShadow:selected.includes(c.id)?"0 0 0 2px var(--teal)":"none",animationDelay:(i*70)+"ms"}}>
+<div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:15}}>{selectMode&&(selected.includes(c.id)?"☑️ ":" ")}{c.customer||"—"} {c.pinned&&"📌"}</b><span style={{display:"flex",alignItems:"center",gap:6}}>{(c.photo||c.img)&&<img src={c.photo||c.img} style={{width:34,height:34,borderRadius:8,objectFit:"cover"}}/>}<span style={{fontSize:11,color:theme.textDim}}>{c.time||fmtTime(c.updatedAt,lang)}</span></span></div>
 <div style={{display:"flex",flexWrap:"wrap",gap:"4px 12px",fontSize:12.5,color:theme.textDim,marginTop:5}}>
 <span>{t.code}: <b style={{color:theme.text}}>{c.code||"—"}</b></span>
 <span>{t.color}: <b style={{color:theme.text}}>{c.color||"—"}</b></span>
@@ -511,6 +594,55 @@ return(<div key={c.id} className="card" onClick={()=>setEditingCard(c)} onContex
 {(c.urgent||l2||l1||lk>0||di||c.delivered||c.deliveredQty)&&(<div style={{display:"flex",gap:6,marginTop:8,flexWrap:"wrap"}}>{c.urgent&&badge("var(--red)",t.urgent)}{l2&&badge("var(--red)",t.aged2)}{!l2&&l1&&badge("var(--warn)",t.aged1)}{di&&badge(di.col,di.txt)}{lk>0&&<span onClick={(e)=>{e.stopPropagation();setLinkedFrom(c);}} style={{cursor:"pointer"}}>{badge("var(--blue)",t.linkedCards+": "+lk+" ←")}</span>}{c.delivered&&badge("var(--teal)","✅ مسلّم")}{!c.delivered&&c.deliveredQty&&badge("var(--teal)","⚖️ "+c.deliveredQty)}</div>)}
 </div>);})}
 </div>)}
+{selectMode&&(<div style={{position:"fixed",bottom:70,left:0,right:0,zIndex:400,display:"flex",justifyContent:"center",pointerEvents:"none"}}>
+<div style={{pointerEvents:"auto",background:theme.panel,border:"1px solid "+theme.border,borderRadius:20,padding:"8px 10px",display:"flex",gap:6,flexWrap:"wrap",justifyContent:"center",maxWidth:600,boxShadow:"0 10px 30px rgba(0,0,0,.5)"}}>
+<span className="chip on">{selected.length}</span>
+<button className="chip" onClick={()=>setSelected(cardsToShow.map(c=>c.id))}>☑️ الكل</button>
+<button className="chip" onClick={()=>setShowBulkMove(true)}>📦 نقل</button>
+<button className="chip" onClick={()=>bulkPatch({delivered:true,deliveredAt:Date.now()})}>✅ تسليم</button>
+<button className="chip" onClick={bulkPrint}>🖨️</button>
+<button className="chip" onClick={()=>exportSheet(cards.filter(c=>selected.includes(c.id)),"bulk")}>💾</button>
+<button className="chip" style={{borderColor:"var(--red)",color:"var(--red)"}} onClick={bulkDel}>🗑️</button>
+<button className="chip" onClick={()=>{setSelected([]);setSelectMode(false);}}>✕</button>
+</div></div>)}
+{showBulkMove&&(<div className="modal" onClick={()=>setShowBulkMove(false)}><div className="mbox" style={{maxWidth:360}} onClick={e=>e.stopPropagation()}>
+<h3 style={{margin:"0 0 10px"}}>📦 نقل {selected.length} كرت لمرحلة:</h3>
+{stages.map(s=><button key={s} className="chip" style={{margin:4}} onClick={()=>{bulkPatch({stage:s});setShowBulkMove(false);}}>{s}</button>)}
+</div></div>)}
+{showStageMgr&&(<div className="modal" onClick={()=>setShowStageMgr(false)}><div className="mbox" style={{maxWidth:420}} onClick={e=>e.stopPropagation()}>
+<h3 style={{margin:"0 0 10px"}}>🎚️ إدارة المراحل</h3>
+{stages.map((s,i)=><div key={s} style={{display:"flex",gap:6,alignItems:"center",marginBottom:8}}>
+<span style={{flex:1,fontSize:14}}>{S_ICONS[i%8]} {s}</span>
+<button className="chip" onClick={()=>stOrder(s,-1)}>⬆️</button>
+<button className="chip" onClick={()=>stOrder(s,1)}>⬇️</button>
+<button className="chip" onClick={()=>stRename(s)}>✏️</button>
+<button className="chip" style={{borderColor:"var(--red)",color:"var(--red)"}} onClick={()=>setDelStagePick(s)}>🗑️</button>
+</div>)}
+<button className="btnG" onClick={()=>{const n=prompt(t.addStage);if(n&&n.trim()&&!stages.includes(n.trim()))saveStages(stages.concat([n.trim()]));}}>➕ {t.addStage}</button>
+</div></div>)}
+{delStagePick&&(<div className="modal" onClick={()=>setDelStagePick(null)}><div className="mbox" style={{maxWidth:360}} onClick={e=>e.stopPropagation()}>
+<h3 style={{margin:"0 0 10px"}}>🗑️ حذف "{delStagePick}" — كروتها تروح فين؟</h3>
+{stages.filter(x=>x!==delStagePick).map(s=><button key={s} className="chip" style={{margin:4}} onClick={()=>{stDelTo(delStagePick,s);setDelStagePick(null);setShowStageMgr(false);}}>{s}</button>)}
+<div style={{marginTop:12,display:"flex",gap:6,flexWrap:"wrap"}}>
+<button className="chip" style={{borderColor:"var(--warn)",color:"var(--warn)"}} onClick={()=>{saveStages(stages.filter(x=>x!==delStagePick));setDelStagePick(null);setShowStageMgr(false);}}>✂️ حذف المرحلة بس (الكروت تفضل موجودة)</button>
+<button className="chip" style={{borderColor:"var(--red)",color:"var(--red)"}} onClick={()=>{if(confirm("⚠️ حذف المرحلة وكل كروتها نهائياً؟")){cards.filter(c=>c.stage===delStagePick).forEach(c=>db.collection("cards").doc(c.id).delete());saveStages(stages.filter(x=>x!==delStagePick));setDelStagePick(null);setShowStageMgr(false);}}}>🗑️ حذف المرحلة وكروتها</button>
+</div>
+</div></div>)}
+{showSched&&(<div className="modal" onClick={()=>setShowSched(false)}><div className="mbox" onClick={e=>e.stopPropagation()}>
+<div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><h3 style={{flex:1,margin:0}}>📅 جدول الماكينات</h3><button className="chip on" onClick={()=>exportSheet(schedCards(),"machines-"+schedDate)}>💾 تصدير</button></div>
+<input type="date" className="inp" style={{width:170}} value={schedDate} onChange={e=>setSchedDate(e.target.value)}/>
+<div style={{display:"flex",gap:6,marginBottom:10}}>
+<button className={"chip"+(schedShift==="all"?" on":"")} onClick={()=>setSchedShift("all")}>الكل</button>
+<button className={"chip"+(schedShift==="day"?" on":"")} onClick={()=>setSchedShift("day")}>☀️ صبح</button>
+<button className={"chip"+(schedShift==="night"?" on":"")} onClick={()=>setSchedShift("night")}>🌙 ليل</button>
+</div>
+{machines.map(m=>{const list=schedCards().filter(c=>String(c.machine)===String(m));return(<div key={m} className="card" style={{padding:10,marginBottom:8}}>
+<b>🔧 ماكينة {m}</b>{!list.length&&<span style={{color:theme.textDim,fontSize:11}}> · فاضية</span>}
+{list.map(c=><div key={c.id} style={{fontSize:12,marginTop:6,borderTop:"1px dashed "+theme.border,paddingTop:6}}>{c.customer} · {c.code} · {c.color} · {c.quantity} {factory.unit} {c.prepare&&<span style={{color:"var(--warn)"}}>· {c.prepare}</span>}</div>)}
+</div>);})}
+</div></div>)}
+{undoInfo&&(<div style={{position:"fixed",bottom:96,left:"50%",transform:"translateX(-50%)",background:"var(--red)",color:"#fff",fontWeight:800,padding:"10px 16px",borderRadius:30,zIndex:999,display:"flex",gap:10,alignItems:"center",boxShadow:"0 8px 24px rgba(0,0,0,.5)"}}>🗑️ حذف {(undoInfo.code||undoInfo.customer)||""}<button onClick={undoRestore} style={{background:"rgba(255,255,255,.2)",border:"none",color:"#fff",borderRadius:12,padding:"6px 12px",fontWeight:800}}>↩️ تراجع</button><button onClick={()=>setUndoInfo(null)} style={{background:"none",border:"none",color:"#fff"}}>✕</button></div>)}
+{confetti&&(<div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:998,overflow:"hidden"}}>{Array.from({length:40}).map((_,i)=>(<span key={i} style={{position:"absolute",top:"-10px",insetInlineStart:(i*2.5)+"%",width:8,height:12,background:["#7C5CFF","#2DD4A8","#FFB65C","#FF5C7A","#4CC9F0"][i%5],borderRadius:3,animation:"confFall 2.6s linear "+((i%10)*0.12)+"s both"}}/>))}</div>)}
 {screen==="log"&&(
 <div style={{maxWidth:640,margin:"0 auto",padding:"40px 16px 20px"}}>
 <div className="anim" style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}><button onClick={()=>setScreen("home")} style={hdrBtn}>→</button><div style={{fontSize:19,fontWeight:900,flex:1}}>{t.dailyLog}</div></div>
@@ -554,7 +686,7 @@ return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noRe
 <MenuBtn onClick={()=>{exportCSV();setShowMenu(false);}}>💾 {t.backup}</MenuBtn>
 <MenuBtn onClick={()=>{setScreen("archive");setShowMenu(false);}}>🗄️ {t.archive}</MenuBtn>
 <MenuBtn onClick={()=>{setScreen("log");setShowMenu(false);}}>📋 {t.dailyLog}</MenuBtn>
-<MenuBtn onClick={()=>{setNameDraft(ownerName);setShowSettings(true);setShowMenu(false);}}>⚙️ {t.settings}</MenuBtn>
+<MenuBtn onClick={()=>{setNameDraft(ownerName);openSettingsGuard();setShowMenu(false);}}>⚙️ {t.settings}</MenuBtn>
 </div></div>)}
 {showLateList&&(
 <div className="modal" onClick={()=>setShowLateList(false)}>
@@ -840,7 +972,8 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 {can&&cards.some(c=>c.id===editingCard.id)&&(<>
 <div className="lbl">{t.stagesLabel}</div><select className="inp" value={editingCard.stage} onChange={e=>setEditingCard({...editingCard,stage:e.target.value})}>{stages.map(s=><option key={s}>{s}</option>)}</select>
 </>)}
-<div className="lbl">{t.customer}</div><input className="inp" list="customersList" value={editingCard.customer} onChange={e=>onCustomerChange(e.target.value)}/>
+{favs.length>0&&(<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:6}}>{favs.map(f=><button key={f} onClick={()=>onCustomerChange(f)} className="chip on" style={{fontSize:11}}>⭐ {f}</button>)}</div>)}
+<div className="lbl">{t.customer}</div><div style={{display:"flex",gap:6,alignItems:"center"}}><input className="inp" style={{flex:1,marginBottom:10}} list="customersList" value={editingCard.customer} onChange={e=>onCustomerChange(e.target.value)}/><button onClick={()=>toggleFav(editingCard.customer)} style={{width:44,height:44,borderRadius:12,border:"1px solid "+theme.border,background:favs.includes(editingCard.customer)?"rgba(255,182,92,.15)":"transparent",fontSize:18}}>{favs.includes(editingCard.customer)?"⭐":"☆"}</button></div>
 <datalist id="customersList">{knownCustomers.slice(0,50).map(k=><option key={k.name} value={k.name}/>)}</datalist>
 <div style={grid2}>
 <div><div className="lbl">{t.code}</div><input className="inp" value={editingCard.code} onChange={e=>setEditingCard({...editingCard,code:e.target.value})}/></div>
@@ -850,7 +983,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div><div className="lbl">{t.color}</div><input className="inp" value={editingCard.color} onChange={e=>setEditingCard({...editingCard,color:e.target.value})}/></div></div>
 <div className="lbl">{t.colorsLabel}</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{allColors.map(c=><button key={c} onClick={()=>setEditingCard({...editingCard,color:c})} className={"chip"+(editingCard.color===c?" on":"")}>{c}</button>)}</div>
 <div style={grid2}>
-<div><div className="lbl">{t.quantity}</div><input className="inp" value={editingCard.quantity} onChange={e=>setEditingCard({...editingCard,quantity:e.target.value})}/></div>
+<div><div className="lbl">{t.quantity}</div><div style={{display:"flex",gap:6}}><input className="inp" style={{flex:1}} value={editingCard.quantity} onChange={e=>setEditingCard({...editingCard,quantity:e.target.value})}/><button onClick={()=>{const ex=prompt("🧮 اكتب العملية:",editingCard.quantity||"");if(ex===null)return;const clean=String(ex).replace(/[٠-٩]/g,d=>String("٠١٢٤٥٦٨٩".indexOf(d))).replace(/×/g,"*").replace(/÷/g,"/").replace(/[^0-9+\-*/.() ]/g,"");if(!clean.trim())return;try{const v=Function('"use strict";return ('+clean+")")();if(isFinite(v))setEditingCard({...editingCard,quantity:String(Math.round(v*100)/100)});}catch(e){}}} style={{width:44,height:44,borderRadius:12,border:"1px solid "+theme.border,background:"transparent",fontSize:16}}>🧮</button></div></div>
 <div><div className="lbl">{t.barcode}</div><div style={{display:"flex",gap:6}}><input className="inp" style={{marginBottom:6}} value={editingCard.barcode} onChange={e=>setEditingCard({...editingCard,barcode:e.target.value})}/><button onClick={()=>{scanMode.current="form";setShowScanner(true);}} style={{flex:"0 0 auto",padding:"0 12px",borderRadius:12,border:"none",background:"var(--teal)",color:"#04211a",fontSize:16,fontWeight:800}}>📷</button></div>
 {editingCard.barcode&&<div style={{background:"#fff",borderRadius:8,padding:"6px 4px",marginBottom:8,textAlign:"center"}}><BarcodeView value={editingCard.barcode}/></div>}</div></div>
 <div className="lbl">{t.machine}</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{machines.map(m=><button key={m} onClick={()=>setEditingCard({...editingCard,machine:m})} className={"chip"+(editingCard.machine===m?" on":"")}>{m}</button>)}</div>
@@ -890,6 +1023,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 ...(can?[{icon:actionCard.delivered?"↩️":"✅",label:actionCard.delivered?"إلغاء التسليم":"تم التسليم",fn:()=>toggleDelivered(actionCard)},
 {icon:"⚖️",label:"تسليم جزئي",fn:()=>{const q=prompt("الكمية المسلّمة من الكرت:",actionCard.quantity||"");if(q!==null)partialDeliver(actionCard,q);}}]:[]),
 {icon:"💬",label:t.shareCard,fn:()=>{window.open(waLink(shareCardText(actionCard)),"_blank");setActionCard(null);}},
+{icon:"📢",label:"بلّغ العميل بالحركة",fn:()=>{window.open(waLink("أهلاً "+(actionCard.customer||"")+" 👋\n📦 أمرك "+(actionCard.code||"")+" تحرّك لمرحلة: "+(actionCard.stage||"")+"\n🏭 "+(factory.fname||"")),"_blank");setActionCard(null);}},
 ...(can?[{icon:"⚠️",label:"تسجيل عيب / مرتجع",fn:()=>{setDefectFor(actionCard);setActionCard(null);}}]:[]),
 ...(can?[{icon:"📋",label:t.copyCard,fn:()=>{setCopyCard(actionCard);setActionCard(null);}},
 {icon:"🔄",label:t.moveCard,fn:()=>{setMoveCard(actionCard);setActionCard(null);}},
@@ -899,7 +1033,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 {icon:"📱",label:t.showQr,fn:()=>{setQrCard(actionCard);setActionCard(null);}},
 ...(actionCard.photo?[{icon:"🖼️",label:t.viewPhoto,fn:()=>{setPhotoView(actionCard);setActionCard(null);}}]:[]),
 ...(can?[{icon:"🗄️",label:actionCard.archived?t.unarchive:t.archiveCard,fn:()=>toggleArchive(actionCard)},
-{icon:"🗑️",label:t.delete,fn:()=>deleteCard(actionCard),danger:true}]:[])
+{icon:"🗑️",label:t.delete,fn:()=>undoDelete(actionCard),danger:true}]:[])
 ].map((it,i)=>(<button key={i} onClick={it.fn} className="anim" style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:"12px 10px",background:"transparent",border:"none",borderTop:"1px solid "+theme.border,color:it.danger?"var(--red)":theme.text,fontSize:14.5,textAlign:"start",animationDelay:(i*40)+"ms"}}>{it.icon} {it.label}</button>))}
 </div></div>)}
 {moveCard_&&(
@@ -932,6 +1066,21 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:400}}>
 <h3 style={{margin:"0 0 14px"}}>⚙️ {t.settings}</h3>
 <div className="lbl">🌐 {t.language}</div><div style={{marginBottom:10}}><button onClick={()=>{const n=lang==="ar"?"en":"ar";setLang(n);localStorage.setItem("pref_lang",n);}} className="chip on">{lang==="ar"?"العربية":"English"}</button></div>
+<div style={{display:"flex",gap:6,marginBottom:12}}>
+<button onClick={()=>{const m=themeMode==="light"?"dark":"light";setThemeMode(m);localStorage.setItem("themeMode",m);}} className={"chip"+(themeMode==="light"?" on":"")} style={{flex:1}}>{themeMode==="light"?"🌙 دايم":"☀️ فاتح"}</button>
+<button onClick={()=>{setPrefVib(v=>{const nv=!v;localStorage.setItem("prefVib",nv?"1":"0");return nv;});}} className={"chip"+(prefVib?" on":"")} style={{flex:1}}>📳 اهتزاز {prefVib?"ON":"OFF"}</button>
+<button onClick={()=>{setPrefSnd(v=>{const nv=!v;localStorage.setItem("prefSnd",nv?"1":"0");return nv;});}} className={"chip"+(prefSnd?" on":"")} style={{flex:1}}>🔊 صوت {prefSnd?"ON":"OFF"}</button>
+</div>
+<div className="lbl">🖼️ لوجو الشركة</div>
+<div style={{display:"flex",gap:6,alignItems:"center",marginBottom:10}}>
+{logoSrc&&<img src={logoSrc} style={{width:44,height:44,borderRadius:10,objectFit:"cover"}}/>}
+<label className="chip on" style={{display:"inline-flex",alignItems:"center",gap:6,cursor:"pointer"}}>📤 رفع لوجو<input type="file" accept="image/png,image/jpeg" style={{display:"none"}} onChange={e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const rd=new FileReader();rd.onerror=()=>alert("❌ فشل قراءة الملف");rd.onload=()=>{const img=new Image();img.onerror=()=>alert("❌ نوع الصورة مش مدعوم — اختار JPG أو PNG");img.onload=()=>{const m=Math.max(img.width,img.height);const sc=Math.min(1,256/m);const c=document.createElement("canvas");c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);c.getContext("2d").drawImage(img,0,0,c.width,c.height);saveFactory({logo:c.toDataURL("image/png")});try{localStorage.setItem("logo_local",c.toDataURL("image/png"));}catch(e){}};img.src=rd.result;};rd.readAsDataURL(f);e.target.value="";}}/></label>>
+{logoSrc&&<button className="chip" onClick={()=>{saveFactory({logo:""});localStorage.removeItem("logo_local");}}>🗑️</button>}
+</div>
+<div className="lbl">🔒 رقم سري للإعدادات (سيبه فاضي = مفتوح)</div>
+<input className="inp" type="number" placeholder="بدون رمز" defaultValue={localStorage.getItem("pin_"+(userId||"_"))||""} onBlur={e=>localStorage.setItem("pin_"+(userId||"_"),e.target.value)}/>
+<div className="lbl">🗄️ أرشفة تلقائية للمسلّم بعد (يوم) — 0 = مقفول</div>
+<input className="inp" type="number" placeholder="0" defaultValue={localStorage.getItem("autoArch_"+(userId||"_"))||""} onBlur={e=>localStorage.setItem("autoArch_"+(userId||"_"),e.target.value)}/>
 {!can&&(<div className="card" style={{padding:14,marginBottom:10}}>
 <div className="lbl">🔑 {t.unlockTitle}</div>
 <input className="inp" inputMode="numeric" value={codeInput} onChange={e=>setCodeInput(e.target.value)} placeholder="******"/>
