@@ -516,8 +516,8 @@ return(<div key={s} className="anim" style={{display:"flex",gap:12,marginBottom:
 </div>
 {cardsToShow.length===0&&<p style={{textAlign:"center",padding:"50px 10px",color:theme.textDim}}>{t.noCardsHere}</p>}
 {cardsToShow.map((c,i)=>{const d=daysSince(c.updatedAt||c.createdAt);const l1=d>=1&&d<LD;const l2=d>=LD;const lk=liveCards.filter(x=>x.message&&x.message===c.message&&x.id!==c.id).length;const di=dueInfo(c);const bc=c.urgent?"var(--red)":l2?"var(--red)":l1?"var(--warn)":di?di.col:STAGE_COLORS[(stages.indexOf(c.stage)>=0?stages.indexOf(c.stage):0)%8];
-return(<div key={c.id} className="card" onClick={()=>setEditingCard(c)} onContextMenu={e=>{e.preventDefault();setActionCard(c);}} style={{userSelect:"none",cursor:"pointer",marginBottom:10,borderInlineStart:"4px solid "+bc,animationDelay:(i*70)+"ms"}}>
-<div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:15}}>{c.customer||"—"} {c.pinned&&"📌"}</b><span style={{fontSize:11,color:theme.textDim}}>{c.time||fmtTime(c.updatedAt,lang)}</span></div>
+return(<div key={c.id} className="card" onClick={()=>selectMode?toggleSelect(c.id):setEditingCard(c)} onContextMenu={e=>{e.preventDefault();setActionCard(c);}} style={{userSelect:"none",cursor:"pointer",marginBottom:10,borderInlineStart:"4px solid "+(selected.includes(c.id)?"var(--teal)":bc),boxShadow:selected.includes(c.id)?"0 0 0 2px var(--teal)":"none",animationDelay:(i*70)+"ms"}}>
+<div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:15}}>{selectMode&&(selected.includes(c.id)?"☑️ ":" ")}{c.customer||"—"} {c.pinned&&"📌"}</b><span style={{display:"flex",alignItems:"center",gap:6}}>{(c.photo||c.img)&&<img src={c.photo||c.img} style={{width:34,height:34,borderRadius:8,objectFit:"cover"}}/>}<span style={{fontSize:11,color:theme.textDim}}>{c.time||fmtTime(c.updatedAt,lang)}</span></span></div>
 <div style={{display:"flex",flexWrap:"wrap",gap:"4px 12px",fontSize:12.5,color:theme.textDim,marginTop:5}}>
 <span>{t.code}: <b style={{color:theme.text}}>{c.code||"—"}</b></span>
 <span>{t.color}: <b style={{color:theme.text}}>{c.color||"—"}</b></span>
