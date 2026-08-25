@@ -197,6 +197,9 @@ const toggleSelect=id=>{setSelected(s=>s.includes(id)?s.filter(x=>x!==id):s.conc
 const bulkPatch=o=>{selected.forEach(id=>{db.collection("cards").doc(id).set({...o,updatedAt:Date.now()},{merge:true});});setSelected([]);setSelectMode(false);};
 const bulkDel=()=>{if(!confirm("حذف "+selected.length+" كرت؟"))return;selected.forEach(id=>db.collection("cards").doc(id).delete());setSelected([]);setSelectMode(false);};
 const [showBulkMove,setShowBulkMove]=useState(false);const [showStageMgr,setShowStageMgr]=useState(false);const [delStagePick,setDelStagePick]=useState(null);
+const [showSched,setShowSched]=useState(false);const [schedDate,setSchedDate]=useState((()=>{const x=new Date();return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0");})());const [schedShift,setSchedShift]=useState("all");
+const dkey=v=>{const x=new Date(toMs(v));return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0");};
+const schedCards=liveCards.filter(c=>c.machine&&dkey(c.updatedAt||c.createdAt)===schedDate&&(schedShift==="all"||((h=>schedShift==="day"?(h>=6&&h<18):(h>=18||h<6)))(new Date(toMs(c.updatedAt||c.createdAt)).getHours())));
 const stDelTo=(s,to)=>{saveStages(stages.filter(x=>x!==s));cards.filter(c=>c.stage===s).forEach(c=>db.collection("cards").doc(c.id).set({stage:to},{merge:true}));};
 const bulkPrint=()=>{const list=cards.filter(c=>selected.includes(c.id));const rows=list.map(c=>"<tr><td>"+(c.customer||"")+"</td><td>"+(c.code||"")+"</td><td>"+(c.color||"")+"</td><td>"+(c.quantity||"")+"</td><td>"+(c.stage||"")+"</td><td>"+(c.machine||"")+"</td></tr>").join("");const w=window.open("","_blank");if(!w)return;w.document.write('<html dir="rtl"><head><meta charset="utf-8"><style>table{width:100%;border-collapse:collapse}td,th{border:1px solid #000;padding:6px;font-size:12px}</style></head><body><h2>🏭 '+(factory.fname||"")+'</h2><table><tr><th>عميل</th><th>كود</th><th>لون</th><th>كمية</th><th>مرحلة</th><th>ماكينة</th></tr>'+rows+'</table><scr'+'ipt>window.onload=function(){window.print()}<\/scr'+'ipt></body></html>');w.document.close();};
 const stRename=s=>{const n=prompt("اسم جديد للمرحلة:",s);if(n&&n.trim()&&n!==s){saveStages(stages.map(x=>x===s?n.trim():x));cards.filter(c=>c.stage===s).forEach(c=>db.collection("cards").doc(c.id).set({stage:n.trim()},{merge:true}));}};
@@ -477,6 +480,7 @@ return(<div key={c.id} className="card" onClick={()=>jumpToCard(c)} style={{curs
 <button onClick={()=>setScreen("home")} style={hdrBtn}>→</button>
 <div style={{flex:1}}><div style={{fontSize:19,fontWeight:900}}>مراحل العمل</div><div style={{fontSize:11,color:theme.textDim}}>تابع جميع مراحل الإنتاج</div></div>
 {can&&<button onClick={()=>setShowStageMgr(true)} style={hdrBtn}>⚙️</button>}
+<button onClick={()=>setShowSched(true)} style={hdrBtn}>📅</button>
 </div>
 {(()=>{const orph=liveCards.filter(c=>!stages.includes(c.stage));return orph.length>0?(<div onClick={()=>setEditingCard(orph[0])} className="card" style={{marginBottom:14,borderColor:"var(--red)",cursor:"pointer"}}>⚠️ عندك {orph.length} كرت في مرحلة مش موجودة — دوس تصلّح</div>):null;})()}
 {stages.map((s,i)=>{const l=liveCards.filter(c=>c.stage===s);const late=l.filter(c=>daysSince(c.updatedAt||c.createdAt)>=LD).length;const q=qtySum(l);const col=STAGE_COLORS[i%8];
@@ -499,6 +503,7 @@ return(<div key={s} className="anim" style={{display:"flex",gap:12,marginBottom:
 <button onClick={()=>exportSheet(liveCards.filter(c=>c.stage===activeStage),activeStage)} className="chip on">💾 تصدير</button>
 <button onClick={()=>setLateOnly(!lateOnly)} className={"chip"+(lateOnly?" on":"")}>{lateOnly?t.lateOnly:t.all}</button>
 <button onClick={()=>{setSelectMode(!selectMode);setSelected([]);}} className={"chip"+(selectMode?" on":"")}>☑️</button>
+<button onClick={()=>setShowSched(true)} className="chip">📅</button>
 </div>
 <div className="card anim" style={{display:"flex",alignItems:"center",gap:8,padding:"10px 14px",marginBottom:14}}>
 <span style={{fontSize:16}}>🔍</span>
@@ -552,6 +557,19 @@ return(<div key={c.id} className="card" onClick={()=>selectMode?toggleSelect(c.i
 {delStagePick&&(<div className="modal" onClick={()=>setDelStagePick(null)}><div className="mbox" style={{maxWidth:360}} onClick={e=>e.stopPropagation()}>
 <h3 style={{margin:"0 0 10px"}}>🗑️ حذف "{delStagePick}" — كروتها تروح فين؟</h3>
 {stages.filter(x=>x!==delStagePick).map(s=><button key={s} className="chip" style={{margin:4}} onClick={()=>{stDelTo(delStagePick,s);setDelStagePick(null);setShowStageMgr(false);}}>{s}</button>)}
+</div></div>)}
+{showSched&&(<div className="modal" onClick={()=>setShowSched(false)}><div className="mbox" onClick={e=>e.stopPropagation()}>
+<div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><h3 style={{flex:1,margin:0}}>📅 جدول الماكينات</h3><button className="chip on" onClick={()=>exportSheet(schedCards,"machines-"+schedDate)}>💾 تصدير</button></div>
+<input type="date" className="inp" style={{width:170}} value={schedDate} onChange={e=>setSchedDate(e.target.value)}/>
+<div style={{display:"flex",gap:6,marginBottom:10}}>
+<button className={"chip"+(schedShift==="all"?" on":"")} onClick={()=>setSchedShift("all")}>الكل</button>
+<button className={"chip"+(schedShift==="day"?" on":"")} onClick={()=>setSchedShift("day")}>☀️ صبح</button>
+<button className={"chip"+(schedShift==="night"?" on":"")} onClick={()=>setSchedShift("night")}>🌙 ليل</button>
+</div>
+{machines.map(m=>{const list=schedCards.filter(c=>String(c.machine)===String(m));return(<div key={m} className="card" style={{padding:10,marginBottom:8}}>
+<b>🔧 ماكينة {m}</b>{!list.length&&<span style={{color:theme.textDim,fontSize:11}}> · فاضية</span>}
+{list.map(c=><div key={c.id} style={{fontSize:12,marginTop:6,borderTop:"1px dashed "+theme.border,paddingTop:6}}>{c.customer} · {c.code} · {c.color} · {c.quantity} {factory.unit} {c.prepare&&<span style={{color:"var(--warn)"}}>· {c.prepare}</span>}</div>)}
+</div>);})}
 </div></div>)}
 {screen==="log"&&(
 <div style={{maxWidth:640,margin:"0 auto",padding:"40px 16px 20px"}}>
