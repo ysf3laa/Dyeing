@@ -60,6 +60,7 @@ fieldset{border:none;margin:0;padding:0;min-width:0}
 </head>
 <body>
 <div id="syncBar" class="syncing-bar"></div>
+<style>@keyframes confFall{to{top:110%;transform:rotate(720deg)}}</style>
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:16px"><div style="font-size:64px">🏭</div><div style="color:#8A93B5;font-size:14px">جاري التحميل...</div></div></div>
 <script>
 window.onerror=function(m,u,l){if(m&&m!=="Script error."&&!window.__booted){var r=document.getElementById("root");if(r)r.innerHTML='<div style="padding:16px;color:#FF5C7A;font-size:12px;word-break:break-all;text-align:center">خطأ: '+m+'<br>سطر: '+l+'</div>';}};
@@ -205,6 +206,9 @@ const [favs,setFavs]=useState([]);
 useEffect(()=>{try{setFavs(JSON.parse(localStorage.getItem("favs_"+(userId||"_"))||"[]"));}catch(e){setFavs([]);}},[userId]);
 const toggleFav=n=>{if(!n)return;setFavs(f=>{const nx=f.includes(n)?f.filter(x=>x!==n):f.concat([n]);localStorage.setItem("favs_"+(userId||"_"),JSON.stringify(nx));return nx;});};
 useEffect(()=>{const seen={};const l=stages.filter(s=>{if(seen[s])return false;seen[s]=1;return true;});if(l.length!==stages.length){setStages(l);saveStages(l);}},[stages]);
+const [confetti,setConfetti]=useState(false);
+const prevStageCounts=useRef({});
+useEffect(()=>{const cur={};stages.forEach(s=>{cur[s]=liveCards.filter(c=>c.stage===s&&!c.delivered).length;});let fired=false;Object.keys(cur).forEach(s=>{if((prevStageCounts.current[s]||0)>0&&cur[s]===0)fired=true;});prevStageCounts.current=cur;if(fired){setConfetti(true);setTimeout(()=>setConfetti(false),3000);}},[cards]);
 const [undoInfo,setUndoInfo]=useState(null);
 const undoDelete=c=>{const snap={...c};setActionCard(null);fx("danger");deleteCard(c);setUndoInfo(snap);setTimeout(()=>setUndoInfo(null),6000);};
 const undoRestore=()=>{if(!undoInfo)return;db.collection("cards").doc(undoInfo.id).set(undoInfo).then(()=>{fx();setUndoInfo(null);});};
@@ -468,6 +472,7 @@ return(
 <div className="card anim" onClick={()=>setShowWarehouse(true)} style={{animationDelay:"260ms",cursor:"pointer"}}><div className="lbl">📦 متبقي المخزن</div><div style={{fontSize:26,fontWeight:900,color:"var(--blue)"}}>{nRem} <span style={{fontSize:11,color:theme.textDim}}>{factory.unit}</span></div></div>
 <div className="card anim" onClick={()=>setShowDelivered(true)} style={{animationDelay:"320ms",cursor:"pointer"}}><div className="lbl">✅ اتسلم</div><div style={{fontSize:26,fontWeight:900,color:"var(--teal)"}}>{nDel}</div></div>
 </div>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",margin:"10px 0",fontSize:12,color:theme.textDim}}><span>🕌 {(()=>{try{return new Intl.DateTimeFormat("ar-SA-u-ca-islamic",{day:"numeric",month:"long",year:"numeric"}).format(new Date());}catch(e){return "";}})()}</span><span>{new Date().getHours()<12?"☀️ صباح الخير":"🌙 مساء الخير"} · {ownerName}</span></div>
 <div className="card anim" onClick={()=>setShowSched(true)} style={{animationDelay:"340ms",margin:"12px 0",cursor:"pointer",background:"linear-gradient(135deg,rgba(45,212,168,.15),rgba(76,201,240,.10))",border:"1px solid rgba(45,212,168,.35)"}}>
 <div style={{display:"flex",alignItems:"center",gap:12}}>
 <div style={{width:52,height:52,borderRadius:16,background:"linear-gradient(135deg,var(--teal),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,boxShadow:"0 6px 18px rgba(45,212,168,.35)"}}>📅</div>
@@ -629,6 +634,7 @@ return(<div key={c.id} className="card" onClick={()=>selectMode?toggleSelect(c.i
 </div>);})}
 </div></div>)}
 {undoInfo&&(<div style={{position:"fixed",bottom:96,left:"50%",transform:"translateX(-50%)",background:"var(--red)",color:"#fff",fontWeight:800,padding:"10px 16px",borderRadius:30,zIndex:999,display:"flex",gap:10,alignItems:"center",boxShadow:"0 8px 24px rgba(0,0,0,.5)"}}>🗑️ حذف {(undoInfo.code||undoInfo.customer)||""}<button onClick={undoRestore} style={{background:"rgba(255,255,255,.2)",border:"none",color:"#fff",borderRadius:12,padding:"6px 12px",fontWeight:800}}>↩️ تراجع</button><button onClick={()=>setUndoInfo(null)} style={{background:"none",border:"none",color:"#fff"}}>✕</button></div>)}
+{confetti&&(<div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:998,overflow:"hidden"}}>{Array.from({length:40}).map((_,i)=>(<span key={i} style={{position:"absolute",top:"-10px",insetInlineStart:(i*2.5)+"%",width:8,height:12,background:["#7C5CFF","#2DD4A8","#FFB65C","#FF5C7A","#4CC9F0"][i%5],borderRadius:3,animation:"confFall 2.6s linear "+((i%10)*0.12)+"s both"}}/>))}</div>)}
 {screen==="log"&&(
 <div style={{maxWidth:640,margin:"0 auto",padding:"40px 16px 20px"}}>
 <div className="anim" style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}><button onClick={()=>setScreen("home")} style={hdrBtn}>→</button><div style={{fontSize:19,fontWeight:900,flex:1}}>{t.dailyLog}</div></div>
@@ -1009,6 +1015,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 ...(can?[{icon:actionCard.delivered?"↩️":"✅",label:actionCard.delivered?"إلغاء التسليم":"تم التسليم",fn:()=>toggleDelivered(actionCard)},
 {icon:"⚖️",label:"تسليم جزئي",fn:()=>{const q=prompt("الكمية المسلّمة من الكرت:",actionCard.quantity||"");if(q!==null)partialDeliver(actionCard,q);}}]:[]),
 {icon:"💬",label:t.shareCard,fn:()=>{window.open(waLink(shareCardText(actionCard)),"_blank");setActionCard(null);}},
+{icon:"📢",label:"بلّغ العميل بالحركة",fn:()=>{window.open(waLink("أهلاً "+(actionCard.customer||"")+" 👋\n📦 أمرك "+(actionCard.code||"")+" تحرّك لمرحلة: "+(actionCard.stage||"")+"\n🏭 "+(factory.fname||"")),"_blank");setActionCard(null);}},
 ...(can?[{icon:"⚠️",label:"تسجيل عيب / مرتجع",fn:()=>{setDefectFor(actionCard);setActionCard(null);}}]:[]),
 ...(can?[{icon:"📋",label:t.copyCard,fn:()=>{setCopyCard(actionCard);setActionCard(null);}},
 {icon:"🔄",label:t.moveCard,fn:()=>{setMoveCard(actionCard);setActionCard(null);}},
