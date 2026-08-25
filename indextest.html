@@ -1,414 +1,511 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
-<title>🏭 مصنع الصباغة — إدارة الإنتاج</title>
-<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>متابعة مراحل الصباغة</title>
+<meta name="theme-color" content="#0B0E1A">
 <style>
+:root{--bg:#0B0E1A;--panel:#141829;--panel2:#1B2036;--line:#242B47;--txt:#EDEFF5;--dim:#8A93B5;--vio:#7C5CFF;--vio2:#5E8FD6;--teal:#2DD4A8;--red:#FF5C7A;--warn:#FFB65C;--blue:#4CC9F0}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-:root{--teal:#2DD4A8;--vio:#7C5CFF;--vio2:#9D7BFF;--red:#FF5C7A;--warn:#FFB65C;--blue:#4CC9F0}
-body{margin:0;font-family:system-ui,"Segoe UI",Tahoma,sans-serif;background:#0d1220;color:#E8ECFF}
-body.light{background:#F4F6FF;color:#171A2B}
-.app{max-width:560px;margin:0 auto;padding:14px}
-.card{background:#171C31;border:1px solid #262C47;border-radius:16px;padding:12px;margin-bottom:10px}
-body.light .card{background:#fff;border-color:#E3E7F7}
-.grad{background:linear-gradient(135deg,#7C5CFF,#4CC9F0);border:none;color:#fff}
-.lbl{font-size:12px;opacity:.75;margin-bottom:6px}
-.inp{width:100%;background:#0F1426;border:1px solid #262C47;border-radius:12px;color:inherit;padding:12px;font-size:14px;margin-bottom:10px}
-body.light .inp{background:#F7F8FF;border-color:#DDE2F2}
-.chip{border:1px solid #262C47;background:transparent;color:inherit;border-radius:999px;padding:8px 14px;font-size:12px}
-body.light .chip{border-color:#D5DAEA}
-.chip.on{background:linear-gradient(135deg,#7C5CFF,#4CC9F0);border-color:transparent;color:#fff}
-.btnG{width:100%;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:800;background:linear-gradient(135deg,#7C5CFF,#4CC9F0);color:#fff}
-.btnO{width:100%;border:1px solid #262C47;background:transparent;color:inherit;border-radius:14px;padding:12px;font-size:14px}
-body.light .btnO{border-color:#D5DAEA}
-.btnO.danger{border-color:var(--red);color:var(--red)}
-.modal{position:fixed;inset:0;background:rgba(5,8,18,.7);z-index:100;display:flex;align-items:flex-end;justify-content:center;overflow-y:auto}
-.mbox{background:#151A2E;border:1px solid #262C47;border-radius:20px 20px 0 0;padding:16px;width:100%;max-width:560px;margin-top:40px}
-body.light .mbox{background:#fff;border-color:#D5DAEA}
-.bar{height:6px;border-radius:4px;background:#262C47;overflow:hidden;margin-top:6px}
-.bar i{display:block;height:100%}
-@keyframes up{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:"Segoe UI",Tahoma,sans-serif;padding-bottom:95px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px}
+.lbl{font-size:12px;color:var(--dim);margin-bottom:6px}
+.inp{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:12px;color:var(--txt);padding:12px;font-size:14px;margin-bottom:10px;outline:none}
+.inp:focus{border-color:var(--vio)}
+.btnG{width:100%;background:linear-gradient(135deg,var(--vio),var(--vio2));border:none;color:#fff;border-radius:14px;padding:14px;font-size:15px;font-weight:800}
+.btnO{width:100%;background:transparent;border:1px solid var(--line);color:var(--txt);border-radius:14px;padding:12px;font-size:14px;font-weight:700}
+.chip{background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:20px;padding:8px 14px;font-size:12px;font-weight:700}
+.chip.on{background:linear-gradient(135deg,var(--vio),var(--vio2));border-color:transparent;color:#fff}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:900;display:flex;align-items:flex-end;justify-content:center}
+.mbox{background:var(--panel);border:1px solid var(--line);border-radius:20px 20px 0 0;padding:16px;width:100%;max-width:560px;max-height:88vh;overflow-y:auto}
+.bar{height:8px;background:var(--panel2);border-radius:6px;overflow:hidden;margin-bottom:10px}
+.bar>i{display:block;height:100%;border-radius:6px}
+.nav{position:fixed;bottom:0;left:0;right:0;background:var(--panel);border-top:1px solid var(--line);display:flex;z-index:800;padding:6px 0 10px}
+.nav>div{flex:1;text-align:center;font-size:11px;color:var(--dim);cursor:pointer}
+.nav>div.on{color:var(--vio);font-weight:800}
+.fab{position:absolute;top:-28px;left:50%;transform:translateX(-50%);width:62px;height:62px;border-radius:50%;background:linear-gradient(135deg,var(--vio),var(--vio2));color:#fff;font-size:28px;border:none;box-shadow:0 8px 24px rgba(124,92,255,.5)}
 .anim{animation:up .4s both}
-@keyframes pop{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
-@keyframes confFall{to{top:110%;transform:rotate(720deg)}}
+.card.grad{background:linear-gradient(135deg,var(--vio),var(--vio2));border:none;color:#fff}
+@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes pop{from{transform:translateX(-50%) scale(.7);opacity:0}to{transform:translateX(-50%) scale(1);opacity:1}}
 @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#1B2138;border:1px solid #262C47;padding:10px 18px;border-radius:999px;z-index:999;animation:pop .25s both;font-size:13px;color:#E8ECFF}
-body.light .toast{background:#fff;color:#171A2B;border-color:#D5DAEA}
-h3{margin:0 0 12px}
+@keyframes growH{from{width:0}}
+@keyframes confFall{to{top:110%;transform:rotate(720deg)}}
 </style>
 </head>
 <body>
 <div id="root"></div>
-<script type="text/babel">
-const {useState,useEffect,useRef,useMemo}=React;
+<script src="lib/react.js"></script>
+<script src="lib/reactdom.js"></script>
+<script src="lib/babel.js"></script>
+<script src="lib/fbapp.js"></script>
+<script src="lib/fbauth.js"></script>
+<script src="lib/fbfs.js"></script>
+<script src="lib/jsbarcode.js"></script>
+<script src="lib/qrcode.js"></script>
+<script src="lib/html5qrcode.js"></script>
+<script src="lib/tesseract.js"></script>
+<script type="text/babel" data-presets="react">
+const {useState,useEffect,useRef}=React;
 const firebaseConfig={apiKey:"AIzaSyBEplMzCUPbZ33vpctAegDvCLFLB2d_Psc",authDomain:"dyeing-tracker-cc789.firebaseapp.com",projectId:"dyeing-tracker-cc789",storageBucket:"dyeing-tracker-cc789.firebasestorage.app",messagingSenderId:"407184511418",appId:"1:407184511418:web:16512177012e5a6ded0d83",measurementId:"G-V3ST7W6VVN"};
-firebase.initializeApp(firebaseConfig);
-const db=firebase.firestore();
+const UNLOCK_CODE="20112005";
+const SUPPORT_WA="201044836450";
+let db=null,auth=null,fbReady=false;
+try{firebase.initializeApp(firebaseConfig);auth=firebase.auth();db=firebase.firestore();db.enablePersistence({synchronizeTabs:true}).catch(e=>console.warn(e.code));fbReady=true;}catch(e){console.error(e);}
+const DEFAULT_STAGES=["لف","تجهيز","صباغة","جيتات","صالة"];
+const DEFAULT_MACHINES=["1","2","3","4","5","6","7","8","9","10"];
+const STAGE_COLORS=["#7C5CFF","#5E8FD6","#2DD4A8","#FFB65C","#FF5C7A","#B98FD6","#6FBF73","#D6A24F"];
+const PRESET_COLORS=["أبيض","أسود","أحمر","أزرق","أخضر","أصفر","بنفسجي","برتقالي","بيج","كحلي","رمادي","بني","تركواز","كشمير","ذهبي","فضي"];
 const APP_URL="https://ysf3laa.github.io/Dyeing/";
-const STAGE_COLORS=["#7C5CFF","#4CC9F0","#2DD4A8","#FFB65C","#FF5C7A","#F472B6","#A78BFA","#34D399"];
-const grid2={display:"grid",gridTemplateColumns:"1fr 1fr",gap:10};
-const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
-const localDate=d=>{const x=new Date(d);return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0");};
-const toMs=v=>{if(!v)return 0;if(v&&v.toMillis)return v.toMillis();if(typeof v==="number")return v;const d=new Date(v);return isNaN(d)?0:d.getTime();};
-const fmtTime=(v,lang)=>{if(!v)return"";try{return new Date(toMs(v)).toLocaleString(lang==="ar"?"ar-EG":"en-US",{hour:"2-digit",minute:"2-digit",day:"numeric",month:"numeric"});}catch(e){return"";}};
-const badge=(col,txt)=>(<span style={{background:col+"22",color:col,borderRadius:999,padding:"3px 10px",fontSize:11,fontWeight:700}}>{txt}</span>);
-const T={
-ar:{welcome:"مرحبياً يا",save:"حفظ",cancel:"إلغاء",add:"إضافة",customer:"عميل",code:"كود",message:"رسالة",category:"صنف",color:"لون",colorsLabel:"ألوان سريعة",quantity:"كمية",barcode:"باركود",machine:"ماكينة",prepare:"تجهيز",dye:"صباغة",time:"تاريخ",due:"موعد التسليم",phone:"تليفون العميل",address:"عنوان العميل",notes:"ملاحظة",urgent:"مستعجل",history:"سجل الحركة",stagesLabel:"المراحل",report:"تقرير اليوم",copy:"نسخ",workers:"العمال",noResults:"لا يوجد نتائج",extracted:"بيانات مستخرجة",share:"مشاركة",printCard:"طباعة الكرت",delivered:"مسلّم",search:"بحث...",settings:"الإعدادات",logout:"خروج",login:"دخول",tenantCode:"كود المصنع",yourName:"اسمك",ownerKey:"مفتاح المالك (اختياري)",loads:"الحمولات",backup:"نسخة احتياطية",scanAny:"مسح باركود",newCard:"كرت جديد",edit:"تعديل كرت",aged2:"متأخر",topCust:"أعلى العملاء هذا الشهر",statement:"كشف حساب",renameStage:"أضف مرحلة جديدة",appQr:"تثبيت التطبيق",hello:"أهلاً"},
-en:{welcome:"Welcome",save:"Save",cancel:"Cancel",add:"Add",customer:"Customer",code:"Code",message:"Message",category:"Type",color:"Color",colorsLabel:"Quick colors",quantity:"Qty",barcode:"Barcode",machine:"Machine",prepare:"Prep",dye:"Dyeing",time:"Date",due:"Due date",phone:"Phone",address:"Address",notes:"Notes",urgent:"Urgent",history:"History",stagesLabel:"Stages",report:"Today report",copy:"Copy",workers:"Workers",noResults:"No results",extracted:"Extracted data",share:"Share",printCard:"Print card",delivered:"Delivered",search:"Search...",settings:"Settings",logout:"Logout",login:"Login",tenantCode:"Factory code",yourName:"Your name",ownerKey:"Owner key (optional)",loads:"Loads",backup:"Backup",scanAny:"Scan",newCard:"New card",edit:"Edit card",aged2:"Late",topCust:"Top customers",statement:"Statement",renameStage:"New stage",appQr:"Install app",hello:"Hi"}
+const DICT={
+ar:{appName:"متابعة مراحل",search:"بحث في كل الكروت...",settings:"الإعدادات",add:"إضافة",addStage:"إضافة مرحلة",stagesLabel:"المراحل",customer:"عميل",code:"كود",message:"رسالة",category:"صنف",color:"لون",colorsLabel:"ألوان سريعة",quantity:"كمية",barcode:"باركود",machine:"ماكينة",prepare:"تجهيز",dye:"صباغة",time:"تاريخ",due:"موعد التسليم",phone:"تليفون العميل",address:"عنوان العميل",notes:"ملاحظة",urgent:"مستعجل",save:"حفظ",cancel:"إلغاء",delivered:"اتسلم",deliverAll:"تسليم كلي",printCard:"طباعة الكرت",share:"مشاركة واتساب",del:"حذف",rename:"إعادة تسمية",workers:"العمال",language:"اللغة",welcome:"مرحباً يا",late:"متأخرة",live:"الكروت الحية",remaining:"متبقي المخزن",stages:"المراحل",reports:"تقرير اليوم",exportXls:"تصدير Excel",warehouse:"المخزن الرئيسي",more:"المزيد",home:"الرئيسية",noResults:"مفيش نتائج",statement:"كشف حساب",topCustomers:"أعلى العملاء هذا الشهر",noLoad:"بدون حمولة",linkedCards:"كروت مرتبطة",aged1:"قرب يستحق",aged2:"متأخر السداد",edit:"تعديل",connected:"متصل",offline:"غير متصل",movesToday:"حركة اليوم",waiting:"متصلين",printSize:"مقاس الطباعة",unit:"وحدة الوزن",lateAfter:"يعتبر متأخر بعد (يوم)",waNumber:"رقم واتساب",saveFactory:"حفظ بيانات المصنع",stageMgr:"إدارة المراحل",machinesMgr:"الماكينات",backup:"نسخة احتياطية",restore:"استرجاع نسخة",importXls:"استيراد من Excel",support:"الدعم الفني",installApp:"تثبيت التطبيق",qrApp:"QR التطبيق",announce:"إعلان",publish:"نشر",clearAnn:"مسح الإعلان",extracted:"تم الاستخراج",deliveredQty:"كمية مسلّمة (جزئي)",load:"الحمولة",pinned:"مثبت"},
+en:{appName:"Stage Tracker",search:"Search all cards...",settings:"Settings",add:"Add",addStage:"Add stage",stagesLabel:"Stages",customer:"Customer",code:"Code",message:"Message",category:"Category",color:"Color",colorsLabel:"Quick colors",quantity:"Qty",barcode:"Barcode",machine:"Machine",prepare:"Prepare",dye:"Dye",time:"Date",due:"Due",phone:"Phone",address:"Address",notes:"Notes",urgent:"Urgent",save:"Save",cancel:"Cancel",delivered:"Delivered",deliverAll:"Deliver all",printCard:"Print card",share:"Share WA",del:"Delete",rename:"Rename",workers:"Workers",language:"Language",welcome:"Welcome",late:"Late",live:"Live cards",remaining:"Stock left",stages:"Stages",reports:"Daily report",exportXls:"Export Excel",warehouse:"Warehouse",more:"More",home:"Home",noResults:"No results",statement:"Statement",topCustomers:"Top customers",noLoad:"No load",linkedCards:"Linked cards",aged1:"Due soon",aged2:"Overdue",edit:"Edit",connected:"Online",offline:"Offline",movesToday:"Moves today",waiting:"Online",printSize:"Print size",unit:"Weight unit",lateAfter:"Late after (days)",waNumber:"WhatsApp number",saveFactory:"Save factory data",stageMgr:"Stage manager",machinesMgr:"Machines",backup:"Backup",restore:"Restore",importXls:"Import Excel",support:"Support",installApp:"Install app",qrApp:"App QR",announce:"Announcement",publish:"Publish",clearAnn:"Clear",extracted:"Extracted",deliveredQty:"Delivered qty (partial)",load:"Load",pinned:"Pinned"}
 };
+const localDate=d=>{const x=new Date(d);return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0");};
+const toMs=v=>{if(!v)return 0;if(typeof v==="number")return v;const d=new Date(v);return isNaN(d)?0:d.getTime();};
+const fmtTime=(v,lang)=>{if(!v)return"";return new Date(toMs(v)).toLocaleTimeString(lang==="en"?"en-GB":"ar-EG",{hour:"2-digit",minute:"2-digit"});};
+const qtySum=a=>a.reduce((s,c)=>s+(parseFloat(c.quantity)||0),0);
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const waLink=txt=>"https://wa.me/?text="+encodeURIComponent(txt);
+const readCompressed=(file,max)=>new Promise(res=>{const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>{const m=Math.max(img.width,img.height);const sc=Math.min(1,(max||900)/m);const c=document.createElement("canvas");c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);c.getContext("2d").drawImage(img,0,0,c.width,c.height);res(c.toDataURL("image/jpeg",.8));};img.src=r.result;};r.readAsDataURL(file);});
+function useCountUp(v,dur){const [n,setN]=useState(0);useEffect(()=>{let s=null,raf;const step=t=>{if(s===null)s=t;const p=Math.min(1,(t-s)/(dur||900));setN(Math.round(v*(1-Math.pow(1-p,3))));if(p<1)raf=requestAnimationFrame(step);};raf=requestAnimationFrame(step);return ()=>cancelAnimationFrame(raf);},[v]);return n;}
+const badge=(col,txt)=>(<span style={{background:col+"22",color:col,borderRadius:12,padding:"3px 10px",fontSize:11,fontWeight:800,marginInlineEnd:6}}>{txt}</span>);
+function BarcodeView({value}){const ref=useRef(null);useEffect(()=>{if(ref.current&&window.JsBarcode){try{JsBarcode(ref.current,value,{format:"CODE128",height:40,displayValue:true,background:"transparent",lineColor:"#000"});}catch(e){}}},[value]);if(!value)return null;return <svg ref={ref}/>;}
+function SearchModal({t,cards,onPick,favs}){const [q,setQ]=useState("");const res=q.trim()?cards.filter(c=>JSON.stringify(c).includes(q.trim())).slice(0,30):[];
+return(<div>{favs&&favs.length>0&&(<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>{favs.map(f=><button key={f} onClick={()=>setQ(f)} className="chip on" style={{marginBottom:4}}>⭐ {f}</button>)}</div>)}<input autoFocus value={q} onChange={e=>setQ(e.target.value)} placeholder={t.search} className="inp"/>
+{res.map(c=><div key={c.id} className="card" onClick={()=>onPick(c)} style={{cursor:"pointer"}}><b>{c.customer||"—"}</b> · {c.code||"—"} <span style={{color:"var(--dim)",fontSize:12}}>{c.stage} · {c.color}</span></div>)}
+{q.trim()&&!res.length&&<p style={{color:"var(--dim)",textAlign:"center"}}>{t.noResults}</p>}</div>);}
 function App(){
-const [tenant,setTenant]=useState(localStorage.getItem("tenant")||"");
-const [me,setMe]=useState(localStorage.getItem("me")||"");
-const [isOwner,setIsOwner]=useState(localStorage.getItem("isOwner")==="1");
 const [lang,setLang]=useState(localStorage.getItem("pref_lang")||"ar");
-const [mode,setMode]=useState(localStorage.getItem("pref_mode")||"dark");
-const t=T[lang];
-const can=isOwner;
-const [factory,setFactory]=useState({fname:"",unit:"kg",lateAfter:1});
-const [cards,setCards]=useState([]);
-const [logs,setLogs]=useState([]);
-const [loads,setLoads]=useState([]);
+const t=DICT[lang]||DICT.ar;
+const [themeMode,setThemeMode]=useState(localStorage.getItem("themeMode")||"dark");
+const isLight=themeMode==="light";
+const [prefVib,setPrefVib]=useState(localStorage.getItem("prefVib")!=="0");
+const [prefSnd,setPrefSnd]=useState(localStorage.getItem("prefSnd")!=="0");
+const [tenant,setTenant]=useState(localStorage.getItem("tenant")||"");
+const [me,setMe]=useState(null);
+const [loginCo,setLoginCo]=useState("");const [loginName,setLoginName]=useState("");const [loginCode,setLoginCode]=useState("");
+const [tab,setTab]=useState("home");
+const [cards,setCards]=useState([]);const [log,setLog]=useState([]);const [loads,setLoads]=useState([]);const [users,setUsers]=useState([]);
+const [factory,setFactory]=useState({fname:"",unit:"كيلو",lateAfter:20,printSize:"A4"});
+const [stages,setStages]=useState(DEFAULT_STAGES);const [machines,setMachines]=useState(DEFAULT_MACHINES);
 const [favs,setFavs]=useState([]);
-const [screen,setScreen]=useState("home");
-const [activeStage,setActiveStage]=useState("");
-const [selectMode,setSelectMode]=useState(false);
-const [selected,setSelected]=useState([]);
 const [editingCard,setEditingCard]=useState(null);
 const [actionCard,setActionCard]=useState(null);
-const [showSettings,setShowSettings]=useState(false);
-const [showSearch,setShowSearch]=useState(false);
-const [searchQ,setSearchQ]=useState("");
-const [showNotif,setShowNotif]=useState(false);
-const [announce,setAnnounce]=useState(null);
-const [announceDraft,setAnnounceDraft]=useState("");
-const [showScanner,setShowScanner]=useState(false);
-const [showSched,setShowSched]=useState(false);
-const [schedDate,setSchedDate]=useState(localDate(new Date()));
-const [schedShift,setSchedShift]=useState("all");
-const [showTopCust,setShowTopCust]=useState(false);
-const [showWorkers,setShowWorkers]=useState(false);
-const [statementFor,setStatementFor]=useState("");
-const [showImport,setShowImport]=useState(false);
-const [importDraft,setImportDraft]=useState(null);
-const [micOn,setMicOn]=useState(false);
-const [showStageMgr,setShowStageMgr]=useState(false);
-const [showLoads,setShowLoads]=useState(false);
-const [loadDraft,setLoadDraft]=useState({customer:"",total:"",notes:""});
-const [showAppQr,setShowAppQr]=useState(false);
-const [showMenu,setShowMenu]=useState(false);
-const [toast,setToast]=useState(null);
-const [confetti,setConfetti]=useState(false);
+const [showSettings,setShowSettings]=useState(false);const [showSearch,setShowSearch]=useState(false);const [showNotif,setShowNotif]=useState(false);const [showMenu,setShowMenu]=useState(false);
+const [showScanner,setShowScanner]=useState(false);const scanMode=useRef("form");
+const [showReport,setShowReport]=useState(false);const [showTopCust,setShowTopCust]=useState(false);const [showWorkers,setShowWorkers]=useState(false);const [showAppQr,setShowAppQr]=useState(false);
+const [statementFor,setStatementFor]=useState(null);const [linkedFrom,setLinkedFrom]=useState(null);
+const [selectMode,setSelectMode]=useState(false);const [selected,setSelected]=useState([]);const [bulkMoveTo,setBulkMoveTo]=useState("");
+const [stageMgr,setStageMgr]=useState(false);const [delStage,setDelStage]=useState(null);
+const [machineSched,setMachineSched]=useState(false);const [schedDate,setSchedDate]=useState(localDate(new Date()));const [schedShift,setSchedShift]=useState("all");
+const [showImport,setShowImport]=useState(false);const [importDraft,setImportDraft]=useState("");
+const [announceText,setAnnounceText]=useState("");const [announce,setAnnounce]=useState(null);const [annDismissed,setAnnDismissed]=useState(localStorage.getItem("ann_dismiss"));
+const [micOn,setMicOn]=useState(false);const micRec=useRef(null);
+const [toast,setToast]=useState(null);const [confetti,setConfetti]=useState(false);
 const [pinLoc,setPinLoc]=useState(()=>{try{return localStorage.getItem("pin_"+(localStorage.getItem("tenant")||"_"))||"";}catch(e){return "";}});
 const [archLoc,setArchLoc]=useState(()=>{try{return localStorage.getItem("autoArch_"+(localStorage.getItem("tenant")||"_"))||"";}catch(e){return "";}});
-const [reportText,setReportText]=useState("");
-const [loginD,setLoginD]=useState({tenant:"",name:"",key:""});
-const scanMode=useRef("card");
-const scanFileRef=useRef(null);
-const recRef=useRef(null);
-const theme=mode==="dark"?{text:"#E8ECFF",textDim:"#9AA3C7",panel:"#171C31",panelAlt:"#0F1426",border:"#262C47"}:{text:"#171A2B",textDim:"#5A6178",panel:"#ffffff",panelAlt:"#F7F8FF",border:"#D5DAEA"};
-useEffect(()=>{document.body.classList.toggle("light",mode==="light");},[mode]);
-useEffect(()=>{document.documentElement.dir=lang==="ar"?"rtl":"ltr";},[lang]);
-const showToast=(m,k)=>{setToast({m:m,k:k||"ok"});setTimeout(()=>setToast(null),2200);};
-const vib=()=>{try{navigator.vibrate&&navigator.vibrate(30);}catch(e){}};
+const [waDraft,setWaDraft]=useState("");const [nameDraft,setNameDraft]=useState("");
+const [online,setOnline]=useState(true);
+const can=!!(me&&me.role==="owner");
+const ownerName=me?me.name:"—";
+const cardCfg=Object.assign({msg:true,category:true,machine:true,barcode:true},factory.cardCfg||{});
 const col=n=>db.collection("t/"+tenant+"/"+n);
-const stages=(Array.isArray(factory.stages)&&factory.stages.length)?factory.stages:["مرتجعات","مرتجعات صباغة","سحب","طبخ","تبيض","صباغة","تنفيض","تجفيف","مكبس","جاهز للتسليم"];
-const machines=(Array.isArray(factory.machines)&&factory.machines.length)?factory.machines:["1","2","3","4","5","6","7","8","9","10"];
-const allColors=["أبيض","أسود","أحمر","أزرق","أخضر","أصفر","بيج","كحلي","رمادي","بني","بنفسجي","برتقالي","تركواز","كشمير","ذهبي","فضي"];
+useEffect(()=>{const r=document.documentElement.style;const th=isLight?{"--bg":"#F3F4FA","--panel":"#FFFFFF","--panel2":"#EEF0F8","--line":"#D8DCEB","--txt":"#1A1E30","--dim":"#66708F"}:{"--bg":"#0B0E1A","--panel":"#141829","--panel2":"#1B2036","--line":"#242B47","--txt":"#EDEFF5","--dim":"#8A93B5"};Object.keys(th).forEach(k=>r.setProperty(k,th[k]));},[isLight]);
+useEffect(()=>{try{setFavs(JSON.parse(localStorage.getItem("favs_"+(tenant||"_"))||"[]"));}catch(e){setFavs([]);}},[tenant]);
+useEffect(()=>{if(!db||!tenant)return;const subs=[col("cards").onSnapshot(s=>{setOnline(true);setCards(s.docs.map(d=>({id:d.id,...d.data()})));},()=>setOnline(false)),col("logs").onSnapshot(s=>setLog(s.docs.map(d=>d.data()))),col("loads").onSnapshot(s=>setLoads(s.docs.map(d=>({id:d.id,...d.data()})))),col("users").onSnapshot(s=>setUsers(s.docs.map(d=>({id:d.id,...d.data()})))),db.collection("t/"+tenant+"/config").doc("settings").onSnapshot(s=>{if(s.exists)setFactory(f=>({...f,...s.data()}));}),db.collection("t/"+tenant+"/config").doc("stages").onSnapshot(s=>{if(s.exists&&s.data().list&&s.data().list.length)setStages(s.data().list);}),db.collection("t/"+tenant+"/config").doc("machines").onSnapshot(s=>{if(s.exists&&s.data().list&&s.data().list.length)setMachines(s.data().list);}),db.collection("t/"+tenant+"/config").doc("announce").onSnapshot(s=>{if(s.exists&&s.data().text)setAnnounce(s.data());else setAnnounce(null);})];return()=>subs.forEach(u=>u());},[tenant,db]);
+useEffect(()=>{setWaDraft(factory.wa||"");setNameDraft(factory.fname||"");},[factory.wa,factory.fname]);
+const showToast=(m,k)=>{setToast({msg:m,kind:k||"ok"});setTimeout(()=>setToast(null),2600);if(localStorage.getItem("prefVib")!=="0"&&navigator.vibrate)navigator.vibrate(k==="danger"?[60,40,60]:30);if(localStorage.getItem("prefSnd")!=="0"){try{const AC=window.AudioContext||window.webkitAudioContext;const ac=new AC();const o=ac.createOscillator();const g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=k==="danger"?320:880;g.gain.value=.05;o.start();o.stop(ac.currentTime+.12);}catch(e){}}};
+const addLog=(type,c)=>{if(!db||!tenant)return;col("logs").add({type:type,card:c&&c.code||"",by:ownerName,time:Date.now(),date:localDate(new Date())}).catch(()=>{});};
+const saveFactory=o=>{if(!can||!db)return;setFactory(f=>({...f,...o}));db.collection("t/"+tenant+"/config").doc("settings").set(o,{merge:true}).catch(()=>{});};
+const saveCard=async()=>{if(!editingCard||!db)return;const c={...editingCard};if(!c.stage)c.stage=stages[0];const isNew=!c.id;if(isNew)c.id=uid();c.updatedAt=Date.now();c.updatedBy=ownerName;if(isNew)c.createdAt=Date.now();await col("cards").doc(c.id).set(c,{merge:true});addLog(isNew?"إضافة":"تعديل",c);setEditingCard(null);showToast("💾 ✅");};
+const deleteCard=async c=>{if(!can&&!(me&&me.role==="worker"))return;const snap={...c};await col("cards").doc(c.id).delete();addLog("حذف",c);setActionCard(null);setToast({msg:"🗑️ اتحذف "+(c.code||""),kind:"danger",action:{label:"↩️ تراجع",fn:()=>{col("cards").doc(snap.id).set(snap).then(()=>showToast("↩️ رجع"));}}});setTimeout(()=>setToast(null),5000);};
+const moveStage=(c,st)=>{col("cards").doc(c.id).set({stage:st,updatedAt:Date.now(),updatedBy:ownerName},{merge:true});addLog("نقل",c);};
+const toggleDelivered=c=>{col("cards").doc(c.id).set({delivered:!c.delivered,deliveredAt:!c.delivered?Date.now():null,updatedAt:Date.now(),updatedBy:ownerName},{merge:true});addLog(!c.delivered?"تسليم":"إلغاء تسليم",c);};
+const toggleFav=n=>{setFavs(f=>{const nx=f.includes(n)?f.filter(x=>x!==n):f.concat([n]);localStorage.setItem("favs_"+(tenant||"_"),JSON.stringify(nx));return nx;});};
+const calcFor=field=>{const ex=prompt("🧮 اكتب العملية الحسابية:",editingCard?editingCard[field]||"":"");if(ex===null||!editingCard)return;const clean=String(ex).replace(/[٠-٩]/g,d=>String("٠١٢٣٤٥٦٧٨٩".indexOf(d))).replace(/×/g,"*").replace(/÷/g,"/").replace(/[^0-9+\-*/.() ]/g,"");if(!clean.trim())return;try{const v=Function('"use strict";return ('+clean+")")();if(isFinite(v))setEditingCard({...editingCard,[field]:String(Math.round(v*100)/100)});}catch(e){showToast("عملية مش مفهومة","danger");}};
+const dueInfo=c=>{if(c.delivered)return null;const days=+factory.lateAfter||20;const due=toMs(c.createdAt)+days*86400000;const now=Date.now();if(now>due)return{col:"var(--red)",txt:t.aged2};if(now>due-3*86400000)return{col:"var(--warn)",txt:t.aged1};return null;};
+const stageIcon=(s,i)=>{if(factory.stageIcons&&factory.stageIcons[s])return factory.stageIcons[s];const n=(s||"").trim();if(n.includes("لف"))return"🌀";if(n.includes("تجهيز"))return"🧺";if(n.includes("صباغة"))return"🎨";if(n.includes("جيت"))return"🧻";if(n.includes("صالة"))return"🏭";if(n.includes("مقص"))return"✂️";if(n.includes("شق"))return"📐";if(n.includes("مجفف"))return"♨️";if(n.includes("كومباكتور"))return"🗜️";if(n.includes("رام"))return"";return STAGE_COLORS[(i||0)%8]?"📦":"📦";};
+const loadStats=l=>{const used=qtySum(cards.filter(c=>c.loadId===l.id));return {used:used,rem:Math.max(0,(parseFloat(l.qty)||0)-used)};};
+const workerStats=()=>{const cut=Date.now()-7*86400000;const m={};log.forEach(e=>{if(toMs(e.time)>=cut&&e.by){m[e.by]=(m[e.by]||0)+1;}});return Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,10);};
+const barcodeSvg=v=>{if(!v||!window.JsBarcode)return"";const s=document.createElementNS("http://www.w3.org/2000/svg","svg");try{JsBarcode(s,v,{format:"CODE128",height:50,displayValue:false});return new XMLSerializer().serializeToString(s);}catch(e){return"";}};
+const printHTML=(body,title)=>{const w=window.open("","_blank");if(!w)return;w.document.write('<html dir="rtl"><head><meta charset="utf-8"><title>'+(title||"")+'</title><style>@page{size:'+(factory.printSize||"A4")+';margin:8mm}body{font-family:sans-serif;padding:6mm}table{width:100%;border-collapse:collapse}td,th{border:1px solid #000;padding:6px;font-size:12px}h2{margin:4px 0}.sig{margin-top:30px;display:flex;justify-content:space-between}</style></head><body>'+body+'<scr'+'ipt>window.onload=function(){window.print()}<\/scr'+'ipt></body></html>');w.document.close();};
+const printCard=c=>{const head='<div style="display:flex;gap:10px;align-items:center">'+((factory.logo)?'<img src="'+factory.logo+'" style="width:18mm;height:18mm;object-fit:cover"/>':"")+'<div><h2>🏭 '+factory.fname+'</h2><div>'+localDate(new Date())+'</div></div></div>';const rows=[["العميل",c.customer],["الكود",c.code],["اللون",c.color],["الصنف",c.category],["الكمية",c.quantity],["تجهيز",c.prepare],["صباغة",c.dye],["ماكينة",c.machine],["مرحلة",c.stage],["تسليم",c.due]].map(r=>"<tr><th>"+r[0]+"</th><td>"+(r[1]||"—")+"</td></tr>").join("");printHTML(head+'<table style="margin-top:8px">'+rows+"</table>"+(c.barcode?'<div style="text-align:center;margin-top:8px">'+barcodeSvg(c.barcode)+"</div>":"")+'<div class="sig"><span>توقيع المستلم: ........</span><span>المصنع: ........</span></div>');};
+const notifyCustomer=c=>{window.open(waLink("أهلاً "+(c.customer||"")+" 👋\n📦 أمرك "+(c.code||"")+" تحرّك لمرحلة: "+(c.stage||"")+"\n🏭 "+factory.fname),"_blank");};
+const shareCardText=c=>"🏭 "+factory.fname+"\n👤 "+(c.customer||"—")+"\n🔢 "+(c.code||"—")+"\n🎨 "+(c.color||"—")+"\n⚖️ "+(c.quantity||"—")+" "+(factory.unit||"")+"\n📍 "+(c.stage||"—");
+const exportXLS=(list,name)=>{const rows=list.map(c=>"<tr><td>"+(c.customer||"")+"</td><td>"+(c.code||"")+"</td><td>"+(c.color||"")+"</td><td>"+(c.category||"")+"</td><td>"+(c.quantity||"")+"</td><td>"+(c.prepare||"")+"</td><td>"+(c.dye||"")+"</td><td>"+(c.machine||"")+"</td><td>"+(c.stage||"")+"</td><td>"+(c.delivered?"✔":"")+"</td></tr>").join("");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+'<html dir="rtl"><body><table border="1"><tr><th>عميل</th><th>كود</th><th>لون</th><th>صنف</th><th>كمية</th><th>تجهيز</th><th>صباغة</th><th>ماكينة</th><th>مرحلة</th><th>اتسلم</th></tr>'+rows+"</table></body></html>"],{type:"application/vnd.ms-excel"}));a.download=(name||"export")+".xls";a.click();showToast("💾 ✅");};
+const backupJSON=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify({cards:cards,loads:loads,factory:factory},null,1)],{type:"application/json"}));a.download="backup-"+localDate(new Date())+".json";a.click();showToast("💾 ✅");};
+const restoreJSON=e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.cards)throw 0;if(!confirm("هترجع "+d.cards.length+" كرت — متابعة؟"))return;const b=db.batch();d.cards.forEach(c=>{const id=c.id||uid();b.set(col("cards").doc(id),{...c,id:id});});b.commit().then(()=>showToast("↩️ تم الاسترجاع"));}catch(x){showToast("ملف مش صالح","danger");}};r.readAsText(f);e.target.value="";};
 const liveCards=cards.filter(c=>!c.archived);
+const knownCustomers=(()=>{const m={};liveCards.forEach(c=>{if(c.customer)m[c.customer]=(m[c.customer]||0)+1;});return Object.entries(m).sort((a,b)=>b[1]-a[1]).map(x=>({name:x[0]}));})();
+const schedCards=liveCards.filter(c=>c.machine&&localDate(new Date(toMs(c.updatedAt||c.createdAt)))===schedDate&&(schedShift==="all"||((h=>schedShift==="day"?(h>=6&&h<18):(h>=18||h<6)))(new Date(toMs(c.updatedAt||c.createdAt)).getHours())));
+const idleMachines=machines.filter(m=>!schedCards.some(c=>String(c.machine)===String(m)));
+const weekChart=(()=>{const out=[];for(let i=6;i>=0;i--){const d=new Date(Date.now()-i*86400000);const key=localDate(d);out.push({key:key,n:log.filter(e=>(e.date||localDate(new Date(toMs(e.time))))===key).length});}return out;})();
+const weekMax=Math.max(1,...weekChart.map(w=>w.n));
 const logoSrc=factory.logo||(()=>{try{return localStorage.getItem("logo_"+(tenant||"_"))||"";}catch(e){return "";}})();
 const hijri=(()=>{try{return new Intl.DateTimeFormat("ar-SA-u-ca-islamic",{day:"numeric",month:"long",year:"numeric"}).format(new Date());}catch(e){return "";}})();
-const doLogin=async()=>{const tn=loginD.tenant.trim();if(!tn||!loginD.name.trim()){showToast("❗ كمّل البيانات","danger");return;}localStorage.setItem("tenant",tn);localStorage.setItem("me",loginD.name.trim());setTenant(tn);setMe(loginD.name.trim());let own=false;try{const s=await db.collection("t/"+tn+"/config").doc("settings").get();const k=(loginD.key||"").trim();if(k&&(s.exists?String(s.data().ownerKey||"")===k:true))own=true;}catch(e){}localStorage.setItem("isOwner",own?"1":"0");setIsOwner(own);};
-const logout=()=>{localStorage.removeItem("tenant");localStorage.removeItem("me");localStorage.removeItem("isOwner");setTenant("");setMe("");setIsOwner(false);};
-useEffect(()=>{if(!tenant)return;const u1=col("cards").onSnapshot(s=>{setCards(s.docs.map(d=>Object.assign({id:d.id},d.data())));});const u2=col("logs").orderBy("time","desc").limit(60).onSnapshot(s=>{setLogs(s.docs.map(d=>Object.assign({id:d.id},d.data())));},()=>{});const u3=col("loads").onSnapshot(s=>{setLoads(s.docs.map(d=>Object.assign({id:d.id},d.data())));},()=>{});const u4=db.collection("t/"+tenant+"/config").doc("settings").onSnapshot(s=>{if(s.exists)setFactory(f=>Object.assign({},f,s.data()));},()=>{});const u5=col("favs").doc("list").onSnapshot(s=>{setFavs(s.exists?(s.data().list||[]):[]);},()=>{});const u6=db.collection("t/"+tenant+"/config").doc("announce").onSnapshot(s=>{setAnnounce(s.exists?s.data():null);},()=>{});return()=>{u1();u2();u3();u4();u5();u6();};},[tenant]);
-const addLog=txt=>{if(!tenant)return;col("logs").add({txt:txt,by:me,time:Date.now()}).catch(()=>{});};
-const saveFactory=o=>{setFactory(f=>Object.assign({},f,o));if(can){db.collection("t/"+tenant+"/config").doc("settings").set(o,{merge:true}).catch(()=>{});}};
-const openSettings=()=>{const __pin=pinLoc||(()=>{try{return localStorage.getItem("pin_"+(tenant||"_"))||"";}catch(e){return "";}})();if(__pin&&sessionStorage.getItem("pinOk")!=="1"){const p=prompt("🔒 اكتب الرقم السري للإعدادات:");if(p!==String(__pin)){showToast("🔒 رمز غلط","danger");return;}sessionStorage.setItem("pinOk","1");}setShowSettings(true);};
-const stageIcon=(s,i)=>{if(factory.stageIcons&&factory.stageIcons[s])return factory.stageIcons[s];const n=(s||"").trim();if(/مرتجع/.test(n))return"🔄";if(/سحب/.test(n))return"🪢";if(/طبخ/.test(n))return"🍲";if(/تبيض/.test(n))return"🫧";if(/صباغ/.test(n))return"🎨";if(/تنفيض/.test(n))return"💨";if(/تجفيف/.test(n))return"☀️";if(/مكبس/.test(n))return"🗜️";if(/جاهز|تسليم/.test(n))return"📦";return["🧺","🌀","️","⚙️","🧹","","🧵","🪣","","📌"][i%10];};
+const workerWeek=(()=>{const cut=Date.now()-7*86400000;const cnt={};log.forEach(e=>{if(toMs(e.time)>=cut&&e.by){cnt[e.by]=(cnt[e.by]||0)+1;}});let best="",n=0;Object.keys(cnt).forEach(k=>{if(cnt[k]>n){n=cnt[k];best=k;}});return best?{best:best,n:n}:null;})();
 const fireConfetti=()=>{setConfetti(true);setTimeout(()=>setConfetti(false),3000);};
-const saveCard=async(c)=>{const nn=Object.assign({},c);if(!nn.customer||!nn.customer.trim()){showToast("❗ اسم العميل مطلوب","danger");return;}const isNew=!nn.id;const id=nn.id||uid();delete nn.id;nn.updatedAt=Date.now();if(isNew){nn.createdAt=Date.now();nn.createdBy=me;nn.stage=nn.stage||stages[0];nn.history=[{stage:nn.stage,by:me,at:Date.now()}];}await col("cards").doc(id).set(nn,{merge:true}).catch(()=>{});addLog((isNew?"➕ ":"️ ")+nn.customer+" "+(nn.code||""));setEditingCard(null);showToast("💾 "+t.save);vib();};
-const moveCard=async(c,stage)=>{await col("cards").doc(c.id).set({stage:stage,updatedAt:Date.now(),history:(c.history||[]).concat([{stage:stage,by:me,at:Date.now()}])},{merge:true});addLog("🚀 "+c.customer+" → "+stage);vib();const rest=liveCards.filter(x=>x.stage===c.stage&&x.id!==c.id&&!x.delivered);if(rest.length===0)fireConfetti();};
-const toggleDeliver=async c=>{const nd=!c.delivered;await col("cards").doc(c.id).set({delivered:nd,deliveredQty:nd?(c.quantity||c.deliveredQty||""):"",updatedAt:Date.now()},{merge:true});addLog((nd?"✅ ":"↩️ ")+c.customer);vib();};
-const lastDeleted=useRef(null);
-const deleteCard=async c=>{lastDeleted.current={c:c};await col("cards").doc(c.id).delete();addLog("🗑️ "+c.customer);showToast("🗑️ تم الحذف");};
-const undoDelete=async()=>{const d=lastDeleted.current;if(!d)return;await col("cards").doc(d.c.id).set(d.c);lastDeleted.current=null;showToast("↩️ رجع الكرت");};
-const setArch=async(c,v)=>{await col("cards").doc(c.id).set({archived:v,updatedAt:Date.now()},{merge:true});addLog((v?"🗄️ ":"📤 ")+c.customer);};
-const bulk=async fn=>{for(const id of selected){const c=cards.find(x=>x.id===id);if(c)await fn(c);}setSelected([]);setSelectMode(false);showToast("✅ تم");};
-const bulkMove=st=>bulk(c=>col("cards").doc(c.id).set({stage:st,updatedAt:Date.now(),history:(c.history||[]).concat([{stage:st,by:me,at:Date.now()}])},{merge:true}));
-const bulkDeliver=()=>bulk(c=>col("cards").doc(c.id).set({delivered:true,deliveredQty:c.quantity||"",updatedAt:Date.now()},{merge:true}));
-const bulkArchive=()=>bulk(c=>col("cards").doc(c.id).set({archived:true,updatedAt:Date.now()},{merge:true}));
-const bulkDelete=()=>bulk(c=>col("cards").doc(c.id).delete());
-const waLink=txt=>"https://wa.me/?text="+encodeURIComponent(txt);
-const shareCardText=c=>"🏭 "+factory.fname+"\n👤 "+(c.customer||"")+"\n🔢 "+(c.code||"")+"\n🎨 "+(c.color||"")+"\n⚖️ "+(c.quantity||"")+"\n📍 "+(c.stage||"");
-const notifyCustomer=c=>{window.open(waLink("أهلاً "+(c.customer||"")+" 👋\n📦 أمرك "+(c.code||"")+" تحرّك لمرحلة: "+(c.stage||"")+"\n🏭 "+factory.fname),"_blank");};
-const printCard=c=>{const w=window.open("","_blank");w.document.write("<html dir=rtl><body style='font-family:sans-serif;padding:20px'><h2>🏭 "+factory.fname+"</h2><hr/><p>👤 "+(c.customer||"")+"</p><p>🔢 الكود: "+(c.code||"")+"</p><p>📝 "+(c.message||"")+"</p><p>🧵 "+(c.category||"")+" — 🎨 "+(c.color||"")+"</p><p>⚖️ "+(c.quantity||"")+"</p><p>🔧 ماكينة "+(c.machine||"—")+"</p><p>🫧 تجهيز: "+(c.prepare||"—")+" — 🎨 صباغة: "+(c.dye||"—")+"</p><p>📅 "+(c.time||"")+" — 🚚 "+(c.due||"")+"</p><p>📝 "+(c.notes||"")+"</p></body></html>");w.document.close();w.print();};
-const exportXLS=(list,name)=>{let rows="<tr><th>عميل</th><th>كود</th><th>رسالة</th><th>صنف</th><th>لون</th><th>كمية</th><th>ماكينة</th><th>تجهيز</th><th>صباغة</th><th>مرحلة</th><th>تاريخ</th><th>تسليم</th></tr>";list.forEach(c=>{rows+="<tr><td>"+(c.customer||"")+"</td><td>"+(c.code||"")+"</td><td>"+(c.message||"")+"</td><td>"+(c.category||"")+"</td><td>"+(c.color||"")+"</td><td>"+(c.quantity||"")+"</td><td>"+(c.machine||"")+"</td><td>"+(c.prepare||"")+"</td><td>"+(c.dye||"")+"</td><td>"+(c.stage||"")+"</td><td>"+(c.time||"")+"</td><td>"+(c.delivered?"✅":"")+"</td></tr>";});const blob=new Blob(["\ufeff<html dir=rtl><head><meta charset='UTF-8'></head><body><table border=1>"+rows+"</table></body></html>"],{type:"application/vnd.ms-excel"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=(name||"export")+".xls";a.click();showToast("📥 تم التصدير");};
-const buildReport=()=>{const today=localDate(new Date());const list=cards.filter(c=>localDate(new Date(toMs(c.updatedAt||c.createdAt)))===today);let txt="🏭 "+factory.fname+" — 📊 "+t.report+" ("+today+")\n\n";stages.forEach(s=>{const n=list.filter(c=>c.stage===s).length;if(n)txt+="• "+s+": "+n+"\n";});txt+="\n✅ تسليم: "+list.filter(c=>c.delivered).length+"\n🆕 جديد: "+list.filter(c=>localDate(new Date(toMs(c.createdAt)))===today).length;return txt;};
-const workerStats=()=>{const m={};logs.forEach(l=>{if(l.by)m[l.by]=(m[l.by]||0)+1;});return Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,10);};
-const workerWeek=(()=>{const cut=Date.now()-7*86400000;const cnt={};logs.forEach(e=>{if(toMs(e.time)>=cut&&e.by)cnt[e.by]=(cnt[e.by]||0)+1;});let best="",n=0;Object.keys(cnt).forEach(k=>{if(cnt[k]>n){n=cnt[k];best=k;}});return best?{best:best,n:n}:null;})();
-const loadStats=l=>{const linked=cards.filter(c=>c.loadId===l.id);const pulled=linked.reduce((a,c)=>a+(parseFloat(c.quantity)||0),0);const del=linked.reduce((a,c)=>a+(c.delivered?(parseFloat(c.quantity)||0):(parseFloat(c.deliveredQty)||0)),0);return{pulled:pulled,del:del,rem:(parseFloat(l.total)||0)-pulled};};
-const saveLoad=async()=>{if(!loadDraft.customer||!loadDraft.total)return;await col("loads").doc(uid()).set({customer:loadDraft.customer.trim(),total:parseFloat(loadDraft.total)||0,date:localDate(new Date()),notes:loadDraft.notes||""});setLoadDraft({customer:"",total:"",notes:""});showToast("💾");};
-const toggleFav=name=>{const nx=favs.includes(name)?favs.filter(x=>x!==name):favs.concat([name]);setFavs(nx);col("favs").doc("list").set({list:nx}).catch(()=>{});};
-const calcFor=k=>{const v=prompt("اكتب عملية حسابية مثال: 50+25*2");if(!v)return;try{const r=Function('"use strict";return ('+v.replace(/[^0-9+\-*/(). ]/g,"")+")")();setEditingCard(c=>Object.assign({},c,{[k]:String(Math.round(r*100)/100)}));}catch(e){showToast("عملية مش صحيحة","danger");}};
-const stopMic=()=>{try{recRef.current&&recRef.current.stop();}catch(e){}setMicOn(false);};
-const noteMic=()=>{if(micOn){stopMic();return;}const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){showToast("المتصفح مش داعم الإملاء","danger");return;}try{const rec=new SR();rec.lang=lang==="ar"?"ar-EG":"en-US";rec.interimResults=false;rec.onresult=e=>{let s="";for(let i=0;i<e.results.length;i++)s+=e.results[i][0].transcript;setEditingCard(c=>c?Object.assign({},c,{notes:(c.notes?c.notes+" ":"")+s}):c);};rec.onend=()=>setMicOn(false);rec.onerror=()=>setMicOn(false);rec.start();recRef.current=rec;setMicOn(true);}catch(e){}};
-const extractVoice=txt=>{const d={};(txt||"").split(/\n|،|,/).forEach(l=>{if(!l.trim())return;if(/عميل/.test(l))d.customer=l.replace(/عميل|:/g,"").trim();else if(/كود/.test(l))d.code=l.replace(/كود|:/g,"").trim();else if(/كمية|كيلو/.test(l)){const q=l.match(/\d+/);if(q)d.quantity=q[0];}else if(/لون/.test(l))d.color=l.replace(/لون|:/g,"").trim();else if(!d.customer)d.customer=l.trim();});setImportDraft(Object.assign({customer:"",code:"",message:"",category:"",color:"",quantity:"",barcode:"",machine:"",prepare:"",dye:"",time:"",notes:"",stage:stages[0]},d));setShowImport(true);};
-const confirmImport=async()=>{if(!importDraft)return;await saveCard(Object.assign({},importDraft,{id:null}));setImportDraft(null);setShowImport(false);};
-const onScan=v=>{setShowScanner(false);if(scanMode.current==="form"){setEditingCard(c=>Object.assign({},c,{barcode:v}));}else{const hit=cards.find(c=>c.barcode===v);if(hit)setEditingCard(hit);else{setSearchQ(v);setShowSearch(true);}}};
-const scanFromFile=e=>{const f=e.target.files&&e.target.files[0];if(!f)return;if(window.BarcodeDetector){new BarcodeDetector().detect(f).then(codes=>{if(codes.length)onScan(codes[0].rawValue);else showToast("مفيش باركود واضح","danger");}).catch(()=>showToast("مش مدعوم","danger"));}else showToast("المتصفح مش داعم الكاشف","danger");};
-const BarcodeView=props=>(<div style={{height:46,backgroundImage:"repeating-linear-gradient(90deg,#000 0 2px,#fff 2px 4px,#000 4px 5px,#fff 5px 8px)",borderRadius:4}} title={props.value}/>);
-useEffect(()=>{if(!can)return;const days=+archLoc||+factory.autoArch||0;if(!days)return;const cut=Date.now()-days*86400000;liveCards.filter(c=>c.delivered&&toMs(c.updatedAt||c.createdAt)<cut).forEach(c=>{col("cards").doc(c.id).set({archived:true},{merge:true});});},[archLoc,factory.autoArch,cards.length]);
-const prevUnd=useRef({});
-useEffect(()=>{const cur={};stages.forEach(s=>{cur[s]=liveCards.filter(c=>c.stage===s&&!c.delivered).length;});Object.keys(cur).forEach(s=>{if((prevUnd.current[s]||0)>0&&cur[s]===0)fireConfetti();});prevUnd.current=cur;},[cards]);
-const addStage=()=>{const n=prompt(t.renameStage);if(!n||!n.trim())return;saveFactory({stages:stages.concat([n.trim()])});};
-const renameStage=(s,n)=>{saveFactory({stages:stages.map(x=>x===s?n:x)});col("cards").get().then(sn=>{sn.forEach(d=>{if(d.data().stage===s)d.ref.set({stage:n},{merge:true});});});};
-const delStage=s=>{const n=cards.filter(c=>c.stage===s&&!c.archived).length;if(n){showToast("فيه "+n+" كرت — انقلهم الأول","danger");return;}if(!window.confirm("حذف مرحلة "+s+"؟"))return;saveFactory({stages:stages.filter(x=>x!==s)});};
-const moveStage=(s,dir)=>{const i=stages.indexOf(s);const j=i+dir;if(j<0||j>=stages.length)return;const nx=stages.slice();nx[i]=nx[j];nx[j]=s;saveFactory({stages:nx});};
-const backupJSON=()=>{const blob=new Blob([JSON.stringify({cards:cards,loads:loads,factory:factory},null,1)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="backup-"+localDate(new Date())+".json";a.click();};
-const restoreJSON=f=>{try{const d=JSON.parse(f);(d.cards||[]).forEach(c=>{const id=c.id||uid();delete c.id;col("cards").doc(id).set(c,{merge:true});});showToast("✅ استرجعت "+((d.cards||[]).length)+" كرت");}catch(e){showToast("ملف مش صالح","danger");}};
-const dueInfo=c=>{if(!c.due||c.delivered)return null;const diff=Math.floor((toMs(c.due+"T23:59:59")-Date.now())/86400000);const late=+factory.lateAfter||1;if(diff<0)return{col:"var(--red)",txt:t.aged2+" "+(-diff)};if(diff<=late)return{col:"var(--warn)",txt:"⏳ "+diff};return null;};
-const knownCustomers=useMemo(()=>{const m={};cards.forEach(c=>{if(c.customer)m[c.customer]=(m[c.customer]||0)+1;});return Object.entries(m).sort((a,b)=>b[1]-a[1]).map(e=>({name:e[0]}));},[cards]);
-const onCustomerChange=v=>{setEditingCard(c=>Object.assign({},c,{customer:v}));};
-const saveAnnounce=()=>{db.collection("t/"+tenant+"/config").doc("announce").set({text:announceDraft,by:me,time:Date.now()}).then(()=>showToast("📢 تم النشر"));};
-if(!tenant||!me){return(<div className="app" style={{paddingTop:"10vh"}}>
-<div className="card grad anim" style={{textAlign:"center",padding:"26px"}}><div style={{fontSize:44}}>🏭</div><h3 style={{margin:"6px 0"}}>{t.hello} 👋</h3><div style={{fontSize:12,opacity:.9}}>نظام إدارة الصباغة المتكامل</div></div>
-<div className="card anim" style={{animationDelay:"80ms"}}>
-<div className="lbl">{t.tenantCode}</div><input className="inp" value={loginD.tenant} onChange={e=>setLoginD(Object.assign({},loginD,{tenant:e.target.value}))}/>
-<div className="lbl">{t.yourName}</div><input className="inp" value={loginD.name} onChange={e=>setLoginD(Object.assign({},loginD,{name:e.target.value}))}/>
-<div className="lbl">{t.ownerKey}</div><input className="inp" type="password" value={loginD.key} onChange={e=>setLoginD(Object.assign({},loginD,{key:e.target.value}))}/>
-<button className="btnG" onClick={doLogin}>🔓 {t.login}</button>
-<div style={{display:"flex",gap:6,justifyContent:"center",marginTop:10}}><button className="chip" onClick={()=>{setLang("ar");localStorage.setItem("pref_lang","ar");}}>العربية</button><button className="chip" onClick={()=>{setLang("en");localStorage.setItem("pref_lang","en");}}>English</button><button className="chip" onClick={()=>{setMode(mode==="dark"?"light":"dark");localStorage.setItem("pref_mode",mode==="dark"?"light":"dark");}}>{mode==="dark"?"☀️":"🌙"}</button></div>
-</div></div>);}
-const today=localDate(new Date());
-const weekChart=(()=>{const arr=[];for(let i=6;i>=0;i--){const k=localDate(new Date(Date.now()-i*86400000));arr.push({key:k,n:cards.filter(c=>localDate(new Date(toMs(c.createdAt||c.updatedAt)))===k).length});}return arr;})();
-const weekMax=Math.max(1,...weekChart.map(w=>w.n));
-const schedCards=liveCards.filter(c=>c.machine&&localDate(new Date(toMs(c.updatedAt||c.createdAt)))===schedDate&&(schedShift==="all"||((h=>schedShift==="day"?(h>=6&&h<18):(h>=18||h<6)))(new Date(toMs(c.updatedAt||c.createdAt)).getHours())));
-const stageCards=s=>liveCards.filter(c=>c.stage===s);
-const searchResults=searchQ.trim()?cards.filter(c=>JSON.stringify(c).includes(searchQ.trim())).slice(0,30):[];
+const prevUndelivered=useRef({});
+useEffect(()=>{const cur={};stages.forEach(s=>{cur[s]=liveCards.filter(c=>c.stage===s&&!c.delivered).length;});Object.keys(cur).forEach(s=>{if((prevUndelivered.current[s]||0)>0&&cur[s]===0)fireConfetti();});prevUndelivered.current=cur;},[cards]);
+useEffect(()=>{if(!can||!db)return;const days=+archLoc||0;if(!days)return;const cut=Date.now()-days*86400000;liveCards.filter(c=>c.delivered&&toMs(c.updatedAt||c.createdAt)<cut).forEach(c=>{col("cards").doc(c.id).set({archived:true},{merge:true});});},[archLoc]);
+const openSettings=()=>{const __pin=pinLoc||(()=>{try{return localStorage.getItem("pin_"+(tenant||"_"))||"";}catch(e){return "";}})();if(__pin&&sessionStorage.getItem("pinOk")!=="1"){const p=prompt("🔒 اكتب الرقم السري للإعدادات:");if(p!==String(__pin)){showToast("🔒 رمز غلط","danger");return;}sessionStorage.setItem("pinOk","1");}setShowSettings(true);};
+const addStage=()=>{const n=prompt(t.addStage);if(!n||!n.trim())return;const l=stages.concat([n.trim()]);setStages(l);db.collection("t/"+tenant+"/config").doc("stages").set({list:l});};
+const renameStage=(o,n)=>{const l=stages.map(s=>s===o?n:s);setStages(l);db.collection("t/"+tenant+"/config").doc("stages").set({list:l});cards.filter(c=>c.stage===o).forEach(c=>col("cards").doc(c.id).set({stage:n},{merge:true}));};
+const deleteStageFlow=(s,moveTo)=>{cards.filter(c=>c.stage===s).forEach(c=>col("cards").doc(c.id).set({stage:moveTo},{merge:true}));const l=stages.filter(x=>x!==s);setStages(l);db.collection("t/"+tenant+"/config").doc("stages").set({list:l});setDelStage(null);showToast("🗑️ تم");};
+const moveStageOrder=(s,dir)=>{const i=stages.indexOf(s);const j=i+dir;if(j<0||j>=stages.length)return;const l=[...stages];l[i]=l[j];l[j]=s;setStages(l);db.collection("t/"+tenant+"/config").doc("stages").set({list:l});};
+const exportMachines=()=>{const rows=schedCards.map(c=>"<tr><td>"+(c.machine||"")+"</td><td>"+(c.customer||"")+"</td><td>"+(c.code||"")+"</td><td>"+(c.color||"")+"</td><td>"+(c.quantity||"")+"</td><td>"+(c.prepare||"")+"</td><td>"+(c.dye||"")+"</td></tr>").join("");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+'<html dir="rtl"><body><table border="1"><tr><th>ماكينة</th><th>عميل</th><th>كود</th><th>لون</th><th>كمية</th><th>تجهيز</th><th>صباغة</th></tr>'+rows+"</table></body></html>"],{type:"application/vnd.ms-excel"}));a.download="machines-"+schedDate+".xls";a.click();showToast("💾 ✅");};
 const toggleSelect=id=>{setSelected(s=>s.includes(id)?s.filter(x=>x!==id):s.concat([id]));};
-return(<div className="app">
-{confetti&&(<div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:998,overflow:"hidden"}}>{Array.from({length:40}).map((_,i)=>(<span key={i} style={{position:"absolute",top:"-10px",left:(i*2.5)+"%",width:8,height:12,background:["#7C5CFF","#2DD4A8","#FFB65C","#FF5C7A","#4CC9F0"][i%5],borderRadius:3,animation:"confFall 2.6s linear "+((i%10)*0.12)+"s both"}}/>))}</div>)}
-{screen==="home"?(<div>
-<div style={{display:"flex",gap:8,alignItems:"center",marginBottom:10}}>
-<button className="chip" style={{fontSize:16}} onClick={()=>setShowMenu(true)}>⋯</button>
-<button className="chip" style={{fontSize:16}} onClick={()=>setShowSearch(true)}>🔍</button>
-<button className="chip" style={{fontSize:16}} onClick={()=>setShowNotif(true)}>🔔</button>
-<div style={{flex:1}}/>
-<button className="chip" style={{fontSize:16}} onClick={()=>{setMode(mode==="dark"?"light":"dark");localStorage.setItem("pref_mode",mode==="dark"?"light":"dark");}}>{mode==="dark"?"☀️":"🌙"}</button>
-{can&&<button className="chip" style={{fontSize:16}} onClick={openSettings}>⚙️</button>}
+const bulkSet=o=>{selected.forEach(id=>{const c=cards.find(x=>x.id===id);if(c)col("cards").doc(id).set({...o,updatedAt:Date.now(),updatedBy:ownerName},{merge:true});});addLog("جماعي");setSelected([]);setSelectMode(false);showToast("✅ تم");};
+const bulkDelete=()=>{if(!confirm("حذف "+selected.length+" كرت؟"))return;selected.forEach(id=>col("cards").doc(id).delete());addLog("حذف جماعي");setSelected([]);setSelectMode(false);showToast("🗑️ تم","danger");};
+const noteMic=()=>{if(micOn){if(micRec.current)micRec.current.stop();setMicOn(false);return;}const SR=window.webkitSpeechRecognition||window.SpeechRecognition;if(!SR){showToast("مش مدعوم","danger");return;}const r=new SR();r.lang=lang==="en"?"en-US":"ar-EG";micRec.current=r;setMicOn(true);r.onresult=e=>{const txt=e.results[0][0].transcript;setEditingCard(c=>({...c,notes:(c.notes?c.notes+" ":"")+txt}));};r.onend=()=>setMicOn(false);r.start();};
+if(!tenant||!me){return(<div style={{padding:20,maxWidth:430,margin:"0 auto"}}>
+<div style={{textAlign:"center",fontSize:40,animation:"floaty 3s infinite"}}>🏭</div>
+<h2 style={{textAlign:"center"}}>{t.appName}</h2>
+<div className="lbl">كود الشركة</div>
+<input className="inp" value={loginCo} onChange={e=>setLoginCo(e.target.value)} placeholder="مثال: new-tex"/>
+<div className="lbl">اسمك</div>
+<input className="inp" value={loginName} onChange={e=>setLoginName(e.target.value)}/>
+<div className="lbl">كود الدخول (للعمال)</div>
+<input className="inp" value={loginCode} onChange={e=>setLoginCode(e.target.value)}/>
+<button className="btnG" onClick={()=>{const co=loginCo.trim(),nm=loginName.trim();if(!co||!nm){showToast("كمّل البيانات","danger");return;}db.collection("t/"+co+"/users").get().then(s=>{const u=s.docs.map(d=>d.data()).find(x=>x.name===nm);if(!u){showToast("الاسم مش موجود","danger");return;}if(String(u.code)!==loginCode.trim()){showToast("كود غلط","danger");return;}localStorage.setItem("tenant",co);setTenant(co);setMe({name:nm,role:u.role||"worker"});}).catch(()=>showToast("خطأ اتصال","danger"));}}>👷 دخول عامل</button>
+<div style={{height:10}}/>
+<button className="btnO" onClick={()=>{const p=prompt("🔑 كود المالك:");if(p!==UNLOCK_CODE){showToast("كود غلط","danger");return;}let co=loginCo.trim();if(!co){co=prompt("اكتب كود الشركة الجديد:");if(!co)return;}localStorage.setItem("tenant",co);setTenant(co);setMe({name:loginName.trim()||"المالك",role:"owner"});}}>🔑 دخول المالك</button>
+<div style={{textAlign:"center",marginTop:14}}><button className="chip" onClick={()=>{setLang(lang==="ar"?"en":"ar");localStorage.setItem("pref_lang",lang==="ar"?"en":"ar");}}>🌐 {t.language}</button></div>
+</div>);}
+const liveAnim=useCountUp(liveCards.length);
+const lateCount=liveCards.filter(c=>{const d=dueInfo(c);return d&&d.col==="var(--red)";}).length;
+const stockRem=loads.reduce((s,l)=>s+loadStats(l).rem,0);
+const deliveredCount=liveCards.filter(c=>c.delivered).length;
+const movesToday=log.filter(e=>e.date===localDate(new Date())).length;
+const hdrBtn={background:"var(--panel)",border:"1px solid var(--line)",borderRadius:14,width:46,height:46,fontSize:18,color:"var(--txt)"};
+const grid2={display:"grid",gridTemplateColumns:"1fr 1fr",gap:10};
+return(<div>
+{announce&&announce.text&&annDismissed!==announce.time&&(<div style={{background:"linear-gradient(135deg,var(--warn),#FF8A5C)",color:"#22150a",padding:"10px 14px",display:"flex",gap:8,alignItems:"center",fontSize:13,fontWeight:700}}>📢 <span style={{flex:1}}>{announce.text}</span><button onClick={()=>{setAnnDismissed(announce.time);localStorage.setItem("ann_dismiss",announce.time);}} style={{border:"none",background:"transparent",fontSize:16}}>✕</button></div>)}
+<div style={{textAlign:"center",fontSize:11,color:online?"var(--teal)":"var(--red)",padding:6}}>{online?"🟢 "+t.connected:"🔴 "+t.offline}</div>
+{tab==="home"&&(<div style={{padding:"0 12px"}}>
+<div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
+<div style={{width:52,height:52,borderRadius:"50%",background:"linear-gradient(135deg,var(--vio),var(--vio2))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,fontWeight:900}}>{(ownerName[0]||"M").toUpperCase()}</div>
+<div style={{flex:1}}><div style={{fontSize:12,color:"var(--dim)"}}>{new Date().getHours()<12?"☀️ صباح الخير":"🌙 مساء الخير"} · 🕌 {hijri}</div><div style={{fontSize:22,fontWeight:900}}>{ownerName}</div></div>
+{can&&<button onClick={()=>openSettings()} style={hdrBtn}>⚙️</button>}
+<button onClick={()=>setShowSearch(true)} style={hdrBtn}>🔍</button>
+<button onClick={()=>setShowNotif(true)} style={hdrBtn}>🔔</button>
+<button onClick={()=>setShowMenu(true)} style={hdrBtn}>⋯</button>
 </div>
-<div className="card grad anim" style={{position:"relative",overflow:"hidden",padding:"18px"}}>
-<div style={{position:"absolute",top:14,insetInlineEnd:14,animation:"floaty 3s infinite"}}>{logoSrc?<img src={logoSrc} style={{width:46,height:46,borderRadius:12,objectFit:"cover",border:"2px solid rgba(255,255,255,.4)"}}/>:<span style={{fontSize:40}}>🏭</span>}</div>
-<div style={{fontSize:12,opacity:.95}}>{new Date().getHours()<12?"☀️ صباح الخير":"🌙 مساء الخير"} · 🕌 {hijri}</div>
-<div style={{fontSize:24,fontWeight:900,marginTop:4}}>{factory.fname||"🏭"}</div>
-<div style={{fontSize:12,opacity:.9,marginTop:4}}>👋 {t.welcome} {me} · {liveCards.length} كرت شغال</div>
+<div className="card grad anim" style={{position:"relative",overflow:"hidden"}}>
+<div style={{position:"absolute",top:14,insetInlineEnd:14,fontSize:40,animation:"floaty 3s infinite"}}>{logoSrc?<img src={logoSrc} style={{width:46,height:46,borderRadius:12,objectFit:"cover",border:"2px solid rgba(255,255,255,.4)"}}/>:"🏭"}</div>
+<div style={{fontSize:12,opacity:.85}}>{factory.fnameAr||""}</div>
+<div style={{fontSize:26,fontWeight:900}}>{factory.fname||factory.fnameAr||"—"}</div>
+<div style={{display:"flex",gap:6,marginTop:10,flexWrap:"wrap"}}>
+<span style={{background:"rgba(255,255,255,.2)",borderRadius:14,padding:"6px 12px",fontSize:12}}>🟢 {users.length} {t.waiting}</span>
+<span style={{background:"rgba(255,255,255,.2)",borderRadius:14,padding:"6px 12px",fontSize:12}}>📋 {movesToday} {t.movesToday}</span>
+{can&&<button onClick={()=>openSettings()} style={{background:"rgba(255,255,255,.25)",border:"none",color:"#fff",borderRadius:14,padding:"6px 14px",fontSize:12,fontWeight:700}}>✏️ {t.edit}</button>}
 </div>
-{workerWeek&&(<div className="card anim" style={{animationDelay:"60ms",display:"flex",alignItems:"center",gap:10}}><span style={{fontSize:24}}>🏆</span><div style={{flex:1}}><b style={{fontSize:14}}>عامل الأسبوع: {workerWeek.best}</b><div style={{fontSize:11,color:theme.textDim}}>{workerWeek.n} حركة آخر 7 أيام</div></div></div>)}
-<div className="card anim" style={{animationDelay:"120ms"}}>
-<div className="lbl">📈 آخر 7 أيام</div>
-<div style={{display:"flex",gap:6,alignItems:"flex-end",height:70}}>
-{weekChart.map(w=>(<div key={w.key} style={{flex:1,textAlign:"center"}}><div style={{height:Math.max(6,(w.n/weekMax)*56),background:"linear-gradient(180deg,var(--vio),var(--blue))",borderRadius:6}}/><div style={{fontSize:9,color:theme.textDim}}>{["ح","ن","ت","ر","خ","ج","س"][new Date(w.key).getDay()]}</div></div>))}
-</div></div>
-<div className="card anim" style={{animationDelay:"180ms",display:"flex",gap:8}}>
-<button className="btnO" style={{flex:1}} onClick={()=>setShowTopCust(true)}>🥇</button>
-<button className="btnO" style={{flex:1}} onClick={()=>setShowWorkers(true)}>👥</button>
-<button className="btnO" style={{flex:1}} onClick={()=>setReportText(buildReport())}>📊</button>
-<button className="btnO" style={{flex:1}} onClick={()=>setShowSched(true)}>📅</button>
 </div>
-<div className="lbl" style={{marginTop:12}}>🗂️ {t.stagesLabel}</div>
-{stages.map((s,i)=>{const n=stageCards(s).filter(c=>!c.delivered).length;return(<div key={s} className="card anim" style={{animationDelay:(200+i*50)+"ms",display:"flex",alignItems:"center",gap:10,cursor:"pointer"}} onClick={()=>{setActiveStage(s);setScreen("stage");}}>
-<span style={{fontSize:22}}>{stageIcon(s,i)}</span>
-<div style={{flex:1}}><b>{s}</b><div style={{fontSize:11,color:theme.textDim}}>{n} كرت شغال</div></div>
-<span style={{background:STAGE_COLORS[i%8]+"22",color:STAGE_COLORS[i%8],borderRadius:12,padding:"4px 12px",fontWeight:800}}>{n}</span>
+<div style={grid2}>
+<div className="card anim"><div className="lbl">🎴 {t.live}</div><div style={{fontSize:30,fontWeight:900,color:"var(--vio)"}}>{liveAnim}</div></div>
+<div className="card anim"><div className="lbl">⏰ {t.late}</div><div style={{fontSize:30,fontWeight:900,color:"var(--teal)"}}>{lateCount}</div></div>
+<div className="card anim"><div className="lbl">📦 {t.remaining}</div><div style={{fontSize:26,fontWeight:900,color:"var(--blue)"}}>{stockRem} <span style={{fontSize:12}}>{factory.unit}</span></div></div>
+<div className="card anim"><div className="lbl">✅ {t.delivered}</div><div style={{fontSize:30,fontWeight:900,color:"var(--teal)"}}>{deliveredCount}</div></div>
+</div>
+<div className="card anim" onClick={()=>{setSchedDate(localDate(new Date()));setMachineSched(true);}} style={{margin:"12px 0",display:"flex",alignItems:"center",gap:10,cursor:"pointer"}}>
+<span style={{fontSize:30}}>📅</span>
+<div style={{flex:1}}><b>جدول الماكينات النهارده</b><div style={{fontSize:12,color:"var(--dim)"}}>{schedCards.length} كرت شغالين على {machines.length-idleMachines.length} ماكينة</div></div>
+<span style={{color:"var(--dim)"}}>←</span>
+</div>
+<div className="card anim" style={{marginBottom:12}}>
+<div className="lbl">📊 حركة آخر 7 أيام</div>
+<div style={{display:"flex",alignItems:"flex-end",gap:6,height:95}}>
+{weekChart.map((w,i)=>(<div key={w.key} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
+<span style={{fontSize:10,color:"var(--dim)"}}>{w.n||""}</span>
+<div style={{width:"100%",height:Math.max(4,(w.n/weekMax)*65),borderRadius:6,background:i===6?"var(--teal)":"var(--vio)"}}/>
+<span style={{fontSize:10,color:"var(--dim)"}}>{["ح","ن","ت","ر","خ","ج","س"][new Date(w.key).getDay()]}</span>
+</div>))}
+</div>
+</div>
+{workerWeek&&(<div className="card anim" style={{marginBottom:12,display:"flex",alignItems:"center",gap:10}}><span style={{fontSize:24}}>🏆</span><div style={{flex:1}}><b style={{fontSize:14}}>عامل الأسبوع: {workerWeek.best}</b><div style={{fontSize:11,color:"var(--dim)"}}>{workerWeek.n} حركة آخر 7 أيام</div></div></div>)}
+<div className="card anim" style={{margin:"12px 0"}}>
+<div style={{textAlign:"center",fontSize:13,fontWeight:800,marginBottom:8}}>نظرة عامة على المراحل</div>
+{stages.map((s,i)=>{const n=liveCards.filter(c=>c.stage===s&&!c.delivered).length;const mx=Math.max(1,...stages.map(x=>liveCards.filter(c=>c.stage===x&&!c.delivered).length));return(<div key={s} style={{marginBottom:8}}>
+<div style={{display:"flex",justifyContent:"space-between",fontSize:12,marginBottom:4}}><span>{stageIcon(s,i)} {s}</span><b>{n}</b></div>
+<div className="bar"><i style={{width:(n/mx)*100+"%",background:STAGE_COLORS[i%8]}}/></div>
 </div>);})}
-<button className="btnG" style={{marginTop:6}} onClick={()=>setEditingCard({})}>➕ {t.newCard}</button>
-</div>):(<div>
-<div style={{display:"flex",gap:8,alignItems:"center",marginBottom:10}}>
-<button className="chip" style={{fontSize:16}} onClick={()=>setScreen("home")}>🏠</button>
-<b style={{flex:1,fontSize:16}}>{stageIcon(activeStage,stages.indexOf(activeStage))} {activeStage}</b>
-{can&&<button className="chip" onClick={()=>setShowStageMgr(true)}>⚙️</button>}
-<button className="chip" onClick={()=>{setSelectMode(m=>!m);setSelected([]);}}>{selectMode?"✖️":"️"}</button>
-<button className="chip on" onClick={()=>setEditingCard({stage:activeStage})}>➕</button>
 </div>
-{selectMode&&(<div className="card" style={{position:"sticky",top:6,zIndex:50}}>
-<div style={{display:"flex",gap:6,flexWrap:"wrap",alignItems:"center"}}>
-<b style={{fontSize:13}}>{selected.length} ☑️</b>
-<select className="inp" style={{width:"auto",marginBottom:0,flex:1}} value="" onChange={e=>{if(e.target.value)bulkMove(e.target.value);}}><option value="">🚀 نقل لـ...</option>{stages.map(s=><option key={s} value={s}>{s}</option>)}</select>
-<button className="chip" onClick={bulkDeliver}>✅</button>
-<button className="chip" onClick={bulkArchive}>🗄️</button>
-<button className="chip" onClick={()=>exportXLS(cards.filter(c=>selected.includes(c.id)),"selected")}>📥</button>
-<button className="chip" style={{borderColor:"var(--red)",color:"var(--red)"}} onClick={()=>{if(window.confirm("حذف "+selected.length+" كرت؟"))bulkDelete();}}>🗑️</button>
-</div></div>)}
-{stageCards(activeStage).length===0&&<div className="card" style={{textAlign:"center",color:theme.textDim}}>{t.noResults}</div>}
-{stageCards(activeStage).map((c,i)=>{const di=dueInfo(c);return(<div key={c.id} className="card anim" onClick={()=>selectMode?toggleSelect(c.id):setEditingCard(c)} onContextMenu={e=>{e.preventDefault();setActionCard(c);}} style={{animationDelay:(i*60)+"ms",borderInlineStart:"4px solid "+(selected.includes(c.id)?"var(--teal)":STAGE_COLORS[stages.indexOf(c.stage)%8])}}>
-<div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:15}}>{selectMode&&selected.includes(c.id)?"✅ ":""}{c.customer||"—"} {c.pinned&&"📌"}</b><span style={{fontSize:11,color:theme.textDim}}>{c.time||fmtTime(c.updatedAt,lang)}</span></div>
-<div style={{display:"flex",flexWrap:"wrap",gap:"4px 12px",fontSize:12.5,color:theme.textDim,marginTop:5}}>
-<span>{t.code}: <b style={{color:theme.text}}>{c.code||"—"}</b></span>
-<span>{t.color}: <b style={{color:theme.text}}>{c.color||"—"}</b></span>
-<span>{t.quantity}: <b style={{color:theme.text}}>{c.quantity||"—"}</b></span>
-{c.machine&&<span>🔧 <b style={{color:theme.text}}>{c.machine}</b></span>}
+</div>)}
+{tab==="stages"&&(<div style={{padding:"0 12px"}}>
+<div style={{display:"flex",gap:8,alignItems:"center",marginBottom:8}}>
+<h3 style={{flex:1,margin:0}}>🎛️ {t.stages}</h3>
+{can&&<button onClick={()=>setStageMgr(true)} style={hdrBtn}>⚙️</button>}
+<button onClick={()=>{setSelectMode(!selectMode);setSelected([]);}} style={hdrBtn}>☑️</button>
 </div>
-<div style={{display:"flex",gap:6,marginTop:8,flexWrap:"wrap",alignItems:"center"}}>
-{c.urgent&&badge("var(--red)","⚠️ "+t.urgent)}
+{selectMode&&selected.length>0&&(<div className="card" style={{position:"sticky",top:6,zIndex:50,borderColor:"var(--vio)"}}>
+<div style={{fontSize:12,marginBottom:6}}>☑️ {selected.length} محدد</div>
+<div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+<select className="inp" style={{flex:1,marginBottom:0}} value={bulkMoveTo} onChange={e=>setBulkMoveTo(e.target.value)}><option value="">نقل لـ...</option>{stages.map(s=><option key={s}>{s}</option>)}</select>
+{bulkMoveTo&&<button className="chip on" onClick={()=>bulkSet({stage:bulkMoveTo})}>📦 نقل</button>}
+<button className="chip on" onClick={()=>bulkSet({delivered:true,deliveredAt:Date.now()})}>✅ تسليم</button>
+<button className="chip" onClick={()=>{exportXLS(cards.filter(c=>selected.includes(c.id)),"bulk");}}>💾</button>
+<button className="chip" style={{borderColor:"var(--red)",color:"var(--red)"}} onClick={bulkDelete}>🗑️</button>
+<button className="chip" onClick={()=>{setSelected([]);setSelectMode(false);}}>✕</button>
+</div>
+</div>)}
+{stages.map((s,i)=>{const list=liveCards.filter(c=>c.stage===s).sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(toMs(b.updatedAt||b.createdAt)-toMs(a.updatedAt||a.createdAt)));const q=qtySum(list.filter(c=>!c.delivered));
+return(<div key={s} style={{marginBottom:14}}>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}><b>{stageIcon(s,i)} {s}</b><span style={{fontSize:11,color:"var(--dim)"}}>{list.length} كرت · {q} {factory.unit}</span></div>
+{list.map((c,ci)=>{const di=dueInfo(c);return(<div key={c.id} className="card anim" onClick={()=>selectMode?toggleSelect(c.id):setEditingCard(c)} onContextMenu={e=>{e.preventDefault();setActionCard(c);}} style={{animationDelay:(ci*60)+"ms",borderInlineStart:"4px solid "+(selected.includes(c.id)?"var(--teal)":STAGE_COLORS[i%8]),opacity:c.delivered?.55:1}}>
+<div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:15}}>{selectMode&&selected.includes(c.id)?"✅ ":""}{c.customer||"—"} {c.pinned&&"📌"}</b><span style={{fontSize:11,color:"var(--dim)"}}>{c.time||fmtTime(c.updatedAt,lang)}</span></div>
+<div style={{display:"flex",flexWrap:"wrap",gap:"4px 12px",fontSize:12.5,color:"var(--dim)",marginTop:5}}>
+<span>{t.code}: <b style={{color:"var(--txt)"}}>{c.code||"—"}</b></span>
+<span>{t.color}: <b style={{color:"var(--txt)"}}>{c.color||"—"}</b></span>
+<span>{t.quantity}: <b style={{color:"var(--txt)"}}>{c.quantity||"—"}</b></span>
+{c.machine&&<span>🔧 <b style={{color:"var(--txt)"}}>{c.machine}</b></span>}
+</div>
+{(c.urgent||di||c.delivered||c.deliveredQty)&&(<div style={{display:"flex",gap:6,marginTop:8,flexWrap:"wrap"}}>
+{c.urgent&&badge("var(--red)",t.urgent)}
 {di&&badge(di.col,di.txt)}
+{c.deliveredQty&&badge("var(--blue)",t.deliveredQty+": "+c.deliveredQty)}
 {c.delivered&&badge("var(--teal)","✅ "+t.delivered)}
-{stages.indexOf(c.stage)<stages.length-1&&<button className="chip" onClick={e=>{e.stopPropagation();moveCard(c,stages[stages.indexOf(c.stage)+1]);}}>⬅️ {stages[stages.indexOf(c.stage)+1]}</button>}
-{!c.delivered&&<button className="chip" onClick={e=>{e.stopPropagation();toggleDeliver(c);}}>✅ تسليم</button>}
-<button className="chip" onClick={e=>{e.stopPropagation();setActionCard(c);}}>⋯</button>
-</div>
-{c.notes&&<div style={{fontSize:12,color:theme.textDim,marginTop:6}}>📝 {c.notes}</div>}
+</div>)}
+</div>);})}
+{!list.length&&<p style={{color:"var(--dim)",fontSize:12,textAlign:"center"}}>—</p>}
 </div>);})}
 </div>)}
-{editingCard&&(<div className="modal" onClick={()=>setEditingCard(null)}><div className="mbox" onClick={e=>e.stopPropagation()}>
-<h3>{editingCard.id?t.edit:t.newCard} <button className="chip" style={{float:"left"}} onClick={()=>setEditingCard(null)}>✖️</button></h3>
+{tab==="warehouse"&&(<div style={{padding:"0 12px"}}>
+<div style={{display:"flex",gap:8,alignItems:"center",marginBottom:8}}><h3 style={{flex:1,margin:0}}>📦 {t.warehouse}</h3>
+{can&&<button className="chip on" onClick={()=>{const n=prompt("اسم العميل:");if(!n)return;const q=prompt("الكمية ("+factory.unit+"):");if(q===null)return;col("loads").add({customer:n,qty:q,createdAt:Date.now()}).then(()=>showToast("💾 ✅"));}}>➕</button>}
+</div>
+{loads.map(l=>{const s=loadStats(l);return(<div key={l.id} className="card" style={{display:"flex",alignItems:"center",gap:10}}>
+<div style={{flex:1}}><b>{l.customer}</b><div style={{fontSize:11,color:"var(--dim)"}}>أصل: {l.qty} · اتصرف: {s.used} · متبقي: <b style={{color:s.rem<50?"var(--red)":"var(--teal)"}}>{s.rem}</b> {factory.unit}</div></div>
+{can&&<button className="chip" onClick={()=>{const q=prompt("ضيف كمية:",l.qty);if(q===null)return;col("loads").doc(l.id).set({qty:q},{merge:true});}}>✏️</button>}
+{can&&<button className="chip" style={{borderColor:"var(--red)",color:"var(--red)"}} onClick={()=>{if(confirm("حذف الحمولة؟"))col("loads").doc(l.id).delete();}}>🗑️</button>}
+</div>);})}
+{!loads.length&&<p style={{color:"var(--dim)",textAlign:"center"}}>{t.noResults}</p>}
+</div>)}
+{tab==="more"&&(<div style={{padding:"0 12px"}}>
+<h3>⋯ {t.more}</h3>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+<button className="btnO" onClick={()=>setShowReport(true)}>📊 {t.reports}</button>
+<button className="btnO" onClick={()=>setShowTopCust(true)}>🥇 {t.topCustomers}</button>
+<button className="btnO" onClick={()=>setShowWorkers(true)}>👷 {t.workers}</button>
+<button className="btnO" onClick={()=>exportXLS(liveCards,"cards")}>💾 {t.exportXls}</button>
+{can&&<button className="btnO" onClick={()=>setShowImport(true)}>📥 {t.importXls}</button>}
+{can&&<button className="btnO" onClick={backupJSON}>🗄️ {t.backup}</button>}
+{can&&<button className="btnO" onClick={()=>document.getElementById("restoreInp").click()}>↩️ {t.restore}</button>}
+<button className="btnO" onClick={()=>setShowAppQr(true)}>🔳 {t.qrApp}</button>
+<button className="btnO" onClick={()=>{setLang(lang==="ar"?"en":"ar");localStorage.setItem("pref_lang",lang==="ar"?"en":"ar");}}>🌐 {t.language}</button>
+<button className="btnO" onClick={()=>{const m=themeMode==="light"?"dark":"light";setThemeMode(m);localStorage.setItem("themeMode",m);}}>{themeMode==="light"?"🌙":"☀️"} المظهر</button>
+<button className="btnO" onClick={()=>{setPrefVib(v=>{localStorage.setItem("prefVib",v?"0":"1");return !v;});setPrefSnd(v=>{localStorage.setItem("prefSnd",v?"0":"1");return !v;});}}>📳 الصوت/الاهتزاز</button>
+<button className="btnO" onClick={()=>window.open("https://wa.me/"+SUPPORT_WA,"_blank")}>🎧 {t.support}</button>
+</div>
+<input id="restoreInp" type="file" accept="application/json" style={{display:"none"}} onChange={restoreJSON}/>
+</div>)}
+<nav className="nav">
+<div className={tab==="home"?"on":""} onClick={()=>setTab("home")}>🏠<br/>{t.home}</div>
+<div className={tab==="stages"?"on":""} onClick={()=>setTab("stages")}>🏭<br/>{t.stages}</div>
+<div style={{position:"relative"}} onClick={()=>setEditingCard({})}><button className="fab">+</button></div>
+<div className={tab==="warehouse"?"on":""} onClick={()=>setTab("warehouse")}>📦<br/>{t.warehouse}</div>
+<div className={tab==="more"?"on":""} onClick={()=>setTab("more")}>⋯<br/>{t.more}</div>
+</nav>
+{editingCard&&(<div className="modal" onClick={()=>setEditingCard(null)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:560}}>
+<div style={{display:"flex",alignItems:"center",marginBottom:10}}><h3 style={{flex:1,margin:0}}>{editingCard.id?"✏️":"➕"} كرت</h3><button onClick={()=>setEditingCard(null)} style={{...hdrBtn,border:"none"}}>✕</button></div>
 <div className="lbl">{t.customer}</div>
-<div style={{display:"flex",gap:6}}><input className="inp" style={{flex:1}} list="customersList" value={editingCard.customer||""} onChange={e=>onCustomerChange(e.target.value)}/><button className="chip" onClick={()=>editingCard.customer&&toggleFav(editingCard.customer)}>{favs.includes(editingCard.customer)?"⭐":"☆"}</button></div>
+<div style={{display:"flex",gap:6,alignItems:"center"}}>
+<input className="inp" style={{flex:1,marginBottom:10}} list="customersList" value={editingCard.customer||""} onChange={e=>setEditingCard({...editingCard,customer:e.target.value})}/>
+<button onClick={()=>editingCard.customer&&toggleFav(editingCard.customer)} style={{width:44,height:44,borderRadius:12,border:"1px solid var(--line)",background:favs.includes(editingCard.customer)?"rgba(255,182,92,.15)":"transparent",fontSize:18,color:"var(--txt)"}}>{favs.includes(editingCard.customer)?"⭐":"☆"}</button>
+</div>
 <datalist id="customersList">{knownCustomers.slice(0,50).map(k=><option key={k.name} value={k.name}/>)}</datalist>
 <div style={grid2}>
 <div><div className="lbl">{t.code}</div><input className="inp" value={editingCard.code||""} onChange={e=>setEditingCard({...editingCard,code:e.target.value})}/></div>
-<div><div className="lbl">{t.message}</div><input className="inp" value={editingCard.message||""} onChange={e=>setEditingCard({...editingCard,message:e.target.value})}/></div>
-<div><div className="lbl">{t.category}</div><input className="inp" value={editingCard.category||""} onChange={e=>setEditingCard({...editingCard,category:e.target.value})}/></div>
+{(can||cardCfg.msg!==false)&&(<div><div className="lbl">{t.message}</div><input className="inp" value={editingCard.message||""} onChange={e=>setEditingCard({...editingCard,message:e.target.value})}/></div>)}
+</div>
+<div style={grid2}>
+{(can||cardCfg.category!==false)&&(<div><div className="lbl">{t.category}</div><input className="inp" value={editingCard.category||""} onChange={e=>setEditingCard({...editingCard,category:e.target.value})}/></div>)}
 <div><div className="lbl">{t.color}</div><input className="inp" value={editingCard.color||""} onChange={e=>setEditingCard({...editingCard,color:e.target.value})}/></div>
 </div>
 <div className="lbl">{t.colorsLabel}</div>
-<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{allColors.map(c=><button key={c} className={"chip"+(editingCard.color===c?" on":"")} onClick={()=>setEditingCard({...editingCard,color:c})}>{c}</button>)}</div>
+<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{PRESET_COLORS.map(c=><button key={c} onClick={()=>setEditingCard({...editingCard,color:c})} className={"chip"+(editingCard.color===c?" on":"")}>{c}</button>)}</div>
 <div style={grid2}>
-<div><div className="lbl">{t.quantity}</div><div style={{display:"flex",gap:6}}><input className="inp" style={{flex:1,marginBottom:6}} value={editingCard.quantity||""} onChange={e=>setEditingCard({...editingCard,quantity:e.target.value})}/><button className="chip" onClick={()=>calcFor("quantity")}>🧮</button></div></div>
-<div><div className="lbl">{t.barcode}</div><div style={{display:"flex",gap:6}}><input className="inp" style={{flex:1,marginBottom:6}} value={editingCard.barcode||""} onChange={e=>setEditingCard({...editingCard,barcode:e.target.value})}/><button className="chip" onClick={()=>{scanMode.current="form";setShowScanner(true);}}>📷</button></div>{editingCard.barcode&&<BarcodeView value={editingCard.barcode}/>}</div>
+<div><div className="lbl">{t.quantity}</div><div style={{display:"flex",gap:6}}><input className="inp" style={{flex:1,marginBottom:6}} value={editingCard.quantity||""} onChange={e=>setEditingCard({...editingCard,quantity:e.target.value})}/><button onClick={()=>calcFor("quantity")} style={{width:44,height:44,borderRadius:12,border:"1px solid var(--line)",background:"transparent",fontSize:16,color:"var(--txt)"}}>🧮</button></div></div>
+{(can||cardCfg.barcode!==false)&&(<div><div className="lbl">{t.barcode}</div><div style={{display:"flex",gap:6}}><input className="inp" style={{flex:1,marginBottom:6}} value={editingCard.barcode||""} onChange={e=>setEditingCard({...editingCard,barcode:e.target.value})}/><button onClick={()=>{scanMode.current="form";setShowScanner(true);}} style={{flex:"0 0 auto",padding:"0 12px",borderRadius:12,border:"none",background:"var(--teal)",color:"#04211a",fontSize:16,fontWeight:800}}>📷</button></div>{editingCard.barcode&&<div style={{background:"#fff",borderRadius:8,padding:"6px 4px",marginBottom:8,textAlign:"center"}}><BarcodeView value={editingCard.barcode}/></div>}</div>)}
 </div>
-<div className="lbl">{t.machine}</div>
-<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{machines.map(m=><button key={m} className={"chip"+(editingCard.machine===m?" on":"")} onClick={()=>setEditingCard({...editingCard,machine:m})}>{m}</button>)}</div>
+{(can||cardCfg.machine!==false)&&(<div><div className="lbl">{t.machine}</div>
+<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{machines.map(m=><button key={m} onClick={()=>setEditingCard({...editingCard,machine:m})} className={"chip"+(editingCard.machine===m?" on":"")}>{m}</button>)}</div></div>)}
 <div style={grid2}>
 <div><div className="lbl">{t.prepare}</div><input className="inp" value={editingCard.prepare||""} onChange={e=>setEditingCard({...editingCard,prepare:e.target.value})}/></div>
 <div><div className="lbl">{t.dye}</div><input className="inp" value={editingCard.dye||""} onChange={e=>setEditingCard({...editingCard,dye:e.target.value})}/></div>
+</div>
+<div style={grid2}>
 <div><div className="lbl">{t.time}</div><input className="inp" value={editingCard.time||""} onChange={e=>setEditingCard({...editingCard,time:e.target.value})}/></div>
 <div><div className="lbl">{t.due}</div><input type="date" className="inp" value={editingCard.due||""} onChange={e=>setEditingCard({...editingCard,due:e.target.value})}/></div>
-<div><div className="lbl">{t.phone}</div><input className="inp" value={editingCard.phone||""} onChange={e=>setEditingCard({...editingCard,phone:e.target.value})}/></div>
+</div>
+<div style={{display:"flex",gap:6,marginBottom:8}}>{[1,3,7].map(n=><button key={n} onClick={()=>setEditingCard({...editingCard,due:localDate(new Date(Date.now()+n*86400000))})} className="chip">+{n}</button>)}</div>
+<div style={grid2}>
+<div><div className="lbl">{t.phone}</div><input className="inp" inputMode="numeric" value={editingCard.phone||""} onChange={e=>setEditingCard({...editingCard,phone:e.target.value})}/></div>
 <div><div className="lbl">{t.address}</div><input className="inp" value={editingCard.address||""} onChange={e=>setEditingCard({...editingCard,address:e.target.value})}/></div>
 </div>
-<div style={{display:"flex",gap:6,marginBottom:8}}>{[1,3,7].map(n=><button key={n} className="chip" onClick={()=>setEditingCard({...editingCard,due:localDate(new Date(Date.now()+n*86400000))})}>+{n}</button>)}</div>
-{can&&(<div><div className="lbl">🚛 الحمولة</div><select className="inp" value={editingCard.loadId||""} onChange={e=>setEditingCard({...editingCard,loadId:e.target.value})}><option value="">بدون حمولة</option>{loads.filter(l=>!editingCard.customer||l.customer===editingCard.customer).map(l=>{const s=loadStats(l);return <option key={l.id} value={l.id}>{l.customer} — متبقي {s.rem}</option>;})}</select></div>)}
-<div style={{display:"flex",gap:6,alignItems:"center"}}><input className="inp" style={{flex:1,marginBottom:6}} type="number" placeholder="كمية مسلّمة (جزئي)" value={editingCard.deliveredQty||""} onChange={e=>setEditingCard({...editingCard,deliveredQty:e.target.value})}/><button className={"chip"+(editingCard.delivered?" on":"")} onClick={()=>setEditingCard({...editingCard,delivered:!editingCard.delivered})}>✅ تسليم كلي</button></div>
-<div><div style={{display:"flex",justifyContent:"space-between"}}><div className="lbl">{t.notes}</div><button className={"chip"+(micOn?" on":"")} onClick={noteMic}>🎙️</button></div><textarea rows={2} className="inp" value={editingCard.notes||""} onChange={e=>setEditingCard({...editingCard,notes:e.target.value})}/></div>
-<label style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><input type="checkbox" checked={!!editingCard.urgent} onChange={e=>setEditingCard({...editingCard,urgent:e.target.checked})}/> ⚠️ {t.urgent}</label>
-<div className="lbl">📍 المرحلة</div><select className="inp" value={editingCard.stage||stages[0]} onChange={e=>setEditingCard({...editingCard,stage:e.target.value})}>{stages.map(s=><option key={s}>{s}</option>)}</select>
-{Array.isArray(editingCard.history)&&editingCard.history.length>0&&(<div><div className="lbl">📜 {t.history}</div>{editingCard.history.slice().reverse().map((h,i)=>(<div key={i} style={{fontSize:11,color:theme.textDim,padding:"4px 8px",marginBottom:4,borderInlineStart:"2px solid var(--vio)",background:theme.panelAlt,borderRadius:6}}>📍 {h.stage} · {h.by} · {fmtTime(h.at,lang)}</div>))}</div>)}
-<div style={{display:"flex",gap:8}}><button className="btnG" style={{flex:2}} onClick={()=>saveCard(editingCard)}>{t.save}</button><button className="btnO" style={{flex:1}} onClick={()=>setEditingCard(null)}>{t.cancel}</button></div>
+{can&&(<div><div className="lbl">🚛 {t.load}</div>
+<select className="inp" value={editingCard.loadId||""} onChange={e=>setEditingCard({...editingCard,loadId:e.target.value})}><option value="">{t.noLoad}</option>{loads.filter(l=>!editingCard.customer||l.customer===editingCard.customer).map(l=><option key={l.id} value={l.id}>{l.customer} — متبقي {loadStats(l).rem}</option>)}</select></div>)}
+<div style={{display:"flex",gap:6,alignItems:"center",marginBottom:10}}>
+<input className="inp" style={{marginBottom:0,flex:1}} type="number" placeholder={t.deliveredQty} value={editingCard.deliveredQty||""} onChange={e=>setEditingCard({...editingCard,deliveredQty:e.target.value})}/>
+<button onClick={()=>setEditingCard({...editingCard,delivered:!editingCard.delivered,deliveredQty:!editingCard.delivered?(editingCard.quantity||""):""})} className={"chip"+(editingCard.delivered?" on":"")}>✅ {t.deliverAll}</button>
+</div>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><div className="lbl">{t.notes}</div><button onClick={noteMic} className={"chip"+(micOn?" on":"")}>🎙️</button></div>
+<textarea rows={2} className="inp" value={editingCard.notes||""} onChange={e=>setEditingCard({...editingCard,notes:e.target.value})}/>
+<label style={{display:"flex",alignItems:"center",gap:8,marginBottom:14,fontSize:14}}><input type="checkbox" checked={!!editingCard.urgent} onChange={e=>setEditingCard({...editingCard,urgent:e.target.checked})}/> ⚠️ {t.urgent}</label>
+<div style={{display:"flex",gap:8}}><button className="btnG" style={{flex:2}} onClick={saveCard}>💾 {t.save}</button><button className="btnO" style={{flex:1}} onClick={()=>setEditingCard(null)}>{t.cancel}</button></div>
 </div></div>)}
-{actionCard&&(<div className="modal" onClick={()=>setActionCard(null)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:360}}>
-<h3>⚙️ {actionCard.customer||""}</h3>
+{actionCard&&(<div className="modal" onClick={()=>setActionCard(null)}><div className="mbox" style={{maxWidth:420}} onClick={e=>e.stopPropagation()}>
+<h3 style={{margin:"0 0 10px"}}>🎯 {actionCard.customer||"—"} · {actionCard.code||"—"}</h3>
 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
 <button className="btnO" onClick={()=>{printCard(actionCard);setActionCard(null);}}>🖨️ {t.printCard}</button>
+<button className="btnO" onClick={()=>{notifyCustomer(actionCard);setActionCard(null);}}>📢 بلّغ العميل</button>
 <button className="btnO" onClick={()=>{window.open(waLink(shareCardText(actionCard)),"_blank");setActionCard(null);}}>💬 {t.share}</button>
-<button className="btnO" onClick={()=>{notifyCustomer(actionCard);setActionCard(null);}}>📢 تبليغ</button>
-<button className="btnO" onClick={()=>{toggleDeliver(actionCard);setActionCard(null);}}>{actionCard.delivered?"↩️ إلغاء":"✅ تسليم"}</button>
-<button className="btnO" onClick={()=>{setArch(actionCard,!actionCard.archived);setActionCard(null);}}>{actionCard.archived?"📤 إرجاع":"🗄️ أرشفة"}</button>
-<button className="btnO" onClick={()=>{if(actionCard.customer)toggleFav(actionCard.customer);setActionCard(null);}}>{favs.includes(actionCard.customer)?"🔕 فك":"📌 تثبيت"}</button>
-{can&&<button className="btnO danger" onClick={()=>{if(window.confirm("حذف الكرت؟"))deleteCard(actionCard);setActionCard(null);}}>🗑️ حذف</button>}
+<button className="btnO" onClick={()=>{col("cards").doc(actionCard.id).set({pinned:!actionCard.pinned},{merge:true});setActionCard(null);}}>{actionCard.pinned?"📌 إلغاء تثبيت":"📌 تثبيت"}</button>
+<button className="btnO" onClick={()=>{toggleDelivered(actionCard);setActionCard(null);}}>{actionCard.delivered?"↩️ إلغاء تسليم":"✅ تسليم"}</button>
+<button className="btnO" onClick={()=>{col("cards").doc(actionCard.id).set({archived:true},{merge:true});setActionCard(null);showToast("🗄️ اتأرشف");}}>🗄️ أرشفة</button>
+<button className="btnO" onClick={()=>{setLinkedFrom(actionCard);setActionCard(null);}}>🔗 {t.linkedCards}</button>
+<button className="btnO" style={{borderColor:"var(--red)",color:"var(--red)"}} onClick={()=>deleteCard(actionCard)}>🗑️ {t.del}</button>
 </div>
-<button className="btnO" style={{marginTop:8}} onClick={()=>setActionCard(null)}>{t.cancel}</button>
 </div></div>)}
-{showSearch&&(<div className="modal" onClick={()=>setShowSearch(false)}><div className="mbox" onClick={e=>e.stopPropagation()}>
-<h3>🔍 {t.search}</h3>
-<input className="inp" autoFocus value={searchQ} onChange={e=>setSearchQ(e.target.value)}/>
-{searchResults.map(c=>(<div key={c.id} className="card" onClick={()=>{setShowSearch(false);setEditingCard(c);}}><b>{c.customer}</b> · {c.code||""} · {c.stage}</div>))}
+{linkedFrom&&(<div className="modal" onClick={()=>setLinkedFrom(null)}><div className="mbox" onClick={e=>e.stopPropagation()}>
+<h3 style={{margin:"0 0 10px"}}>🔗 كروت مرتبطة — رسالة {linkedFrom.message}</h3>
+<div className="card grad" style={{padding:12,marginBottom:12}}><div style={{fontSize:11,color:"#E4DCFF"}}>الكرت الحالي</div><div style={{fontSize:14,fontWeight:800}}>{linkedFrom.customer||"—"} · {linkedFrom.code||"—"}</div><div style={{fontSize:12,marginTop:4}}>{linkedFrom.color} — {linkedFrom.quantity} — {linkedFrom.stage}</div></div>
+{liveCards.filter(x=>x.message&&x.message===linkedFrom.message&&x.id!==linkedFrom.id).map(c=><div key={c.id} className="card" onClick={()=>{setLinkedFrom(null);setEditingCard(c);}} style={{cursor:"pointer"}}><b>{c.customer||"—"}</b> · {c.code} <span style={{fontSize:11,color:"var(--dim)"}}>{c.stage} · {c.color} · {c.quantity}</span></div>)}
+{!liveCards.filter(x=>x.message&&x.message===linkedFrom.message&&x.id!==linkedFrom.id).length&&<p style={{color:"var(--dim)",textAlign:"center"}}>{t.noResults}</p>}
 </div></div>)}
-{showNotif&&(<div className="modal" onClick={()=>setShowNotif(false)}><div className="mbox" onClick={e=>e.stopPropagation()}>
-<h3>🔔 الإشعارات</h3>
-{announce&&announce.text&&<div className="card grad" style={{padding:10}}>📢 {announce.text}<div style={{fontSize:10,opacity:.8}}>{announce.by}</div></div>}
-{logs.slice(0,20).map(l=>(<div key={l.id} style={{fontSize:12,color:theme.textDim,padding:"6px 0",borderBottom:"1px solid "+theme.border}}>{l.txt} · {l.by} · {fmtTime(l.time,lang)}</div>))}
+{showSearch&&(<div className="modal" onClick={()=>setShowSearch(false)}><div className="mbox" onClick={e=>e.stopPropagation()}><h3 style={{margin:"0 0 10px"}}>🔍 {t.search}</h3><SearchModal t={t} cards={liveCards} favs={favs} onPick={c=>{setShowSearch(false);setEditingCard(c);}}/></div></div>)}
+{showNotif&&(<div className="modal" onClick={()=>setShowNotif(false)}><div className="mbox" onClick={e=>e.stopPropagation()}><h3 style={{margin:"0 0 10px"}}>🔔 السجل</h3>
+{log.slice().sort((a,b)=>toMs(b.time)-toMs(a.time)).slice(0,60).map((e,i)=><div key={i} className="card" style={{padding:8,fontSize:12}}><b>{e.by}</b> · {e.type} {e.card&&<span style={{color:"var(--vio)"}}>({e.card})</span>} <span style={{color:"var(--dim)"}}>{fmtTime(e.time,lang)}</span></div>)}
+{!log.length&&<p style={{color:"var(--dim)",textAlign:"center"}}>{t.noResults}</p>}
 </div></div>)}
-{showMenu&&(<div className="modal" onClick={()=>setShowMenu(false)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:340}}>
-<h3>⋯ القائمة</h3>
+{showMenu&&(<div className="modal" onClick={()=>setShowMenu(false)}><div className="mbox" style={{maxWidth:380}} onClick={e=>e.stopPropagation()}>
+<h3 style={{margin:"0 0 10px"}}>⋯ {t.more}</h3>
 <div style={{display:"grid",gap:8}}>
 {can&&<button className="btnO" onClick={()=>{setShowMenu(false);openSettings();}}>⚙️ {t.settings}</button>}
-<button className="btnO" onClick={()=>{setShowMenu(false);setShowSched(true);}}>📅 جدول الماكينات</button>
-{can&&<button className="btnO" onClick={()=>{setShowMenu(false);setShowLoads(true);}}>🚛 {t.loads}</button>}
-<button className="btnO" onClick={()=>{setShowMenu(false);const txt=prompt("الصق نص الأمر (عميل، كود، كمية، لون...):");if(txt)extractVoice(txt);}}>📥 استيراد أمر</button>
-{can&&<button className="btnO" onClick={()=>{setShowMenu(false);backupJSON();}}>💾 {t.backup}</button>}
-{can&&<label className="btnO" style={{textAlign:"center"}}>📤 استرجاع<input type="file" accept=".json" style={{display:"none"}} onChange={e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>restoreJSON(r.result);r.readAsText(f);setShowMenu(false);}}/></label>}
-<button className="btnO" onClick={()=>{setShowMenu(false);setShowAppQr(true);}}>📱 {t.appQr}</button>
-<button className="btnO" onClick={undoDelete}>↩️ تراجع عن آخر حذف</button>
-<button className="btnO danger" onClick={logout}>🚪 {t.logout}</button>
+<button className="btnO" onClick={()=>{setShowMenu(false);setTab("more");}}>🧰 كل الأدوات</button>
+<button className="btnO" onClick={()=>{setShowMenu(false);setTab("warehouse");}}>📦 {t.warehouse}</button>
 </div>
 </div></div>)}
-{showSched&&(<div className="modal" onClick={()=>setShowSched(false)}><div className="mbox" onClick={e=>e.stopPropagation()}>
-<h3>📅 جدول الماكينات</h3>
-<div style={{display:"flex",gap:6,marginBottom:8}}><input type="date" className="inp" style={{marginBottom:0,flex:1}} value={schedDate} onChange={e=>setSchedDate(e.target.value)}/><button className="chip" onClick={()=>exportXLS(schedCards,"machines-"+schedDate)}>📥</button></div>
-<div style={{display:"flex",gap:6,marginBottom:10}}><button className={"chip"+(schedShift==="all"?" on":"")} onClick={()=>setSchedShift("all")}>الكل</button><button className={"chip"+(schedShift==="day"?" on":"")} onClick={()=>setSchedShift("day")}>☀️ صبح</button><button className={"chip"+(schedShift==="night"?" on":"")} onClick={()=>setSchedShift("night")}>🌙 ليل</button></div>
-{machines.map(m=>{const cs=schedCards.filter(c=>c.machine===m);return(<div key={m} className="card" style={{padding:8}}><b>🔧 {m}</b>{cs.length===0&&<span style={{fontSize:11,color:theme.textDim}}> — فاضية</span>}{cs.map(c=>(<div key={c.id} style={{fontSize:12,marginTop:4}}>• {c.customer} · {c.code||""} · {c.stage}</div>))}</div>);})}
+{machineSched&&(<div className="modal" onClick={()=>setMachineSched(false)}><div className="mbox" onClick={e=>e.stopPropagation()}>
+<div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><h3 style={{flex:1,margin:0}}>📅 جدول الماكينات</h3><button className="chip on" onClick={exportMachines}>💾 تصدير</button></div>
+<input type="date" className="inp" style={{width:160}} value={schedDate} onChange={e=>setSchedDate(e.target.value)}/>
+<div style={{display:"flex",gap:6,marginBottom:10}}>
+<button onClick={()=>setSchedShift("all")} className={"chip"+(schedShift==="all"?" on":"")}>الكل</button>
+<button onClick={()=>setSchedShift("day")} className={"chip"+(schedShift==="day"?" on":"")}>☀️ صبح</button>
+<button onClick={()=>setSchedShift("night")} className={"chip"+(schedShift==="night"?" on":"")}>🌙 ليل</button>
+</div>
+{machines.map(m=>{const list=schedCards.filter(c=>String(c.machine)===String(m));return(<div key={m} className="card" style={{padding:10}}><b>🔧 ماكينة {m}</b> {list.length?"":"<span style='color:var(--dim)'> · فاضية</span>"}
+{list.map(c=><div key={c.id} style={{fontSize:12,marginTop:6,borderTop:"1px dashed var(--line)",paddingTop:6}}>{c.customer} · {c.code} · {c.color} · {c.quantity} {factory.unit} {c.prepare&&<span style={{color:"var(--warn)"}}>· {c.prepare}</span>}</div>)}
+</div>);})}
 </div></div>)}
-{reportText&&(<div className="modal" onClick={()=>setReportText("")}><div className="mbox" onClick={e=>e.stopPropagation()}>
-<h3>📊 {t.report}</h3>
-<pre style={{whiteSpace:"pre-wrap",background:theme.panelAlt,borderRadius:12,padding:12,fontSize:13,maxHeight:"50vh",overflowY:"auto"}}>{reportText}</pre>
-<div style={{display:"flex",gap:8}}><button className="btnO" onClick={()=>{try{navigator.clipboard.writeText(reportText);showToast("✅ تم النسخ");}catch(e){}}}>{t.copy}</button><a className="btnG" style={{textDecoration:"none",textAlign:"center"}} href={waLink(reportText)} target="_blank" rel="noreferrer">💬 واتساب</a></div>
+{showReport&&(<div className="modal" onClick={()=>setShowReport(false)}><div className="mbox" onClick={e=>e.stopPropagation()}>
+<div style={{display:"flex",alignItems:"center",gap:8}}><h3 style={{flex:1,margin:"0 0 10px"}}>📊 {t.reports}</h3><button className="chip on" onClick={()=>exportXLS(liveCards.filter(c=>localDate(new Date(toMs(c.updatedAt||c.createdAt)))===localDate(new Date())),"report")}>💾</button></div>
+{log.filter(e=>e.date===localDate(new Date())).sort((a,b)=>toMs(b.time)-toMs(a.time)).map((e,i)=><div key={i} className="card" style={{padding:8,fontSize:12}}><b>{e.by}</b> · {e.type} {e.card&&<span style={{color:"var(--vio)"}}>({e.card})</span>} <span style={{color:"var(--dim)"}}>{fmtTime(e.time,lang)}</span></div>)}
+{!log.filter(e=>e.date===localDate(new Date())).length&&<p style={{color:"var(--dim)",textAlign:"center"}}>{t.noResults}</p>}
 </div></div>)}
-{showTopCust&&(<div className="modal" onClick={()=>setShowTopCust(false)}><div className="mbox" onClick={e=>e.stopPropagation()}>
-<h3>🥇 {t.topCust}</h3>
-{(()=>{const mk=today.slice(0,7);const m={};cards.forEach(c=>{if(c.customer&&localDate(new Date(toMs(c.createdAt||c.updatedAt))).slice(0,7)===mk){m[c.customer]=(m[c.customer]||0)+(parseFloat(c.quantity)||0);}});const arr=Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,10);if(!arr.length)return <p style={{color:theme.textDim,textAlign:"center"}}>{t.noResults}</p>;const mx=arr[0][1]||1;return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10,cursor:"pointer"}} onClick={()=>{setShowTopCust(false);setStatementFor(n);}}><div style={{display:"flex",justifyContent:"space-between",fontSize:13}}><span>{i===0?"🥇":i===1?"🥈":i===2?"🥉":(i+1)+"."} {n}</span><b style={{color:"var(--vio2)"}}>{q} {factory.unit}</b></div><div className="bar"><i style={{width:(q/mx)*100+"%",background:STAGE_COLORS[i%8]}}/></div></div>));})()}
+{showTopCust&&(<div className="modal" onClick={()=>setShowTopCust(false)}><div className="mbox" style={{maxWidth:360}} onClick={e=>e.stopPropagation()}>
+<h3 style={{margin:"0 0 12px"}}>🥇 {t.topCustomers}</h3>
+{(()=>{const now=new Date();const mk=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0");const m={};cards.forEach(c=>{if(c.customer&&localDate(new Date(toMs(c.createdAt||c.updatedAt))).slice(0,7)===mk){m[c.customer]=(m[c.customer]||0)+(parseFloat(c.quantity)||0);}});const arr=Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,10);if(!arr.length)return <p style={{color:"var(--dim)",fontSize:13,textAlign:"center"}}>{t.noResults}</p>;const mx=arr[0][1]||1;
+return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10,cursor:"pointer"}} onClick={()=>{setShowTopCust(false);setStatementFor(n);}}>
+<div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:4}}><span>{i===0?"🥇":i===1?"🥈":i===2?"🥉":(i+1)+"."} {n}</span><b style={{color:"var(--vio2)"}}>{q} {factory.unit}</b></div>
+<div className="bar"><i style={{width:(q/mx)*100+"%",background:STAGE_COLORS[i%8]}}/></div>
+</div>));})()}
 </div></div>)}
-{statementFor&&(<div className="modal" onClick={()=>setStatementFor("")}><div className="mbox" onClick={e=>e.stopPropagation()}>
-<h3>🧾 {t.statement} — {statementFor}</h3>
-{cards.filter(c=>c.customer===statementFor).map(c=>(<div key={c.id} className="card" style={{padding:8,fontSize:12}}>{c.code||""} · {c.color||""} · {c.quantity||""} · {c.stage} {c.delivered&&"✅"}</div>))}
-<div className="card grad" style={{padding:10,fontWeight:800}}>الإجمالي: {cards.filter(c=>c.customer===statementFor).reduce((a,c)=>a+(parseFloat(c.quantity)||0),0)} {factory.unit}</div>
+{statementFor&&(<div className="modal" onClick={()=>setStatementFor(null)}><div className="mbox" onClick={e=>e.stopPropagation()}>
+<div style={{display:"flex",alignItems:"center",gap:8}}><h3 style={{flex:1,margin:"0 0 10px"}}>🧾 {t.statement}: {statementFor}</h3><button className="chip on" onClick={()=>{const list=cards.filter(c=>c.customer===statementFor);printHTML('<h2>🏭 '+factory.fname+' — كشف حساب: '+statementFor+'</h2><table><tr><th>كود</th><th>لون</th><th>كمية</th><th>مرحلة</th><th>تسليم</th></tr>'+list.map(c=>"<tr><td>"+(c.code||"-")+"</td><td>"+(c.color||"-")+"</td><td>"+(c.quantity||"-")+"</td><td>"+(c.stage||"-")+"</td><td>"+(c.delivered?"✔":"-")+"</td></tr>").join("")+"</table><div class='sig'><span>توقيع: ........</span><span>توقيع: ........</span></div>");}}>🖨️</button></div>
+{cards.filter(c=>c.customer===statementFor).slice(0,40).map(c=><div key={c.id} className="card" style={{padding:8,fontSize:12}}><b>{c.code||"—"}</b> · {c.color} · {c.quantity} {factory.unit} · {c.stage} {c.delivered&&"✅"}</div>)}
 </div></div>)}
-{showWorkers&&(<div className="modal" onClick={()=>setShowWorkers(false)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:340}}>
-<h3>🏆 {t.workers}</h3>
-{workerStats().length===0&&<p style={{color:theme.textDim,textAlign:"center"}}>{t.noResults}</p>}
-{workerStats().map(([n,c],i)=>(<div key={n} className="card" style={{display:"flex",justifyContent:"space-between"}}><span>{i===0?"🥇":i===1?"🥈":i===2?"🥉":""} {n}</span><b style={{color:"var(--vio2)"}}>{c}</b></div>))}
+{showWorkers&&(<div className="modal" onClick={()=>setShowWorkers(false)}><div className="mbox" style={{maxWidth:340}} onClick={e=>e.stopPropagation()}>
+<h3 style={{margin:"0 0 12px"}}>🏆 {t.workers}</h3>
+{workerStats().map(([n,c],i)=>(<div key={n} className="card" style={{display:"flex",justifyContent:"space-between",padding:"10px 12px",marginBottom:8}}><span>{i===0?"🥇":i===1?"🥈":i===2?"🥉":""} {n}</span><b style={{color:"var(--vio2)"}}>{c}</b></div>))}
+{!workerStats().length&&<p style={{color:"var(--dim)",textAlign:"center"}}>{t.noResults}</p>}
 </div></div>)}
-{showStageMgr&&(<div className="modal" onClick={()=>setShowStageMgr(false)}><div className="mbox" onClick={e=>e.stopPropagation()}>
-<h3>🎚️ إدارة المراحل</h3>
-{stages.map((s,i)=>(<div key={s} style={{display:"flex",gap:6,alignItems:"center",marginBottom:6}}><span style={{flex:1,fontSize:13}}>{stageIcon(s,i)} {s}</span><button className="chip" onClick={()=>moveStage(s,-1)}>⬆️</button><button className="chip" onClick={()=>moveStage(s,1)}>⬇️</button><button className="chip" onClick={()=>{const n=prompt(t.renameStage,s);if(n&&n.trim())renameStage(s,n.trim());}}>✏️</button><button className="chip" onClick={()=>{const e2=prompt("🎭 إيموجي:",(factory.stageIcons||{})[s]||"");if(e2===null)return;const mm=Object.assign({},factory.stageIcons);if(e2.trim())mm[s]=e2.trim();else delete mm[s];saveFactory({stageIcons:mm});}}>🎭</button><button className="chip" style={{color:"var(--red)"}} onClick={()=>delStage(s)}>🗑️</button></div>))}
-<button className="btnG" onClick={addStage}>➕ {t.renameStage}</button>
+{showAppQr&&(<div className="modal" onClick={()=>setShowAppQr(false)}><div className="mbox" style={{maxWidth:340,textAlign:"center"}} onClick={e=>e.stopPropagation()}>
+<h3>🔳 {t.qrApp}</h3>
+<div style={{background:"#fff",borderRadius:12,padding:10,display:"inline-block"}} ref={el=>{if(el&&window.QRCode){el.innerHTML="";new QRCode(el,{text:APP_URL,width:180,height:180});}}}/>
+<p style={{fontSize:11,color:"var(--dim)"}}>{APP_URL}</p>
 </div></div>)}
-{showLoads&&(<div className="modal" onClick={()=>setShowLoads(false)}><div className="mbox" onClick={e=>e.stopPropagation()}>
-<h3>🚛 {t.loads}</h3>
-<div style={grid2}><input className="inp" placeholder="العميل" value={loadDraft.customer} onChange={e=>setLoadDraft({...loadDraft,customer:e.target.value})}/><input className="inp" placeholder="الكمية الكلية" type="number" value={loadDraft.total} onChange={e=>setLoadDraft({...loadDraft,total:e.target.value})}/></div>
-<button className="btnG" onClick={saveLoad}>💾 إضافة حمولة</button>
-{loads.map(l=>{const s=loadStats(l);return(<div key={l.id} className="card" style={{fontSize:12}}><b>{l.customer}</b> · كلي {l.total} · مسحوب {s.pulled} · متبقي {s.rem}<div className="bar"><i style={{width:Math.max(0,Math.min(100,(s.pulled/(l.total||1))*100))+"%",background:"var(--teal)"}}/></div></div>);})}
+{showImport&&(<div className="modal" onClick={()=>setShowImport(false)}><div className="mbox" onClick={e=>e.stopPropagation()}>
+<h3 style={{margin:"0 0 10px"}}>📥 {t.importXls}</h3>
+<div className="lbl">الصق الأكواد (كل سطر كود)</div>
+<textarea rows={6} className="inp" value={importDraft} onChange={e=>setImportDraft(e.target.value)}/>
+<button className="btnG" onClick={()=>{const lines=importDraft.split("\n").map(x=>x.trim()).filter(x=>x);if(!lines.length)return;lines.forEach(code=>{col("cards").add({code:code,stage:stages[0],createdAt:Date.now(),updatedAt:Date.now(),updatedBy:ownerName});});setImportDraft("");setShowImport(false);showToast("✅ تم استخراج "+lines.length);}}>📥 {t.extracted}</button>
 </div></div>)}
-{showImport&&importDraft&&(<div className="modal" onClick={()=>setShowImport(false)}><div className="mbox" onClick={e=>e.stopPropagation()}>
-<h3>📥 {t.extracted}</h3>
-<div className="lbl">{t.customer}</div><input className="inp" value={importDraft.customer} onChange={e=>setImportDraft({...importDraft,customer:e.target.value})}/>
-<div style={grid2}><div><div className="lbl">{t.code}</div><input className="inp" value={importDraft.code} onChange={e=>setImportDraft({...importDraft,code:e.target.value})}/></div><div><div className="lbl">{t.quantity}</div><input className="inp" value={importDraft.quantity} onChange={e=>setImportDraft({...importDraft,quantity:e.target.value})}/></div></div>
-<div style={grid2}><div><div className="lbl">{t.color}</div><input className="inp" value={importDraft.color} onChange={e=>setImportDraft({...importDraft,color:e.target.value})}/></div><div><div className="lbl">{t.machine}</div><input className="inp" value={importDraft.machine} onChange={e=>setImportDraft({...importDraft,machine:e.target.value})}/></div></div>
-<div className="lbl">{t.notes}</div><textarea rows={2} className="inp" value={importDraft.notes} onChange={e=>setImportDraft({...importDraft,notes:e.target.value})}/>
-<div style={{display:"flex",gap:8}}><button className="btnG" onClick={confirmImport}>💾 {t.save}</button><button className="btnO" onClick={()=>setShowImport(false)}>{t.cancel}</button></div>
+{showScanner&&(<div className="modal"><div className="mbox" style={{maxWidth:380}} onClick={e=>e.stopPropagation()}>
+<h3 style={{margin:"0 0 10px"}}>📷 سكانر</h3>
+<div id="qrBox" style={{marginBottom:10,borderRadius:12,overflow:"hidden"}}></div>
+<div style={{display:"flex",gap:8}}>
+<button className="btnG" onClick={()=>{if(!window.Html5Qrcode){showToast("مش مدعوم","danger");return;}if(window.__scan)return;const h=new Html5Qrcode("qrBox");window.__scan=h;h.start({environment:{facingMode:"environment"}},{fps:10,qrbox:180},txt=>{h.stop().then(()=>{window.__scan=null;});setShowScanner(false);if(scanMode.current==="form"){setEditingCard(c=>({...c,barcode:txt}));}else{const f=cards.find(x=>x.barcode===txt||x.code===txt);if(f)setEditingCard(f);else if(confirm("كرت جديد؟"))setEditingCard({code:txt,barcode:txt});}},()=>{}).catch(()=>showToast("كاميرا مش متاحة","danger"));}}>▶ تشغيل</button>
+<button className="btnO" onClick={()=>{if(window.__scan){window.__scan.stop().then(()=>{window.__scan=null;});window.__scan=null;}setShowScanner(false);}}>✕ إغلاق</button>
+</div>
 </div></div>)}
-{showScanner&&(<div className="modal" onClick={()=>setShowScanner(false)}><div className="mbox" onClick={e=>e.stopPropagation()}>
-<h3>📷 {t.scanAny}</h3>
-<input className="inp" placeholder="اكتب الكود يدوي أو امسح صورة" onKeyDown={e=>{if(e.key==="Enter"&&e.target.value)onScan(e.target.value.trim());}}/>
-<button className="btnG" onClick={()=>scanFileRef.current&&scanFileRef.current.click()}>📁 صورة من الجهاز</button>
-<input ref={scanFileRef} type="file" accept="image/*" style={{display:"none"}} onChange={scanFromFile}/>
+{stageMgr&&(<div className="modal" onClick={()=>setStageMgr(false)}><div className="mbox" onClick={e=>e.stopPropagation()}>
+<h3 style={{margin:"0 0 10px"}}>🎚️ {t.stageMgr}</h3>
+{stages.map((s,i)=>(<div key={s} style={{display:"flex",gap:6,alignItems:"center",marginBottom:8}}>
+<span style={{flex:1,fontSize:14}}>{stageIcon(s,i)} {s}</span>
+<button className="chip" onClick={()=>moveStageOrder(s,-1)}>⬆️</button>
+<button className="chip" onClick={()=>moveStageOrder(s,1)}>⬇️</button>
+<button className="chip" onClick={()=>{const n=prompt(t.rename,s);if(n&&n.trim()&&n!==s)renameStage(s,n.trim());}}>✏️</button>
+<button className="chip" onClick={()=>{const e=prompt("🎭 اكتب إيموجي للمرحلة:",(factory.stageIcons||{})[s]||"");if(e===null)return;const m=Object.assign({},factory.stageIcons);if(e.trim()){m[s]=e.trim();}else{delete m[s];}saveFactory({stageIcons:m});}}>🎭</button>
+<button className="chip" style={{borderColor:"var(--red)",color:"var(--red)"}} onClick={()=>setDelStage(s)}>🗑️</button>
+</div>))}
+<button className="btnG" onClick={addStage}>➕ {t.addStage}</button>
 </div></div>)}
-{showAppQr&&(<div className="modal" onClick={()=>setShowAppQr(false)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:340,textAlign:"center"}}>
-<h3>📱 {t.appQr}</h3>
-<img src={"https://api.qrserver.com/v1/create-qr-code/?size=220x220&data="+encodeURIComponent(APP_URL)} style={{width:220,height:220,borderRadius:12}}/>
-<p style={{fontSize:12,color:theme.textDim}}>امسحه من أي موبايل يتفتح التطبيق ويتثبت</p>
+{delStage&&(<div className="modal"><div className="mbox" style={{maxWidth:360}} onClick={e=>e.stopPropagation()}>
+<h3 style={{margin:"0 0 10px"}}>🗑️ حذف مرحلة "{delStage}"</h3>
+<p style={{fontSize:13,color:"var(--dim)"}}>الكروت هتنتقل لـ:</p>
+{stages.filter(s=>s!==delStage).map(s=><button key={s} className="chip" style={{marginBottom:6,marginInlineEnd:6}} onClick={()=>deleteStageFlow(delStage,s)}>{s}</button>)}
+<div style={{marginTop:8}}><button className="btnO" onClick={()=>setDelStage(null)}>{t.cancel}</button></div>
 </div></div>)}
 {showSettings&&(<div className="modal" onClick={()=>setShowSettings(false)}><div className="mbox" onClick={e=>e.stopPropagation()}>
-<h3>⚙️ {t.settings} <button className="chip" style={{float:"left"}} onClick={()=>setShowSettings(false)}>✖️</button></h3>
-<div className="lbl">🏭 اسم المصنع</div><input className="inp" defaultValue={factory.fname} onBlur={e=>saveFactory({fname:e.target.value})}/>
-<div style={grid2}><div><div className="lbl">الوحدة</div><input className="inp" defaultValue={factory.unit} onBlur={e=>saveFactory({unit:e.target.value})}/></div><div><div className="lbl">تنبيه التأخير بعد (يوم)</div><input className="inp" type="number" defaultValue={factory.lateAfter} onBlur={e=>saveFactory({lateAfter:+e.target.value||1})}/></div></div>
+<div style={{display:"flex",alignItems:"center"}}><h3 style={{flex:1,margin:"0 0 12px"}}>⚙️ {t.settings}</h3><button onClick={()=>setShowSettings(false)} style={{...hdrBtn,border:"none"}}>✕</button></div>
+<div className="lbl">👷 العمال</div>
+{users.map(u=><div key={u.id} style={{display:"flex",gap:6,alignItems:"center",marginBottom:6}}>
+<span style={{flex:1,fontSize:13}}>{u.role==="owner"?"👑":""} {u.name}</span>
+<button className="chip" onClick={()=>{const c=prompt("كود جديد لـ "+u.name+":");if(!c)return;col("users").doc(u.id).set({code:c},{merge:true});showToast("🔑 تم");}}>🔑</button>
+<button className="chip" style={{borderColor:"var(--red)",color:"var(--red)"}} onClick={()=>{if(confirm("حذف "+u.name+"؟"))col("users").doc(u.id).delete();}}>🗑️</button>
+</div>)}
+<button className="btnO" style={{marginBottom:10}} onClick={()=>{const n=prompt("اسم العامل الجديد:");if(!n)return;const c=Math.floor(1000+Math.random()*9000)+"";col("users").add({name:n,role:"worker",code:c}).then(()=>showToast("🔑 كوده: "+c));alert("🔑 كود الدخول: "+c);}}>➕ إضافة عامل</button>
+<div className="lbl">🎛️ خانات الكارت (بتظهر لكل عمالك)</div>
+<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>
+{["msg","category","machine","barcode"].map(k=><button key={k} className={"chip"+((factory.cardCfg||{})[k]!==false?" on":"")} onClick={()=>{const cur=Object.assign({msg:true,category:true,machine:true,barcode:true},factory.cardCfg||{});cur[k]=!cur[k];saveFactory({cardCfg:cur});}}>{k==="msg"?"الرسالة":k==="category"?"الصنف":k==="machine"?"الماكينة":"الباركود"}</button>)}
+</div>
+<div className="lbl">👤 تعديل اسمك</div>
+<div style={{display:"flex",gap:6}}><input className="inp" style={{flex:1}} value={nameDraft} onChange={e=>setNameDraft(e.target.value)}/><button className="chip on" onClick={()=>{saveFactory({ownerName:nameDraft});setMe(m=>({...m,name:nameDraft}));showToast("💾 ✅");}}>حفظ</button></div>
+<div className="lbl">🏭 اسم المصنع</div>
+<input className="inp" defaultValue={factory.fname||""} onBlur={e=>{saveFactory({fname:e.target.value});setFactory(f=>({...f,fname:e.target.value}));}}/>
 <div className="lbl">🖼️ لوجو الشركة</div>
-<div style={{display:"flex",gap:6,alignItems:"center",marginBottom:10}}>{logoSrc&&<img src={logoSrc} style={{width:44,height:44,borderRadius:10,objectFit:"cover"}}/>}<label className="chip on" style={{padding:"10px 16px"}}>📤 رفع لوجو<input type="file" accept="image/*" style={{display:"none"}} onChange={e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{const img=new Image();img.onload=()=>{const m=Math.max(img.width,img.height);const sc=Math.min(1,256/m);const cv=document.createElement("canvas");cv.width=Math.round(img.width*sc)||1;cv.height=Math.round(img.height*sc)||1;cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);const d=cv.toDataURL("image/png");try{localStorage.setItem("logo_"+(tenant||"_"),d);}catch(x){}saveFactory({logo:d});};};img.src=rd.result;rd.readAsDataURL(f);}}/></label>{logoSrc&&<button className="chip" onClick={()=>{try{localStorage.removeItem("logo_"+(tenant||"_"));}catch(x){}saveFactory({logo:""});}}>🗑️</button>}</div>
-<div className="lbl">🔑 مفتاح المالك</div><input className="inp" type="password" defaultValue={factory.ownerKey||""} onBlur={e=>saveFactory({ownerKey:e.target.value})}/>
-<div className="lbl">🔒 رقم سري للإعدادات (فاضي = مقفول)</div><input className="inp" type="number" value={pinLoc} onChange={e=>{setPinLoc(e.target.value);try{localStorage.setItem("pin_"+(tenant||"_"),e.target.value);}catch(x){}}}/>
-<div className="lbl">🗄️ أرشفة تلقائية للمسلّم بعد (يوم)</div><input className="inp" type="number" value={archLoc} onChange={e=>{setArchLoc(e.target.value);try{localStorage.setItem("autoArch_"+(tenant||"_"),e.target.value);}catch(x){}}}/>
-<div className="lbl">📢 إعلان للعمال</div><textarea rows={2} className="inp" value={announceDraft} onChange={e=>setAnnounceDraft(e.target.value)}/>
-<div style={{display:"flex",gap:8,marginBottom:10}}><button className="btnG" onClick={saveAnnounce}>📢 نشر</button><button className="btnO" onClick={()=>{db.collection("t/"+tenant+"/config").doc("announce").set({text:"",by:"",time:Date.now()});showToast("🗑️");}}>🗑️ مسح</button></div>
-<div style={{display:"flex",gap:8}}><button className="btnO" onClick={()=>{setLang(lang==="ar"?"en":"ar");localStorage.setItem("pref_lang",lang==="ar"?"en":"ar");}}>🌐 {lang==="ar"?"English":"عربي"}</button><button className="btnO" onClick={()=>{setMode(mode==="dark"?"light":"dark");localStorage.setItem("pref_mode",mode==="dark"?"light":"dark");}}>{mode==="dark"?"☀️ فاتح":"🌙 داكن"}</button></div>
+<div style={{display:"flex",gap:6,alignItems:"center",marginBottom:10}}>
+{logoSrc&&<img src={logoSrc} style={{width:44,height:44,borderRadius:10,objectFit:"cover"}}/>}
+<button onClick={()=>{const inp=document.createElement("input");inp.type="file";inp.accept="image/*";inp.onchange=()=>{const f=inp.files&&inp.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{const img=new Image();img.onload=()=>{const m=Math.max(img.width,img.height);const sc=Math.min(1,256/m);const c=document.createElement("canvas");c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);c.getContext("2d").drawImage(img,0,0,c.width,c.height);const d=c.toDataURL("image/png");saveFactory({logo:d});setFactory(f=>({...f,logo:d}));};img.src=rd.result;};rd.readAsDataURL(f);};document.body.appendChild(inp);inp.click();setTimeout(()=>inp.remove(),2000);}} className="chip on">📤 رفع لوجو</button>
+{logoSrc&&<button onClick={()=>{saveFactory({logo:""});setFactory(f=>({...f,logo:""}));try{localStorage.removeItem("logo_"+(tenant||"_"));}catch(e){}}} className="chip">🗑️</button>}
+</div>
+<div className="lbl">📱 {t.waNumber}</div>
+<input className="inp" inputMode="numeric" placeholder="201xxxxxxxxx" defaultValue={factory.wa||""} onBlur={e=>saveFactory({wa:e.target.value})}/>
+<div style={grid2}>
+<div><div className="lbl">🖨️ {t.printSize}</div><select className="inp" value={factory.printSize||"A4"} onChange={e=>saveFactory({printSize:e.target.value})}><option>A4</option><option>A5</option></select></div>
+<div><div className="lbl">⚖️ {t.unit}</div><select className="inp" value={factory.unit||"كيلو"} onChange={e=>saveFactory({unit:e.target.value})}><option>كيلو</option><option>جرام</option><option>قطعة</option></select></div>
+</div>
+<div className="lbl">⏰ {t.lateAfter}</div>
+<input className="inp" type="number" defaultValue={factory.lateAfter||20} onBlur={e=>saveFactory({lateAfter:+e.target.value||20})}/>
+<div className="lbl">🔒 رقم سري للإعدادات (سيبها فاضية = مقفول)</div>
+<input className="inp" type="number" placeholder="بدون رمز" value={pinLoc} onChange={e=>{setPinLoc(e.target.value);try{localStorage.setItem("pin_"+(tenant||"_"),e.target.value);}catch(x){}}}/>
+<div className="lbl">🗄️ أرشفة تلقائية للمسلّم بعد (يوم) — 0 مقفول</div>
+<input className="inp" type="number" placeholder="0" value={archLoc} onChange={e=>{setArchLoc(e.target.value);try{localStorage.setItem("autoArch_"+(tenant||"_"),e.target.value);}catch(x){}}}/>
+<div className="lbl">📢 إعلان لكل العمال</div>
+<textarea rows={2} className="inp" value={announceText} onChange={e=>setAnnounceText(e.target.value)}/>
+<div style={{display:"flex",gap:8,marginBottom:10}}>
+<button className="btnG" style={{flex:1}} onClick={()=>{db.collection("t/"+tenant+"/config").doc("announce").set({text:announceText,by:ownerName,time:Date.now()});showToast("📢 نشر");}}>📢 نشر</button>
+<button className="btnO" style={{flex:1}} onClick={()=>{db.collection("t/"+tenant+"/config").doc("announce").set({text:"",by:"",time:Date.now()});showToast("🗑️");}}>🗑️ مسح الإعلان</button>
+</div>
+<div style={{fontSize:12,color:"var(--dim)",marginBottom:10}}>🌐 اللغة بتتحفظ على كل جهاز من زر اللغة تلقائياً</div>
 </div></div>)}
-{toast&&<div className="toast">{toast.m}</div>}
+{toast&&(<div style={{position:"fixed",bottom:96,left:"50%",transform:"translateX(-50%)",background:toast.kind==="danger"?"var(--red)":"var(--teal)",color:"#04211a",fontWeight:800,padding:"10px 18px",borderRadius:30,zIndex:999,animation:"pop .25s both",display:"flex",gap:10,alignItems:"center",maxWidth:"86%"}}>{toast.msg}{toast.action&&<button onClick={()=>{toast.action.fn();setToast(null);}} style={{background:"rgba(0,0,0,.15)",border:"none",borderRadius:12,padding:"6px 10px",fontWeight:800,color:"#04211a"}}>{toast.action.label}</button>}</div>)}
+{confetti&&(<div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:998,overflow:"hidden"}}>{Array.from({length:40}).map((_,i)=>(<span key={i} style={{position:"absolute",top:"-10px",insetInlineStart:(i*2.5)+"%",width:8,height:12,background:["#7C5CFF","#2DD4A8","#FFB65C","#FF5C7A","#4CC9F0"][i%5],borderRadius:3,animation:"confFall 2.6s linear "+((i%10)*0.12)+"s both"}}/>))}</div>)}
 </div>);
 }
-ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+ReactDOM.render(<App/>,document.getElementById("root"));
 </script>
 </body>
 </html>
