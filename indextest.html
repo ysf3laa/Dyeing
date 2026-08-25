@@ -1128,7 +1128,7 @@ return(<div><input autoFocus value={q} onChange={e=>setQ(e.target.value)} placeh
 {q.trim()&&r.length===0&&<p style={{color:"var(--dim)",fontSize:13,textAlign:"center"}}>{t.noResults}</p>}
 <div>{r.map((c,i)=>(<div key={c.id} onClick={()=>onPick(c)} className="card anim" style={{cursor:"pointer",padding:"10px 12px",marginBottom:8,animationDelay:(i*40)+"ms"}}><b style={{fontSize:14}}>{c.customer} · {c.code}</b><div style={{fontSize:12,color:"var(--dim)"}}>{c.stage} — {c.color}</div></div>))}</div></div>);
 }
-(function(){const q=new URLSearchParams(location.search);const c=q.get("cid"),u=q.get("un"),p=q.get("p");if(c&&u&&p){localStorage.setItem("companyID",c);localStorage.setItem("username",u);localStorage.setItem("pin",p);location.replace(location.pathname);}})();
+(function(){const q=new URLSearchParams(location.search);const c=q.get("cid"),u=q.get("un"),p=q.get("p");if(c&&u&&p){localStorage.setItem("companyID",c);localStorage.setItem("username",u);localStorage.setItem("pin",p);setTimeout(()=>location.replace(location.pathname),100);}})();
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 window.__booted=true;
 </script>
