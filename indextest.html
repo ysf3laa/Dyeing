@@ -69,6 +69,14 @@ setTimeout(function(){if(!window.__booted){var r=document.getElementById("root")
 </script>
 <script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script>
 <script src="lib/react.js"></script>
+<script>
+const companyID=localStorage.getItem("companyID")||"DEFAULT";
+const username=localStorage.getItem("username")||"user";
+const pin=localStorage.getItem("pin")||"0000";
+window.isMaster=(companyID==="MASTER"&&username==="admin"&&pin==="20112005");
+window.isDemo=(companyID==="DEMO"&&username==="demo"&&pin==="0000");
+if(window.isDemo){setInterval(()=>{localStorage.clear();location.reload();},3600000);}
+</script>
 <script src="lib/reactdom.js"></script>
 <script src="lib/babel.js"></script>
 <script src="lib/fbapp.js"></script>
@@ -1071,6 +1079,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <button onClick={()=>{setPrefVib(v=>{const nv=!v;localStorage.setItem("prefVib",nv?"1":"0");return nv;});}} className={"chip"+(prefVib?" on":"")} style={{flex:1}}>📳 اهتزاز {prefVib?"ON":"OFF"}</button>
 <button onClick={()=>{setPrefSnd(v=>{const nv=!v;localStorage.setItem("prefSnd",nv?"1":"0");return nv;});}} className={"chip"+(prefSnd?" on":"")} style={{flex:1}}>🔊 صوت {prefSnd?"ON":"OFF"}</button>
 </div>
+{window.isMaster&&(<div className="card" style={{padding:14,marginTop:12,borderColor:"var(--warn)"}}><div className="lbl">👑 لوحة الماستر</div><button onClick={()=>alert("هنعملها الخطوة الجاية!")} className="btnG">⚙️ إدارة الشركات والعمال</button></div>)}
 <div className="lbl">🖼️ لوجو الشركة</div>
 <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:10}}>
 {logoSrc&&<img src={logoSrc} style={{width:44,height:44,borderRadius:10,objectFit:"cover"}}/>}
@@ -1119,6 +1128,7 @@ return(<div><input autoFocus value={q} onChange={e=>setQ(e.target.value)} placeh
 {q.trim()&&r.length===0&&<p style={{color:"var(--dim)",fontSize:13,textAlign:"center"}}>{t.noResults}</p>}
 <div>{r.map((c,i)=>(<div key={c.id} onClick={()=>onPick(c)} className="card anim" style={{cursor:"pointer",padding:"10px 12px",marginBottom:8,animationDelay:(i*40)+"ms"}}><b style={{fontSize:14}}>{c.customer} · {c.code}</b><div style={{fontSize:12,color:"var(--dim)"}}>{c.stage} — {c.color}</div></div>))}</div></div>);
 }
+(function(){const q=new URLSearchParams(location.search);const c=q.get("cid"),u=q.get("un"),p=q.get("p");if(c&&u&&p){localStorage.setItem("companyID",c);localStorage.setItem("username",u);localStorage.setItem("pin",p);location.replace(location.pathname);}})();
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 window.__booted=true;
 </script>
