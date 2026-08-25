@@ -457,6 +457,16 @@ return(
 <div className="card anim" onClick={()=>setShowWarehouse(true)} style={{animationDelay:"260ms",cursor:"pointer"}}><div className="lbl">📦 متبقي المخزن</div><div style={{fontSize:26,fontWeight:900,color:"var(--blue)"}}>{nRem} <span style={{fontSize:11,color:theme.textDim}}>{factory.unit}</span></div></div>
 <div className="card anim" onClick={()=>setShowDelivered(true)} style={{animationDelay:"320ms",cursor:"pointer"}}><div className="lbl">✅ اتسلم</div><div style={{fontSize:26,fontWeight:900,color:"var(--teal)"}}>{nDel}</div></div>
 </div>
+<div className="card anim" onClick={()=>setShowSched(true)} style={{animationDelay:"340ms",margin:"12px 0",cursor:"pointer",background:"linear-gradient(135deg,rgba(45,212,168,.15),rgba(76,201,240,.10))",border:"1px solid rgba(45,212,168,.35)"}}>
+<div style={{display:"flex",alignItems:"center",gap:12}}>
+<div style={{width:52,height:52,borderRadius:16,background:"linear-gradient(135deg,var(--teal),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,boxShadow:"0 6px 18px rgba(45,212,168,.35)"}}>📅</div>
+<div style={{flex:1}}>
+<div style={{fontSize:15,fontWeight:800}}>جدول الماكينات النهارده</div>
+<div style={{fontSize:11.5,color:theme.textDim,marginTop:3}}>{schedCards().length} كرت شغال · {machines.filter(m=>!schedCards().some(c=>String(c.machine)===String(m))).length} ماكينة فاضية</div>
+</div>
+<span style={{color:theme.textDim,fontSize:18}}>←</span>
+</div>
+</div>
 <div className="card anim" style={{animationDelay:"380ms",margin:"12px 0",display:"flex",alignItems:"center",gap:16}}>
 <Ring pct={donePct} size={110} color="var(--teal)"><b style={{fontSize:20}}>{donePct}%</b><span style={{fontSize:10,color:theme.textDim}}>إنجاز</span></Ring>
 <div style={{flex:1}}><div className="lbl">نظرة عامة على المراحل</div>
