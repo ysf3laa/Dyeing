@@ -207,7 +207,7 @@ useEffect(()=>{try{setFavs(JSON.parse(localStorage.getItem("favs_"+(userId||"_")
 const toggleFav=n=>{if(!n)return;setFavs(f=>{const nx=f.includes(n)?f.filter(x=>x!==n):f.concat([n]);localStorage.setItem("favs_"+(userId||"_"),JSON.stringify(nx));return nx;});};
 useEffect(()=>{const seen={};const l=stages.filter(s=>{if(seen[s])return false;seen[s]=1;return true;});if(l.length!==stages.length){setStages(l);saveStages(l);}},[stages]);
 const [pinTry,setPinTry]=useState("");
-const openSettingsGuard=()=>{const p=localStorage.getItem("pin_"+(userId||"_"))||"";if(!p){openSettingsGuard();return;}const x=prompt("🔒 اكتب الرقم السري:");if(x===p){openSettingsGuard();}else if(x!==null){alert("رمز غلط!");}};
+const openSettingsGuard=()=>{const p=localStorage.getItem("pin_"+(userId||"_"))||"";if(!p){setShowSettings(true);return;}const x=prompt("🔒 اكتب الرقم السري:");if(x===p){setShowSettings(true);}else if(x!==null){alert("رمز غلط!");}};
 const [confetti,setConfetti]=useState(false);
 useEffect(()=>{const days=+(localStorage.getItem("autoArch_"+(userId||"_"))||0);if(!days)return;const cut=Date.now()-days*86400000;liveCards.filter(c=>c.delivered&&toMs(c.updatedAt||c.createdAt)<cut).forEach(c=>db.collection("cards").doc(c.id).set({archived:true},{merge:true}));},[cards]);
 const prevStageCounts=useRef({});
