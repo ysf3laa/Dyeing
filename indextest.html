@@ -505,7 +505,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 {confetti&&(<div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:998,overflow:"hidden"}}>{Array.from({length:40}).map((_,i)=>(<span key={i} style={{position:"absolute",top:"-10px",insetInlineStart:(i*2.5)+"%",width:8,height:12,background:["#7C5CFF","#2DD4A8","#FFB65C","#FF5C7A","#4CC9F0"][i%5],borderRadius:3,animation:"confFall 2.6s linear "+((i%10)*0.12)+"s both"}}/>))}</div>)}
 </div>);
 }
-ReactDOM.render(<App/>,document.getElementById("root"));
+try{ReactDOM.render(<App/>,document.getElementById("root"));document.title="✅ OK";}catch(e){document.getElementById("root").innerHTML='<pre style="color:#ff5c7a;padding:12px;white-space:pre-wrap">'+e.message+'</pre>';document.title="❌ ERR";}
 </script>
 </body>
 </html>
