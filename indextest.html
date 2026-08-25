@@ -201,6 +201,9 @@ const [showBulkMove,setShowBulkMove]=useState(false);const [showStageMgr,setShow
 const [showSched,setShowSched]=useState(false);const [schedDate,setSchedDate]=useState((()=>{const x=new Date();return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0");})());const [schedShift,setSchedShift]=useState("all");
 const dkey=v=>{const x=new Date(toMs(v));return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0");};
 const schedCards=()=>liveCards.filter(c=>c.machine&&dkey(c.updatedAt||c.createdAt)===schedDate&&(schedShift==="all"||((h=>schedShift==="day"?(h>=6&&h<18):(h>=18||h<6)))(new Date(toMs(c.updatedAt||c.createdAt)).getHours())));
+const [favs,setFavs]=useState([]);
+useEffect(()=>{try{setFavs(JSON.parse(localStorage.getItem("favs_"+(userId||"_"))||"[]"));}catch(e){setFavs([]);}},[userId]);
+const toggleFav=n=>{if(!n)return;setFavs(f=>{const nx=f.includes(n)?f.filter(x=>x!==n):f.concat([n]);localStorage.setItem("favs_"+(userId||"_"),JSON.stringify(nx));return nx;});};
 const [undoInfo,setUndoInfo]=useState(null);
 const undoDelete=c=>{const snap={...c};setActionCard(null);fx("danger");deleteCard(c);setUndoInfo(snap);setTimeout(()=>setUndoInfo(null),6000);};
 const undoRestore=()=>{if(!undoInfo)return;db.collection("cards").doc(undoInfo.id).set(undoInfo).then(()=>{fx();setUndoInfo(null);});};
@@ -954,7 +957,8 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 {can&&cards.some(c=>c.id===editingCard.id)&&(<>
 <div className="lbl">{t.stagesLabel}</div><select className="inp" value={editingCard.stage} onChange={e=>setEditingCard({...editingCard,stage:e.target.value})}>{stages.map(s=><option key={s}>{s}</option>)}</select>
 </>)}
-<div className="lbl">{t.customer}</div><input className="inp" list="customersList" value={editingCard.customer} onChange={e=>onCustomerChange(e.target.value)}/>
+{favs.length>0&&(<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:6}}>{favs.map(f=><button key={f} onClick={()=>onCustomerChange(f)} className="chip on" style={{fontSize:11}}>⭐ {f}</button>)}</div>)}
+<div className="lbl">{t.customer}</div><div style={{display:"flex",gap:6,alignItems:"center"}}><input className="inp" style={{flex:1,marginBottom:10}} list="customersList" value={editingCard.customer} onChange={e=>onCustomerChange(e.target.value)}/><button onClick={()=>toggleFav(editingCard.customer)} style={{width:44,height:44,borderRadius:12,border:"1px solid "+theme.border,background:favs.includes(editingCard.customer)?"rgba(255,182,92,.15)":"transparent",fontSize:18}}>{favs.includes(editingCard.customer)?"⭐":"☆"}</button></div>
 <datalist id="customersList">{knownCustomers.slice(0,50).map(k=><option key={k.name} value={k.name}/>)}</datalist>
 <div style={grid2}>
 <div><div className="lbl">{t.code}</div><input className="inp" value={editingCard.code} onChange={e=>setEditingCard({...editingCard,code:e.target.value})}/></div>
@@ -964,7 +968,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div><div className="lbl">{t.color}</div><input className="inp" value={editingCard.color} onChange={e=>setEditingCard({...editingCard,color:e.target.value})}/></div></div>
 <div className="lbl">{t.colorsLabel}</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{allColors.map(c=><button key={c} onClick={()=>setEditingCard({...editingCard,color:c})} className={"chip"+(editingCard.color===c?" on":"")}>{c}</button>)}</div>
 <div style={grid2}>
-<div><div className="lbl">{t.quantity}</div><input className="inp" value={editingCard.quantity} onChange={e=>setEditingCard({...editingCard,quantity:e.target.value})}/></div>
+<div><div className="lbl">{t.quantity}</div><div style={{display:"flex",gap:6}}><input className="inp" style={{flex:1}} value={editingCard.quantity} onChange={e=>setEditingCard({...editingCard,quantity:e.target.value})}/><button onClick={()=>{const ex=prompt("🧮 اكتب العملية:",editingCard.quantity||"");if(ex===null)return;const clean=String(ex).replace(/[٠-٩]/g,d=>String("٠١٢٤٥٦٨٩".indexOf(d))).replace(/×/g,"*").replace(/÷/g,"/").replace(/[^0-9+\-*/.() ]/g,"");if(!clean.trim())return;try{const v=Function('"use strict";return ('+clean+")")();if(isFinite(v))setEditingCard({...editingCard,quantity:String(Math.round(v*100)/100)});}catch(e){}}} style={{width:44,height:44,borderRadius:12,border:"1px solid "+theme.border,background:"transparent",fontSize:16}}>🧮</button></div></div>
 <div><div className="lbl">{t.barcode}</div><div style={{display:"flex",gap:6}}><input className="inp" style={{marginBottom:6}} value={editingCard.barcode} onChange={e=>setEditingCard({...editingCard,barcode:e.target.value})}/><button onClick={()=>{scanMode.current="form";setShowScanner(true);}} style={{flex:"0 0 auto",padding:"0 12px",borderRadius:12,border:"none",background:"var(--teal)",color:"#04211a",fontSize:16,fontWeight:800}}>📷</button></div>
 {editingCard.barcode&&<div style={{background:"#fff",borderRadius:8,padding:"6px 4px",marginBottom:8,textAlign:"center"}}><BarcodeView value={editingCard.barcode}/></div>}</div></div>
 <div className="lbl">{t.machine}</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{machines.map(m=><button key={m} onClick={()=>setEditingCard({...editingCard,machine:m})} className={"chip"+(editingCard.machine===m?" on":"")}>{m}</button>)}</div>
