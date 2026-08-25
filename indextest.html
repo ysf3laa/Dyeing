@@ -60,7 +60,7 @@ fieldset{border:none;margin:0;padding:0;min-width:0}
 </head>
 <body>
 <div id="syncBar" class="syncing-bar"></div>
-<div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:16px"><div style="font-size:40px;animation:floaty 2s infinite">🏭</div><div style="color:var(--dim)">جاري التحميل...</div></div></div>
+<script>window.onerror=function(m,s,l){document.write('<pre style="color:#ff5c7a;padding:12px;white-space:pre-wrap;font-size:12px">'+m+' — سطر '+l+'</pre>');};</script> style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:16px"><div style="font-size:40px;animation:floaty 2s infinite">🏭</div><div style="color:var(--dim)">جاري التحميل...</div></div></div>
 <script>
 window.onerror=function(m,u,l){if(m&&m!=="Script error."&&!window.__booted){var r=document.getElementById("root");if(r)r.innerHTML='<div style="padding:16px;color:#FF5C7A;font-size:12px;word-break:break-all;text-align:center">خطأ: '+m+'<br>سطر: '+l+'</div>';}};
 window.addEventListener("unhandledrejection",function(e){e.preventDefault();console.warn(e.reason);});
