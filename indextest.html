@@ -534,8 +534,6 @@ return(<div key={c.id} className="card" onClick={()=>jumpToCard(c)} style={{curs
 <div style={{flex:1}}><div style={{fontSize:19,fontWeight:900}}>مراحل العمل</div><div style={{fontSize:11,color:theme.textDim}}>تابع جميع مراحل الإنتاج</div></div>
 {can&&<button onClick={()=>setShowStageMgr(true)} style={hdrBtn}>⚙️</button>}
 <button onClick={()=>setShowSched(true)} style={hdrBtn}>📅</button>
-<button onClick={()=>{const m=themeMode==="light"?"dark":"light";setThemeMode(m);localStorage.setItem("themeMode",m);}} style={hdrBtn}>{themeMode==="light"?"🌙":"☀️"}</button>
-<button onClick={()=>{setPrefVib(v=>{localStorage.setItem("prefVib",v?"0":"1");return !v;});setPrefSnd(v=>{localStorage.setItem("prefSnd",v?"0":"1");return !v;});fx();}} style={hdrBtn}>📳</button>
 </div>
 {(()=>{const orph=liveCards.filter(c=>!stages.includes(c.stage));return orph.length>0?(<div onClick={()=>setEditingCard(orph[0])} className="card" style={{marginBottom:14,borderColor:"var(--red)",cursor:"pointer"}}>⚠️ عندك {orph.length} كرت في مرحلة مش موجودة — دوس تصلّح</div>):null;})()}
 {stages.map((s,i)=>{const l=liveCards.filter(c=>c.stage===s);const late=l.filter(c=>daysSince(c.updatedAt||c.createdAt)>=LD).length;const q=qtySum(l);const col=STAGE_COLORS[i%8];
@@ -1048,6 +1046,11 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:400}}>
 <h3 style={{margin:"0 0 14px"}}>⚙️ {t.settings}</h3>
 <div className="lbl">🌐 {t.language}</div><div style={{marginBottom:10}}><button onClick={()=>{const n=lang==="ar"?"en":"ar";setLang(n);localStorage.setItem("pref_lang",n);}} className="chip on">{lang==="ar"?"العربية":"English"}</button></div>
+<div style={{display:"flex",gap:6,marginBottom:12}}>
+<button onClick={()=>{const m=themeMode==="light"?"dark":"light";setThemeMode(m);localStorage.setItem("themeMode",m);}} className={"chip"+(themeMode==="light"?" on":"")} style={{flex:1}}>{themeMode==="light"?"🌙 دايم":"☀️ فاتح"}</button>
+<button onClick={()=>{setPrefVib(v=>{const nv=!v;localStorage.setItem("prefVib",nv?"1":"0");return nv;});}} className={"chip"+(prefVib?" on":"")} style={{flex:1}}>📳 اهتزاز {prefVib?"ON":"OFF"}</button>
+<button onClick={()=>{setPrefSnd(v=>{const nv=!v;localStorage.setItem("prefSnd",nv?"1":"0");return nv;});}} className={"chip"+(prefSnd?" on":"")} style={{flex:1}}>🔊 صوت {prefSnd?"ON":"OFF"}</button>
+</div>
 <div style={{display:"flex",gap:6,marginBottom:12}}>
 <button onClick={()=>{const m=themeMode==="light"?"dark":"light";setThemeMode(m);localStorage.setItem("themeMode",m);}} className={"chip"+(themeMode==="light"?" on":"")} style={{flex:1}}>{themeMode==="light"?"🌙 دايم":"☀️ فاتح"}</button>
 <button onClick={()=>{setPrefVib(v=>{const nv=!v;localStorage.setItem("prefVib",nv?"1":"0");return nv;});}} className={"chip"+(prefVib?" on":"")} style={{flex:1}}>📳 اهتزاز {prefVib?"ON":"OFF"}</button>
