@@ -1373,7 +1373,6 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <input className="inp" style={{marginBottom:0,flex:1}} type="number" placeholder="كمية مسلّمة (جزئي)" value={editingCard.deliveredQty||""} onChange={e=>setEditingCard({...editingCard,deliveredQty:e.target.value})}/>
 <button onClick={()=>setEditingCard({...editingCard,delivered:!editingCard.delivered,deliveredQty:!editingCard.delivered?(editingCard.quantity||""):""})} className={"chip"+(editingCard.delivered?" on":"")}>✅ تسليم كلي</button>
 </div>)}
-</div>)}
 {editingCard.phone&&(<div style={{display:"flex",gap:8,marginBottom:10}}><a href={"tel:"+editingCard.phone} className="btnO" style={{textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>📞</a><a href={"https://wa.me/"+editingCard.phone.replace(/\D/g,"")} target="_blank" rel="noreferrer" className="btnO" style={{textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>💬</a></div>)}
 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>{!fHide("notes")&&(<div style={{display:"contents"}}><div className="lbl">{fLabel("notes",t.notes)}</div><button onClick={noteMic} className={"chip"+(micOn?" on":"")}>🎙️</button></div>
 <textarea rows={2} className="inp" value={editingCard.notes} onChange={e=>setEditingCard({...editingCard,notes:e.target.value})}/></div>)}
