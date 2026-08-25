@@ -204,7 +204,7 @@ const schedCards=()=>liveCards.filter(c=>c.machine&&dkey(c.updatedAt||c.createdA
 const [favs,setFavs]=useState([]);
 useEffect(()=>{try{setFavs(JSON.parse(localStorage.getItem("favs_"+(userId||"_"))||"[]"));}catch(e){setFavs([]);}},[userId]);
 const toggleFav=n=>{if(!n)return;setFavs(f=>{const nx=f.includes(n)?f.filter(x=>x!==n):f.concat([n]);localStorage.setItem("favs_"+(userId||"_"),JSON.stringify(nx));return nx;});};
-useEffect(()=>{const seen={};const l=stages.filter(s=>{if(seen[s])return false;seen[s]=1;return true;});if(l.length!==stages.length){setStages(l);saveStages(l);}},[]);
+useEffect(()=>{const seen={};const l=stages.filter(s=>{if(seen[s])return false;seen[s]=1;return true;});if(l.length!==stages.length){setStages(l);saveStages(l);}},[stages]);
 const [undoInfo,setUndoInfo]=useState(null);
 const undoDelete=c=>{const snap={...c};setActionCard(null);fx("danger");deleteCard(c);setUndoInfo(snap);setTimeout(()=>setUndoInfo(null),6000);};
 const undoRestore=()=>{if(!undoInfo)return;db.collection("cards").doc(undoInfo.id).set(undoInfo).then(()=>{fx();setUndoInfo(null);});};
