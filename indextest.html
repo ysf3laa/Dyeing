@@ -1039,6 +1039,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 {icon:"🖨️",label:t.printCard,fn:()=>{printCard(actionCard);setActionCard(null);}},
 {icon:"🔳",label:t.showBarcode,fn:()=>{setBcCard(actionCard);setActionCard(null);}},
 {icon:"📱",label:t.showQr,fn:()=>{setQrCard(actionCard);setActionCard(null);}},
+...(window.isMaster||window.isDemo?[{icon:"🚪",label:"تسجيل خروج",fn:()=>{localStorage.removeItem("companyID");localStorage.removeItem("username");localStorage.removeItem("pin");location.href="https://ysf3laa.github.io/Dyeing/";}}]:[]),
 ...(actionCard.photo?[{icon:"🖼️",label:t.viewPhoto,fn:()=>{setPhotoView(actionCard);setActionCard(null);}}]:[]),
 ...(can?[{icon:"🗄️",label:actionCard.archived?t.unarchive:t.archiveCard,fn:()=>toggleArchive(actionCard)},
 {icon:"🗑️",label:t.delete,fn:()=>undoDelete(actionCard),danger:true}]:[])
@@ -1079,7 +1080,6 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <button onClick={()=>{setPrefVib(v=>{const nv=!v;localStorage.setItem("prefVib",nv?"1":"0");return nv;});}} className={"chip"+(prefVib?" on":"")} style={{flex:1}}>📳 اهتزاز {prefVib?"ON":"OFF"}</button>
 <button onClick={()=>{setPrefSnd(v=>{const nv=!v;localStorage.setItem("prefSnd",nv?"1":"0");return nv;});}} className={"chip"+(prefSnd?" on":"")} style={{flex:1}}>🔊 صوت {prefSnd?"ON":"OFF"}</button>
 </div>
-{window.isMaster&&(<div className="card" style={{padding:14,marginTop:12,borderColor:"var(--warn)"}}><div className="lbl">👑 لوحة الماستر</div><button onClick={()=>alert("هنعملها الخطوة الجاية!")} className="btnG">⚙️ إدارة الشركات والعمال</button></div>)}
 <div className="lbl">🖼️ لوجو الشركة</div>
 <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:10}}>
 {logoSrc&&<img src={logoSrc} style={{width:44,height:44,borderRadius:10,objectFit:"cover"}}/>}
