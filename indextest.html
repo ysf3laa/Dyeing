@@ -1048,6 +1048,16 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:400}}>
 <h3 style={{margin:"0 0 14px"}}>⚙️ {t.settings}</h3>
 <div className="lbl">🌐 {t.language}</div><div style={{marginBottom:10}}><button onClick={()=>{const n=lang==="ar"?"en":"ar";setLang(n);localStorage.setItem("pref_lang",n);}} className="chip on">{lang==="ar"?"العربية":"English"}</button></div>
+<div style={{display:"flex",gap:6,marginBottom:12}}>
+<button onClick={()=>{const m=themeMode==="light"?"dark":"light";setThemeMode(m);localStorage.setItem("themeMode",m);}} className={"chip"+(themeMode==="light"?" on":"")} style={{flex:1}}>{themeMode==="light"?"🌙 دايم":"☀️ فاتح"}</button>
+<button onClick={()=>{setPrefVib(v=>{const nv=!v;localStorage.setItem("prefVib",nv?"1":"0");return nv;});}} className={"chip"+(prefVib?" on":"")} style={{flex:1}}>📳 اهتزاز {prefVib?"ON":"OFF"}</button>
+<button onClick={()=>{setPrefSnd(v=>{const nv=!v;localStorage.setItem("prefSnd",nv?"1":"0");return nv;});}} className={"chip"+(prefSnd?" on":"")} style={{flex:1}}>🔊 صوت {prefSnd?"ON":"OFF"}</button>
+</div>
+<div style={{display:"flex",gap:6,marginBottom:12}}>
+<button onClick={()=>{const m=themeMode==="light"?"dark":"light";setThemeMode(m);localStorage.setItem("themeMode",m);}} className={"chip"+(themeMode==="light"?" on":"")} style={{flex:1}}>{themeMode==="light"?"🌙 دايم":"☀️ فاتح"}</button>
+<button onClick={()=>{setPrefVib(v=>{const nv=!v;localStorage.setItem("prefVib",nv?"1":"0");return nv;});}} className={"chip"+(prefVib?" on":"")} style={{flex:1}}>📳 اهتزاز {prefVib?"ON":"OFF"}</button>
+<button onClick={()=>{setPrefSnd(v=>{const nv=!v;localStorage.setItem("prefSnd",nv?"1":"0");return nv;});}} className={"chip"+(prefSnd?" on":"")} style={{flex:1}}>🔊 صوت {prefSnd?"ON":"OFF"}</button>
+</div>
 {!can&&(<div className="card" style={{padding:14,marginBottom:10}}>
 <div className="lbl">🔑 {t.unlockTitle}</div>
 <input className="inp" inputMode="numeric" value={codeInput} onChange={e=>setCodeInput(e.target.value)} placeholder="******"/>
