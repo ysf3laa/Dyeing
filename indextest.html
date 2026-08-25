@@ -467,6 +467,31 @@ return(
 <span style={{color:theme.textDim,fontSize:18}}>←</span>
 </div>
 </div>
+<div className="card anim" style={{animationDelay:"360ms",margin:"12px 0"}}>
+<div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><span style={{fontSize:20}}>🏆</span><b style={{fontSize:15}}>الانجازات</b></div>
+{(()=>{const cut=Date.now()-7*86400000;const wk=log.filter(e=>toMs(e.time||e.timeLocal)>=cut);const per={};wk.forEach(e=>{if(e.person)per[e.person]=(per[e.person]||0)+1;});const arr=Object.entries(per).sort((a,b)=>b[1]-a[1]);const best=arr[0];
+const days=Array.from({length:7},(_,i)=>{const d=new Date(Date.now()-(6-i)*86400000);const k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");return {k:k,n:log.filter(e=>e.date===k).length};});const mx=Math.max(1,...days.map(x=>x.n));
+return(<div>
+<div style={{display:"flex",gap:8,marginBottom:12}}>
+<div style={{flex:1,background:"linear-gradient(135deg,rgba(255,182,92,.15),rgba(255,92,122,.10))",border:"1px solid rgba(255,182,92,.35)",borderRadius:14,padding:10,textAlign:"center"}}>
+<div style={{fontSize:22}}>🥇</div>
+<div style={{fontSize:12,fontWeight:800,marginTop:2}}>{best?best[0]:"—"}</div>
+<div style={{fontSize:10,color:theme.textDim}}>عامل الأسبوع · {best?best[1]:0} حركة</div>
+</div>
+<div style={{flex:1,background:"linear-gradient(135deg,rgba(124,92,255,.15),rgba(94,143,214,.10))",border:"1px solid rgba(124,92,255,.35)",borderRadius:14,padding:10,textAlign:"center"}}>
+<div style={{fontSize:22}}>⚡</div>
+<div style={{fontSize:12,fontWeight:800,marginTop:2}}>{wk.length}</div>
+<div style={{fontSize:10,color:theme.textDim}}>حركة آخر 7 أيام</div>
+</div>
+</div>
+<div style={{display:"flex",alignItems:"flex-end",gap:6,height:70}}>
+{days.map((d,i)=>(<div key={d.k} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:3}}>
+<div style={{width:"100%",height:Math.max(4,(d.n/mx)*45),borderRadius:5,background:i===6?"var(--teal)":"var(--vio)"}}/>
+<span style={{fontSize:9,color:theme.textDim}}>{["أ","ن","ث","ر","خ","ج","س"][new Date(d.k).getDay()]}</span>
+</div>))}
+</div>
+</div>);})()}
+</div>
 <div className="card anim" style={{animationDelay:"380ms",margin:"12px 0",display:"flex",alignItems:"center",gap:16}}>
 <Ring pct={donePct} size={110} color="var(--teal)"><b style={{fontSize:20}}>{donePct}%</b><span style={{fontSize:10,color:theme.textDim}}>إنجاز</span></Ring>
 <div style={{flex:1}}><div className="lbl">نظرة عامة على المراحل</div>
