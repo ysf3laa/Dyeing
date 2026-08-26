@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0B0E1A">
+<title>لوحة الماستر</title>
+<style>
+:root{--bg:#0B0E1A;--panel:#141829;--panel2:#1B2036;--line:#242B47;--txt:#EDEFF5;--dim:#8A93B5;--vio:#7C5CFF;--blue:#5E8FD6;--teal:#2DD4A8;--red:#FF5C7A;--warn:#FFB65C}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Tajawal',system-ui,sans-serif;background:radial-gradient(900px 480px at 85% -10%,rgba(124,92,255,.14),transparent),var(--bg);color:var(--txt);min-height:100vh;padding:16px}
+.card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+.btn{border:none;border-radius:12px;padding:10px 16px;font-weight:800;cursor:pointer;font-family:inherit;font-size:13px;transition:transform .15s}
+.btn:active{transform:scale(.95)}
+.btnP{background:linear-gradient(135deg,var(--vio),var(--blue));color:#fff}
+.btnO{background:transparent;border:1px solid var(--line);color:var(--txt)}
+.btnD{background:var(--red);color:#fff}
+.inp{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);font-size:14px;margin-bottom:8px;outline:none;font-family:inherit}
+.inp:focus{border-color:var(--vio)}
+.lbl{font-size:11px;font-weight:800;color:var(--dim);margin-bottom:4px}
+.tabs{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px}
+.tab{padding:8px 14px;border-radius:12px;background:var(--panel);border:1px solid var(--line);color:var(--dim);font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap}
+.tab.on{background:linear-gradient(135deg,var(--vio),var(--blue));color:#fff;border-color:transparent}
+.row{display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:none}
+.hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.title{font-size:20px;font-weight:900}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:1000;padding:16px}
+.mbox{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;max-width:420px;width:100%;max-height:90vh;overflow-y:auto}
+.badge{font-size:10px;padding:3px 8px;border-radius:10px;background:var(--vio);color:#fff;font-weight:800}
+.empty{text-align:center;padding:30px;color:var(--dim)}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <div class="title">👑 لوحة الماستر</div>
+    <div style="font-size:12px;color:var(--dim)">إدارة كل الشركات</div>
+  </div>
+  <button class="btn btnO" onclick="logout()">🚪 خروج</button>
+</div>
+
+<div class="tabs">
+  <div class="tab on" onclick="showTab('companies')">🏢 الشركات</div>
+  <div class="tab" onclick="showTab('demo')">🎮 الديمو</div>
+  <div class="tab" onclick="showTab('gemini')">🤖 Gemini</div>
+  <div class="tab" onclick="showTab('settings')">⚙️ إعداداتي</div>
+</div>
+
+<!-- الشركات -->
+<div id="tab-companies">
+  <button class="btn btnP" style="width:100%;margin-bottom:12px" onclick="addCompany()">➕ إضافة شركة جديدة</button>
+  <div id="companiesList"><div class="empty">جاري التحميل...</div></div>
+</div>
+
+<!-- الديمو -->
+<div id="tab-demo" style="display:none">
+  <div class="card">
+    <div class="lbl">🎮 حسابات الديمو النشطة</div>
+    <div id="demoList" style="margin-top:8px"><div class="empty">لا توجد حسابات ديمو نشطة</div></div>
+  </div>
+  <div class="card">
+    <div class="lbl">🧹 مسح كل حسابات الديمو</div>
+    <button class="btn btnD" style="margin-top:8px" onclick="clearDemo()">مسح الكل</button>
+  </div>
+</div>
+
+<!-- Gemini -->
+<div id="tab-gemini" style="display:none">
+  <div class="card">
+    <div class="lbl">🔑 مفتاح Gemini العام (لكل الشركات)</div>
+    <input id="geminiKey" class="inp" placeholder="AIzaSy..."/>
+    <button class="btn btnP" style="width:100%" onclick="saveGemini()">💾 حفظ</button>
+    <p style="font-size:11px;color:var(--dim);margin-top:8px">المفتاح ده هيستخدم في كل الشركات تلقائياً</p>
+  </div>
+</div>
+
+<!-- إعداداتي -->
+<div id="tab-settings" style="display:none">
+  <div class="card">
+    <div class="lbl">🔐 بيانات الدخول</div>
+    <div class="lbl" style="margin-top:8px">معرف الماستر</div>
+    <input id="myCid" class="inp" value="MASTER"/>
+    <div class="lbl">اسم المستخدم</div>
+    <input id="myUn" class="inp" value="admin"/>
+    <div class="lbl">الرمز</div>
+    <input id="myPin" type="password" class="inp" value="20112005"/>
+    <button class="btn btnP" style="width:100%;margin-top:8px" onclick="saveMaster()">💾 حفظ</button>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig={apiKey:"AIzaSyBEplMzCUPbZ33vpctAegDvCLFLB2d_Psc",authDomain:"dyeing-tracker-cc789.firebaseapp.com",projectId:"dyeing-tracker-cc789",storageBucket:"dyeing-tracker-cc789.firebasestorage.app",messagingSenderId:"407184511418",appId:"1:407184511418:web:16512177012e5a6ded0d83",measurementId:"G-V3ST7W6VVN"};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.firestore();
+
+// فحص الدخول
+const cid=localStorage.getItem("companyID");
+const un=localStorage.getItem("username");
+const pin=localStorage.getItem("pin");
+if(cid!=="MASTER"||un!=="admin"||pin!=="20112005"){
+  alert("غير مصرح — حساب الماستر فقط");
+  location.href="indextest.html";
+}
+
+// تبويبات
+function showTab(t){
+  document.querySelectorAll(".tab").forEach(e=>e.classList.remove("on"));
+  event.target.classList.add("on");
+  ["companies","demo","gemini","settings"].forEach(id=>{
+    document.getElementById("tab-"+id).style.display=(id===t?"block":"none");
+  });
+  if(t==="companies")loadCompanies();
+  if(t==="demo")loadDemo();
+  if(t==="gemini")loadGemini();
+}
+
+// الشركات
+async function loadCompanies(){
+  const list=document.getElementById("companiesList");
+  list.innerHTML='<div class="empty">جاري التحميل...</div>';
+  try{
+    const snap=await db.collection("companies").get();
+    if(snap.empty){list.innerHTML='<div class="empty">لا توجد شركات مسجلة</div>';return;}
+    let html="";
+    snap.forEach(doc=>{
+      const d=doc.data();
+      html+=`<div class="card">
+        <div class="row">
+          <div>
+            <div style="font-weight:900">${d.name||doc.id}</div>
+            <div style="font-size:11px;color:var(--dim)">المعرف: ${doc.id}</div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btnO" onclick="viewWorkers('${doc.id}')">👥</button>
+            <button class="btn btnO" onclick="editCompany('${doc.id}')">✏️</button>
+            <button class="btn btnD" onclick="delCompany('${doc.id}')">🗑️</button>
+          </div>
+        </div>
+      </div>`;
+    });
+    list.innerHTML=html;
+  }catch(e){list.innerHTML='<div class="empty">خطأ في التحميل</div>';console.error(e);}
+}
+
+async function addCompany(){
+  const id=prompt("معرف الشركة (مثال: ABC123):");
+  if(!id)return;
+  const name=prompt("اسم الشركة:");
+  if(!name)return;
+  try{
+    await db.collection("companies").doc(id).set({name:name,createdAt:new Date().toISOString(),active:true});
+    alert("✅ تمت الإضافة");
+    loadCompanies();
+  }catch(e){alert("خطأ: "+e.message);}
+}
+
+async function editCompany(id){
+  const name=prompt("الاسم الجديد:");
+  if(!name)return;
+  try{
+    await db.collection("companies").doc(id).update({name:name});
+    alert("✅ تم التعديل");
+    loadCompanies();
+  }catch(e){alert("خطأ: "+e.message);}
+}
+
+async function delCompany(id){
+  if(!confirm("متأكد من حذف "+id+"؟"))return;
+  try{
+    await db.collection("companies").doc(id).delete();
+    alert("✅ تم الحذف");
+    loadCompanies();
+  }catch(e){alert("خطأ: "+e.message);}
+}
+
+async function viewWorkers(id){
+  try{
+    const snap=await db.collection("companies").doc(id).collection("workers").get();
+    let msg="عمال "+id+":\n\n";
+    if(snap.empty){msg+="لا يوجد عمال";}
+    else{snap.forEach(doc=>{const w=doc.data();msg+=`• ${w.name||doc.id} — رمز: ${w.pin||"لا يوجد"}\n`;});}
+    alert(msg);
+  }catch(e){alert("خطأ: "+e.message);}
+}
+
+// الديمو
+async function loadDemo(){
+  const list=document.getElementById("demoList");
+  list.innerHTML='<div class="empty">حساب الديمو محلي (يتمسح كل ساعة)</div>';
+}
+
+function clearDemo(){
+  if(!confirm("مسح بيانات الديمو؟"))return;
+  localStorage.clear();
+  alert("✅ تم المسح");
+}
+
+// Gemini
+async function loadGemini(){
+  try{
+    const doc=await db.collection("master").doc("gemini").get();
+    if(doc.exists){document.getElementById("geminiKey").value=doc.data().key||"";}
+  }catch(e){}
+}
+
+async function saveGemini(){
+  const key=document.getElementById("geminiKey").value.trim();
+  if(!key){alert("ادخل المفتاح");return;}
+  try{
+    await db.collection("master").doc("gemini").set({key:key,updatedAt:new Date().toISOString()});
+    alert("✅ تم الحفظ");
+  }catch(e){alert("خطأ: "+e.message);}
+}
+
+// إعدادات الماستر
+function saveMaster(){
+  const c=document.getElementById("myCid").value.trim();
+  const u=document.getElementById("myUn").value.trim();
+  const p=document.getElementById("myPin").value.trim();
+  if(!c||!u||!p){alert("املأ كل الحقول");return;}
+  localStorage.setItem("companyID",c);
+  localStorage.setItem("username",u);
+  localStorage.setItem("pin",p);
+  alert("✅ تم الحفظ — اخرج وادخل تاني");
+}
+
+function logout(){
+  localStorage.removeItem("companyID");
+  localStorage.removeItem("username");
+  localStorage.removeItem("pin");
+  location.href="indextest.html";
+}
+
+// تحميل أولي
+loadCompanies();
+</script>
+</body>
+</html>
