@@ -90,7 +90,7 @@ if(window.isDemo){setInterval(()=>{localStorage.clear();location.reload();},3600
 const {useState,useEffect,useRef}=React;
 function useCountUp(v,dur){const [n,setN]=useState(0);useEffect(()=>{let s=null;let raf;const step=t=>{if(s===null)s=t;const p=Math.min(1,(t-s)/(dur||900));setN(Math.round(v*(1-Math.pow(1-p,3))));if(p<1)raf=requestAnimationFrame(step);};raf=requestAnimationFrame(step);return()=>cancelAnimationFrame(raf);},[v]);return n;}
 const firebaseConfig={apiKey:"AIzaSyBEplMzCUPbZ33vpctAegDvCLFLB2d_Psc",authDomain:"dyeing-tracker-cc789.firebaseapp.com",projectId:"dyeing-tracker-cc789",storageBucket:"dyeing-tracker-cc789.firebasestorage.app",messagingSenderId:"407184511418",appId:"1:407184511418:web:16512177012e5a6ded0d83",measurementId:"G-V3ST7W6VVN"};
-const UNLOCK_CODE="202026";
+// UNLOCK_CODE removed - login system handles access
 let db=null,auth=null,fbReady=false;
 try{firebase.initializeApp(firebaseConfig);auth=firebase.auth();db=firebase.firestore();(function(){const oc=db.collection.bind(db);const LEGACY="NEWTEX";db.collection=function(n){if(String(n).indexOf("companies/")===0)return oc(n);if(companyID==="DEFAULT"||companyID===LEGACY)return oc(n);return oc("companies/"+companyID+"/"+n);};})();db.enablePersistence({synchronizeTabs:true}).catch(e=>console.warn(e.code));fbReady=true;}catch(e){console.error(e);}
 const DEFAULT_STAGES=["جيتات","صباغة","تجهيز","لف","الصالة"];
@@ -292,7 +292,6 @@ hq.start({facingMode:"environment"},Object.assign({fps:10,qrbox:{width:250,heigh
 return()=>{done=true;try{hq.stop();hq.clear();}catch(e){}};},[showScanner]);
 const showToast=(m,k)=>{setToast({msg:m,kind:k||"ok"});setTimeout(()=>setToast(null),2600);};
 const confirmName=()=>{if(!nameInput.trim())return;setOwnerName(nameInput.trim());if(userId)localStorage.setItem("owner_name_"+userId,nameInput.trim());};
-const tryUnlock=()=>{if(codeInput.trim()===UNLOCK_CODE){localStorage.setItem("dye_unlock","1");setUnlocked(true);showToast(t.unlockedMsg);}else showToast("❌","danger");};
 const jumpToCard=c=>{setActiveStage(c.stage);setScreen("stage");setEditingCard(c);};
 const nextStageOf=s=>{const i=stages.indexOf(s);if(i===-1)return null;return i<stages.length-1?stages[i+1]:null;};
 const qtySum=l=>l.reduce((a,c)=>a+(parseFloat(c.quantity)||0),0);
@@ -1074,6 +1073,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:400}}>
 <h3 style={{margin:"0 0 14px"}}>⚙️ {t.settings}</h3>
 <button onClick={()=>{localStorage.removeItem("companyID");localStorage.removeItem("username");localStorage.removeItem("pin");setShowSettings(false);location.reload();}} className="btnO" style={{marginBottom:12,borderColor:"var(--red)",color:"var(--red)"}}>🚪 تسجيل خروج</button>
+{window.isMaster&&<button onClick={()=>location.href="master.html"} className="btnO" style={{marginBottom:12,borderColor:"var(--warn)",color:"var(--warn)"}}>👑 إدارة الشركات والعمال</button>}
 <div className="lbl">🌐 {t.language}</div><div style={{marginBottom:10}}><button onClick={()=>{const n=lang==="ar"?"en":"ar";setLang(n);localStorage.setItem("pref_lang",n);}} className="chip on">{lang==="ar"?"العربية":"English"}</button></div>
 <div style={{display:"flex",gap:6,marginBottom:12}}>
 <button onClick={()=>{const m=themeMode==="light"?"dark":"light";setThemeMode(m);localStorage.setItem("themeMode",m);}} className={"chip"+(themeMode==="light"?" on":"")} style={{flex:1}}>{themeMode==="light"?"🌙 دايم":"☀️ فاتح"}</button>
@@ -1129,6 +1129,21 @@ return(<div><input autoFocus value={q} onChange={e=>setQ(e.target.value)} placeh
 <div>{r.map((c,i)=>(<div key={c.id} onClick={()=>onPick(c)} className="card anim" style={{cursor:"pointer",padding:"10px 12px",marginBottom:8,animationDelay:(i*40)+"ms"}}><b style={{fontSize:14}}>{c.customer} · {c.code}</b><div style={{fontSize:12,color:"var(--dim)"}}>{c.stage} — {c.color}</div></div>))}</div></div>);
 }
 (function(){const q=new URLSearchParams(location.search);const c=q.get("cid"),u=q.get("un"),p=q.get("p");if(c&&u&&p){localStorage.setItem("companyID",c);localStorage.setItem("username",u);localStorage.setItem("pin",p);setTimeout(()=>location.replace(location.pathname),100);}})();
+if(!localStorage.getItem("companyID")&&!localStorage.getItem("introSeen")){
+var s=document.createElement("div");
+s.id="introScr";
+s.style.cssText="position:fixed;inset:0;background:#0B0E1A;z-index:10000;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:20px;text-align:center";
+s.innerHTML='<div style="max-width:380px;width:100%"><div id="inIco" style="width:84px;height:84px;border-radius:24px;background:linear-gradient(135deg,#7C5CFF,#5E8FD6);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:40px;animation:floaty 3s infinite">🏭</div><h2 id="inT" style="color:#EDEFF5;font-size:22px;font-weight:900;margin-bottom:10px">نظام إدارة الصباغة</h2><p id="inP" style="color:#8A93B5;font-size:14px;line-height:1.7;margin-bottom:22px">حل متكامل لإدارة مراحل الإنتاج من التسجيل للتسليم</p><div id="inDots" style="display:flex;gap:6px;justify-content:center;margin-bottom:26px"></div><button id="inBtn" style="width:100%;background:linear-gradient(135deg,#7C5CFF,#5E8FD6);border:none;color:#fff;border-radius:14px;padding:14px;font-weight:900;font-size:15px;cursor:pointer">هل لديك حساب؟ دخول</button><div style="margin-top:14px"><button id="inSkip" style="background:none;border:none;color:#8A93B5;font-size:12px;cursor:pointer">تخطي التعريف</button></div></div>';
+document.getElementById("root").appendChild(s);
+var slides=[["🏭","نظام إدارة الصباغة","حل متكامل لإدارة مراحل الإنتاج من التسجيل للتسليم"],["📋","كروت ومتابعة حية","كروت إنتاج متحركة بين المراحل مع سجل كامل لكل حركة"],["🔒","كل شركة في درجها","بيانات كل شركة معزولة تماماً ومحمية برموز دخول"],["🏆","تقارير وإنجازات","عامل الأسبوع وإنجاز التسليم وجدول الماكينات"]];
+var si=0;var dots=document.getElementById("inDots");
+slides.forEach(function(_,i){var dd=document.createElement("div");dd.style.cssText="width:8px;height:8px;border-radius:50%;background:"+(i===0?"#7C5CFF":"#242B47");dots.appendChild(dd);});
+function show(i){si=i;document.getElementById("inIco").textContent=slides[i][0];document.getElementById("inT").textContent=slides[i][1];document.getElementById("inP").textContent=slides[i][2];var ch=dots.children;for(var k=0;k<ch.length;k++){ch[k].style.background=(k===i?"#7C5CFF":"#242B47");}}
+var iv=setInterval(function(){show((si+1)%slides.length);},3500);
+function closeIntro(){clearInterval(iv);localStorage.setItem("introSeen","1");var el=document.getElementById("introScr");if(el)el.remove();}
+document.getElementById("inBtn").onclick=closeIntro;
+document.getElementById("inSkip").onclick=closeIntro;
+}
 if(!localStorage.getItem("companyID")){
 var d=document.createElement("div");
 d.style.cssText="position:fixed;inset:0;background:#0B0E1A;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:20px;z-index:9999";
