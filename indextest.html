@@ -1107,9 +1107,10 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <p style={{fontSize:11,color:theme.textDim,marginTop:8}}>{t.unlockHint}</p>
 </div>)}
 {can&&(<>
+<div className="lbl">👤 {t.yourNameEdit}</div><div style={{display:"flex",gap:6,marginBottom:10}}><input className="inp" style={{marginBottom:0}} value={nameDraft} onChange={e=>setNameDraft(e.target.value)}/><button onClick={()=>{if(nameDraft.trim()){setOwnerName(nameDraft.trim());localStorage.setItem("owner_name_"+userId,nameDraft.trim());showToast("✅");}}} className="chip on">{t.save}</button></div>
+{(localStorage.getItem("role")==="manager"||localStorage.getItem("role")==="assistant"||localStorage.getItem("role")==="master")&&<>
 <div className="lbl">🤖 مفتاح Gemini (قراءة ذكية لكل العمال)</div><input className="inp" placeholder="AIza..." value={gemKey||factory.gkey||""} onChange={e=>{setGemKey(e.target.value);localStorage.setItem("gemini_key",e.target.value.trim());saveFactory({gkey:e.target.value.trim()});}}/>
 <p style={{fontSize:11,color:theme.textDim,marginBottom:8}}>مفتاح مجاني من aistudio.google.com/app/apikey — احطه مرة واحدة ويشتغل عند كل العمال تلقائياً</p>
-<div className="lbl">👤 {t.yourNameEdit}</div><div style={{display:"flex",gap:6,marginBottom:10}}><input className="inp" style={{marginBottom:0}} value={nameDraft} onChange={e=>setNameDraft(e.target.value)}/><button onClick={()=>{if(nameDraft.trim()){setOwnerName(nameDraft.trim());localStorage.setItem("owner_name_"+userId,nameDraft.trim());showToast("✅");}}} className="chip on">{t.save}</button></div>
 <div className="lbl">🏭 {t.factoryName}</div><input className="inp" value={fnameDraft} onChange={e=>setFnameDraft(e.target.value)}/>
 <div className="lbl">📱 {t.waNumber}</div><input className="inp" inputMode="numeric" placeholder="201xxxxxxxxx" value={waDraft} onChange={e=>setWaDraft(e.target.value)}/>
 <div style={grid2}>
@@ -1126,7 +1127,8 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <button onClick={()=>backupJSON()} className="btnO">💾 {t.backupFull}</button>
 <button onClick={()=>restoreRef.current&&restoreRef.current.click()} className="btnO">♻️ {t.restore}</button>
 <button onClick={()=>{if(wipeConfirm){wipeAll();}else{setWipeConfirm(true);setTimeout(()=>setWipeConfirm(false),3000);}}} className="btnO" style={{borderColor:"var(--red)",color:wipeConfirm?"#fff":"var(--red)",background:wipeConfirm?"var(--red)":"transparent"}}>{wipeConfirm?"⚠️ "+t.wipeSure:"🗑️ "+t.wipe}</button>
-</div></>)}
+</div></>}
+</>)}
 </div></div>)}
 {toast&&(<div style={{position:"fixed",bottom:90,left:"50%",transform:"translateX(-50%)",background:toast.kind==="danger"?"var(--red)":"var(--teal)",color:"#fff",padding:"10px 22px",borderRadius:30,fontSize:14,fontWeight:800,zIndex:999,animation:"pop .3s both",boxShadow:"0 8px 24px rgba(0,0,0,.4)"}}>{toast.msg}</div>)}
 </div>);
