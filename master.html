@@ -7,68 +7,96 @@
 <title>لوحة الماستر</title>
 <style>
 :root{--bg:#0B0E1A;--panel:#141829;--panel2:#1B2036;--line:#242B47;--txt:#EDEFF5;--dim:#8A93B5;--vio:#7C5CFF;--blue:#5E8FD6;--teal:#2DD4A8;--red:#FF5C7A;--warn:#FFB65C}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Tajawal',system-ui,sans-serif;background:radial-gradient(900px 480px at 85% -10%,rgba(124,92,255,.14),transparent),var(--bg);color:var(--txt);min-height:100vh;padding:16px}
-.card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
-.btn{border:none;border-radius:12px;padding:10px 16px;font-weight:800;cursor:pointer;font-family:inherit;font-size:13px;transition:transform .15s}
-.btn:active{transform:scale(.95)}
-.btnP{background:linear-gradient(135deg,var(--vio),var(--blue));color:#fff}
-.btnO{background:transparent;border:1px solid var(--line);color:var(--txt)}
-.btnD{background:var(--red);color:#fff}
-.inp{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);font-size:14px;margin-bottom:8px;outline:none;font-family:inherit}
-.inp:focus{border-color:var(--vio)}
-.lbl{font-size:11px;font-weight:800;color:var(--dim);margin-bottom:4px}
-.tabs{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px}
-.tab{padding:8px 14px;border-radius:12px;background:var(--panel);border:1px solid var(--line);color:var(--dim);font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:system-ui,'Tajawal',sans-serif;background:radial-gradient(900px 480px at 85% -10%,rgba(124,92,255,.16),transparent),radial-gradient(700px 420px at 10% 110%,rgba(94,143,214,.12),transparent),var(--bg);color:var(--txt);min-height:100vh;padding:14px;max-width:600px;margin:0 auto}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+@keyframes glow{0%,100%{box-shadow:0 0 16px rgba(124,92,255,.35)}50%{box-shadow:0 0 28px rgba(124,92,255,.6)}}
+.anim{animation:fadeUp .4s both}
+.hdr{display:flex;justify-content:space-between;align-items:center;margin:6px 0 14px}
+.logo{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,var(--vio),var(--blue));display:flex;align-items:center;justify-content:center;font-size:26px;animation:glow 3s infinite}
+.title{font-size:19px;font-weight:900}
+.sub{font-size:11px;color:var(--dim)}
+.iconBtn{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:16px;cursor:pointer;color:var(--txt)}
+.stats{display:flex;gap:8px;margin-bottom:14px}
+.stat{flex:1;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:14px;padding:10px;text-align:center}
+.num{font-size:20px;font-weight:900;background:linear-gradient(135deg,var(--vio),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.lab{font-size:10px;color:var(--dim);font-weight:700}
+.tabs{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px}
+.tab{padding:9px 14px;border-radius:12px;background:var(--panel);border:1px solid var(--line);color:var(--dim);font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap}
 .tab.on{background:linear-gradient(135deg,var(--vio),var(--blue));color:#fff;border-color:transparent}
-.row{display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid var(--line)}
-.row:last-child{border-bottom:none}
-.hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-.title{font-size:20px;font-weight:900}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:1000;padding:16px}
-.mbox{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;max-width:420px;width:100%;max-height:90vh;overflow-y:auto}
-.badge{font-size:10px;padding:3px 8px;border-radius:10px;background:var(--vio);color:#fff;font-weight:800}
-.empty{text-align:center;padding:30px;color:var(--dim)}
+.btnP{width:100%;background:linear-gradient(135deg,var(--vio),var(--blue));border:none;color:#fff;border-radius:14px;padding:13px;font-weight:800;font-size:14px;cursor:pointer;font-family:inherit;margin-top:10px}
+.btnP:active{transform:scale(.97)}
+.card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:10px}
+.coHead{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.coLogo{width:42px;height:42px;border-radius:12px;background:rgba(124,92,255,.15);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:20px}
+.coName{font-weight:900;font-size:14px}
+.coId{font-size:10px;color:var(--dim)}
+.badge{font-size:9px;padding:3px 8px;border-radius:10px;font-weight:800}
+.ok{background:rgba(45,212,168,.15);color:var(--teal)}
+.acts{display:flex;gap:6px}
+.act{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;color:var(--txt);font-size:15px;font-family:inherit}
+.act span{font-size:9px;font-weight:700;color:var(--dim)}
+.act.warn{border-color:rgba(255,182,92,.4)}
+.act.warn span{color:var(--warn)}
+.act.del{border-color:rgba(255,92,122,.4)}
+.act.del span{color:var(--red)}
+.act:active{transform:scale(.95)}
+.lbl{font-size:11px;font-weight:800;color:var(--dim);margin:8px 0 4px}
+.inp{width:100%;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--txt);font-size:14px;outline:none;font-family:inherit}
+.inp:focus{border-color:var(--vio)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:1000;padding:14px}
+.mbox{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:18px;padding:16px;width:100%;max-width:430px;max-height:88vh;overflow-y:auto;animation:pop .25s both}
+.mHead{display:flex;justify-content:space-between;align-items:center;font-weight:900;font-size:15px;margin-bottom:8px}
+.x{background:none;border:none;color:var(--dim);font-size:16px;cursor:pointer}
+.wRow{display:flex;align-items:center;gap:6px;padding:10px 0;border-bottom:1px solid var(--line)}
+.wRow:last-child{border-bottom:none}
+.wAv{width:38px;height:38px;border-radius:12px;background:rgba(94,143,214,.15);display:flex;align-items:center;justify-content:center;font-size:18px}
+.wName{font-size:13px;font-weight:800;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.wPin{font-size:10px;color:var(--dim)}
+.role{font-size:9px;padding:2px 7px;border-radius:8px;font-weight:800}
+.rM{background:rgba(255,182,92,.15);color:var(--warn)}
+.rA{background:rgba(124,92,255,.15);color:var(--vio)}
+.rW{background:rgba(94,143,214,.15);color:var(--blue)}
+.chipBtn{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:7px 9px;font-size:13px;cursor:pointer;color:var(--txt)}
+.chipBtn:active{transform:scale(.9)}
+.addRow{display:flex;gap:6px;margin-top:10px}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);color:var(--txt);padding:10px 18px;border-radius:14px;font-size:13px;font-weight:700;z-index:2000;display:none;animation:pop .25s both}
+.empty{text-align:center;padding:26px;color:var(--dim);font-size:13px}
 </style>
 </head>
 <body>
 
-<div class="hdr">
-  <div>
-    <div class="title">👑 لوحة الماستر</div>
-    <div style="font-size:12px;color:var(--dim)">إدارة كل الشركات</div>
+<div class="hdr anim">
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="logo">👑</div>
+    <div><div class="title">لوحة الماستر</div><div class="sub">تحكم كامل في كل الشركات</div></div>
   </div>
-  <button class="btn btnO" onclick="logout()">🚪 خروج</button>
+  <button class="iconBtn" onclick="logout()">🚪</button>
+</div>
+
+<div class="stats anim">
+  <div class="stat"><div class="num" id="stCo">0</div><div class="lab">شركات</div></div>
+  <div class="stat"><div class="num" id="stUs">0</div><div class="lab">حسابات</div></div>
+  <div class="stat"><div class="num" id="stLo">0</div><div class="lab">موقوفين</div></div>
 </div>
 
 <div class="tabs">
-  <div class="tab on" onclick="showTab('companies',event)">🏢 الشركات</div>
-  <div class="tab" onclick="showTab('demo',event)">🎮 الديمو</div>
-  <div class="tab" onclick="showTab('gemini',event)">🤖 Gemini</div>
-  <div class="tab" onclick="showTab('settings',event)">⚙️ إعداداتي</div>
+  <div class="tab on" onclick="showTab('companies',this)">🏢 الشركات</div>
+  <div class="tab" onclick="showTab('gemini',this)">🤖 Gemini</div>
+  <div class="tab" onclick="showTab('settings',this)">⚙️ إعداداتي</div>
 </div>
 
 <div id="tab-companies">
-  <button class="btn btnP" style="width:100%;margin-bottom:12px" onclick="addCompany()">➕ إضافة شركة جديدة</button>
+  <button class="btnP" style="margin-bottom:12px" onclick="openAdd()">➕ إضافة شركة جديدة</button>
   <div id="companiesList"><div class="empty">جاري التحميل...</div></div>
-</div>
-
-<div id="tab-demo" style="display:none">
-  <div class="card">
-    <div class="lbl">🎮 حسابات الديمو النشطة</div>
-    <div id="demoList" style="margin-top:8px"><div class="empty">حساب الديمو محلي (يتمسح كل ساعة)</div></div>
-  </div>
-  <div class="card">
-    <div class="lbl">🧹 مسح كل حسابات الديمو</div>
-    <button class="btn btnD" style="margin-top:8px" onclick="clearDemo()">مسح الكل</button>
-  </div>
 </div>
 
 <div id="tab-gemini" style="display:none">
   <div class="card">
     <div class="lbl">🔑 مفتاح Gemini العام (لكل الشركات)</div>
     <input id="geminiKey" class="inp" placeholder="AIzaSy..."/>
-    <button class="btn btnP" style="width:100%" onclick="saveGemini()">💾 حفظ</button>
+    <button class="btnP" onclick="saveGemini()">💾 حفظ المفتاح</button>
     <p style="font-size:11px;color:var(--dim);margin-top:8px">المفتاح ده هيستخدم في كل الشركات تلقائياً</p>
   </div>
 </div>
@@ -76,15 +104,61 @@ body{font-family:'Tajawal',system-ui,sans-serif;background:radial-gradient(900px
 <div id="tab-settings" style="display:none">
   <div class="card">
     <div class="lbl">🔐 بيانات الدخول</div>
-    <div class="lbl" style="margin-top:8px">معرف الماستر</div>
-    <input id="myCid" class="inp" value="MASTER"/>
-    <div class="lbl">اسم المستخدم</div>
-    <input id="myUn" class="inp" value="admin"/>
-    <div class="lbl">الرمز</div>
-    <input id="myPin" type="password" class="inp" value="20112005"/>
-    <button class="btn btnP" style="width:100%;margin-top:8px" onclick="saveMaster()">💾 حفظ</button>
+    <div class="lbl">معرف الماستر</div><input id="myCid" class="inp" value="MASTER"/>
+    <div class="lbl">اسم المستخدم</div><input id="myUn" class="inp" value="admin"/>
+    <div class="lbl">الرمز</div><input id="myPin" type="password" class="inp" value="20112005"/>
+    <button class="btnP" onclick="saveMaster()">💾 حفظ</button>
   </div>
 </div>
+
+<!-- مودال إضافة شركة -->
+<div class="modal" id="mAdd">
+  <div class="mbox">
+    <div class="mHead"><span>➕ إضافة شركة جديدة</span><button class="x" onclick="hide('mAdd')">✕</button></div>
+    <div class="lbl">معرف الشركة</div><input id="f_id" class="inp" placeholder="ABC123"/>
+    <div class="lbl">اسم الشركة</div><input id="f_name" class="inp" placeholder="شركة النور"/>
+    <div class="lbl">اسم المدير</div><input id="f_un" class="inp" placeholder="ahmed"/>
+    <div class="lbl">رمز المدير</div><input id="f_pin" class="inp" placeholder="1234"/>
+    <button class="btnP" onclick="saveCompany()">💾 حفظ الشركة</button>
+  </div>
+</div>
+
+<!-- مودال العمال -->
+<div class="modal" id="mWorkers">
+  <div class="mbox">
+    <div class="mHead"><span id="wTitle">👥 العمال</span><button class="x" onclick="hide('mWorkers')">✕</button></div>
+    <div id="wList"></div>
+    <div class="addRow">
+      <input id="w_un" class="inp" placeholder="اسم العامل"/>
+      <input id="w_pin" class="inp" placeholder="الرمز"/>
+      <select id="w_role" class="inp"><option value="worker">👷 عامل</option><option value="assistant">🎖️ مساعد</option><option value="manager">👔 مالك</option></select>
+      <button class="chipBtn" onclick="addUser()">➕</button>
+    </div>
+  </div>
+</div>
+
+<!-- مودال تعديل عامل -->
+<div class="modal" id="mEdit">
+  <div class="mbox">
+    <div class="mHead"><span>✏️ تعديل حساب</span><button class="x" onclick="hide('mEdit')">✕</button></div>
+    <input id="e_uid" class="inp" style="display:none"/>
+    <div class="lbl">الاسم</div><input id="e_name" class="inp"/>
+    <div class="lbl">الرمز</div><input id="e_pin" class="inp"/>
+    <button class="btnP" onclick="saveEdit()">💾 حفظ</button>
+  </div>
+</div>
+
+<!-- مودال تعديل شركة -->
+<div class="modal" id="mEditCo">
+  <div class="mbox">
+    <div class="mHead"><span>✏️ تعديل شركة</span><button class="x" onclick="hide('mEditCo')">✕</button></div>
+    <input id="c_id" class="inp" style="display:none"/>
+    <div class="lbl">اسم الشركة</div><input id="c_name" class="inp"/>
+    <button class="btnP" onclick="saveEditCo()">💾 حفظ</button>
+  </div>
+</div>
+
+<div id="toast"></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -92,23 +166,20 @@ body{font-family:'Tajawal',system-ui,sans-serif;background:radial-gradient(900px
 const firebaseConfig={apiKey:"AIzaSyBEplMzCUPbZ33vpctAegDvCLFLB2d_Psc",authDomain:"dyeing-tracker-cc789.firebaseapp.com",projectId:"dyeing-tracker-cc789",storageBucket:"dyeing-tracker-cc789.firebasestorage.app",messagingSenderId:"407184511418",appId:"1:407184511418:web:16512177012e5a6ded0d83",measurementId:"G-V3ST7W6VVN"};
 firebase.initializeApp(firebaseConfig);
 const db=firebase.firestore();
+const cid=localStorage.getItem("companyID"),un=localStorage.getItem("username"),pin=localStorage.getItem("pin");
+if(cid!=="MASTER"||un!=="admin"||pin!=="20112005"){alert("غير مصرح — حساب الماستر فقط");location.href="indextest.html";}
+let curCo=null;
 
-const cid=localStorage.getItem("companyID");
-const un=localStorage.getItem("username");
-const pin=localStorage.getItem("pin");
-if(cid!=="MASTER"||un!=="admin"||pin!=="20112005"){
-  alert("غير مصرح — حساب الماستر فقط");
-  location.href="indextest.html";
-}
+function show(id){document.getElementById(id).style.display="flex";}
+function hide(id){document.getElementById(id).style.display="none";}
+function toast(m){const t=document.getElementById("toast");t.textContent=m;t.style.display="block";clearTimeout(t._h);t._h=setTimeout(function(){t.style.display="none";},2200);}
+function urefFor(id){return (id==="NEWTEX"||id==="DEFAULT")?db.collection("users"):db.collection("companies").doc(id).collection("users");}
 
-function showTab(t,ev){
+function showTab(t,el){
   document.querySelectorAll(".tab").forEach(e=>e.classList.remove("on"));
-  ev.target.classList.add("on");
-  ["companies","demo","gemini","settings"].forEach(id=>{
-    document.getElementById("tab-"+id).style.display=(id===t?"block":"none");
-  });
+  el.classList.add("on");
+  ["companies","gemini","settings"].forEach(id=>{document.getElementById("tab-"+id).style.display=(id===t?"block":"none");});
   if(t==="companies")loadCompanies();
-  if(t==="demo")loadDemo();
   if(t==="gemini")loadGemini();
 }
 
@@ -117,99 +188,54 @@ async function loadCompanies(){
   list.innerHTML='<div class="empty">جاري التحميل...</div>';
   try{
     const snap=await db.collection("companies").get();
-    if(snap.empty){list.innerHTML='<div class="empty">لا توجد شركات مسجلة</div>';return;}
-    let html="";
-    snap.forEach(doc=>{
-      const d=doc.data();
-      html+='<div class="card"><div class="row"><div><div style="font-weight:900">'+(d.name||doc.id)+'</div><div style="font-size:11px;color:var(--dim)">المعرف: '+doc.id+'</div></div><div style="display:flex;gap:6px"><button class="btn btnO" onclick="viewWorkers(\''+doc.id+'\')">👥</button><button class="btn btnO" onclick="editCompany(\''+doc.id+'\')">✏️</button><button class="btn" style="background:var(--warn);color:#fff" onclick="quickLogin(\''+doc.id+'\')">⚡</button><button class="btn btnD" onclick="delCompany(\''+doc.id+'\')">🗑️</button></div></div></div>';
-    });
-    list.innerHTML=html;
-  }catch(e){list.innerHTML='<div class="empty">خطأ في التحميل</div>';console.error(e);}
+    let total=0,locked=0;
+    if(snap.empty){list.innerHTML='<div class="empty">لا توجد شركات — ضيف أول شركة ⬆️</div>';}
+    else{
+      let html="",i=0;
+      for(const doc of snap.docs){
+        const d=doc.data();let us=0,lo=0;
+        try{const u=await urefFor(doc.id).get();us=u.size;u.forEach(x=>{if(x.data().locked)lo++;});}catch(e){}
+        total+=us;locked+=lo;
+        html+='<div class="card anim" style="animation-delay:'+(i*60)+'ms"><div class="coHead"><div class="coLogo">🏢</div><div style="flex:1"><div class="coName">'+(d.name||doc.id)+'</div><div class="coId">'+doc.id+' • 👥 '+us+'</div></div><span class="badge ok">نشطة</span></div><div class="acts"><button class="act" onclick="openWorkers(\''+doc.id+'\')">👥<span>العمال</span></button><button class="act" onclick="editCompany(\''+doc.id+'\',\''+String(d.name||"").replace(/'/g,"")+'\')">✏️<span>تعديل</span></button><button class="act warn" onclick="quickLogin(\''+doc.id+'\')">⚡<span>دخول</span></button><button class="act del" onclick="delCompany(\''+doc.id+'\')">🗑️<span>حذف</span></button></div></div>';
+        i++;
+      }
+      list.innerHTML=html;
+    }
+    document.getElementById("stCo").textContent=snap.size;
+    document.getElementById("stUs").textContent=total;
+    document.getElementById("stLo").textContent=locked;
+  }catch(e){list.innerHTML='<div class="empty">خطأ في التحميل</div>';}
 }
 
-async function addCompany(){
-  const id=prompt("معرف الشركة (مثال: ABC123):");
-  if(!id)return;
-  const name=prompt("اسم الشركة:");
-  if(!name)return;
-  const mu=prompt("اسم المستخدم للمدير:");
-  if(!mu)return;
-  const mp=prompt("رمز المدير:");
-  if(!mp)return;
+function openAdd(){["f_id","f_name","f_un","f_pin"].forEach(i=>document.getElementById(i).value="");show("mAdd");}
+async function saveCompany(){
+  const id=document.getElementById("f_id").value.trim();
+  const name=document.getElementById("f_name").value.trim();
+  const mu=document.getElementById("f_un").value.trim();
+  const mp=document.getElementById("f_pin").value.trim();
+  if(!id||!name||!mu||!mp){toast("⚠️ اكمل كل الحقول");return;}
   try{
+    const ex=await db.collection("companies").doc(id).get();
+    if(ex.exists){toast("⚠️ المعرف موجود قبل كده");return;}
     await db.collection("companies").doc(id).set({name:name,createdAt:new Date().toISOString(),active:true});
     await db.collection("companies").doc(id).collection("users").doc(mu).set({name:mu,pin:mp,role:"manager",locked:false,createdAt:new Date().toISOString()});
-    alert("✅ تمت الإضافة\n\nالدخول: "+id+" / "+mu+" / "+mp);
-    loadCompanies();
-  }catch(e){alert("خطأ: "+e.message);}
+    hide("mAdd");toast("✅ تمت إضافة "+name);loadCompanies();
+  }catch(e){toast("❌ "+e.message);}
 }
 
-async function editCompany(id){
-  const name=prompt("الاسم الجديد:");
-  if(!name)return;
-  try{
-    await db.collection("companies").doc(id).update({name:name});
-    alert("✅ تم التعديل");
-    loadCompanies();
-  }catch(e){alert("خطأ: "+e.message);}
+function editCompany(id,name){document.getElementById("c_id").value=id;document.getElementById("c_name").value=name||"";show("mEditCo");}
+async function saveEditCo(){
+  const id=document.getElementById("c_id").value;
+  const n=document.getElementById("c_name").value.trim();
+  if(!n){toast("⚠️ اكتب الاسم");return;}
+  await db.collection("companies").doc(id).update({name:n});
+  hide("mEditCo");toast("✅ تم التعديل");loadCompanies();
 }
-
 async function delCompany(id){
-  if(!confirm("متأكد من حذف "+id+"؟"))return;
-  try{
-    await db.collection("companies").doc(id).delete();
-    alert("✅ تم الحذف");
-    loadCompanies();
-  }catch(e){alert("خطأ: "+e.message);}
+  if(!confirm("حذف شركة "+id+"؟"))return;
+  await db.collection("companies").doc(id).delete();
+  toast("🗑️ تم الحذف");loadCompanies();
 }
-
-async function viewWorkers(id){
-  try{
-    const uref=(id==="NEWTEX"||id==="DEFAULT")?db.collection("users"):db.collection("companies").doc(id).collection("users");
-    const snap=await uref.get();
-    let msg="حسابات "+id+":\n\n";
-    if(snap.empty){msg+="لا يوجد حسابات";}
-    else{snap.forEach(doc=>{const w=doc.data();msg+="• "+(w.name||doc.id)+" — رمز: "+(w.pin||"؟")+" — "+(w.role==="manager"?"👔 مالك":w.role==="assistant"?"🎖️ مساعد":"👷 عامل")+(w.locked?" — 🔒 موقوف":" — ✅ نشط")+"\n";});}
-    msg+="\n1️⃣ إضافة حساب\n2️⃣ تغيير رمز\n3️⃣ حذف حساب\n4️⃣ إيقاف / تفعيل\n5️⃣ ترقية مساعد / تنزيل عامل\n6️⃣ تعديل اسم\n\nاختار رقم:";
-    const ch=prompt(msg);
-    if(ch==="1"){
-      const nu=prompt("اسم المستخدم الجديد:");if(!nu)return;
-      const np=prompt("الرمز:");if(!np)return;
-      const nr=prompt("الدور (manager / assistant / worker):","worker");
-      const finalRole=(nr==="manager"?"manager":nr==="assistant"?"assistant":"worker");
-      await uref.doc(nu).set({name:nu,pin:np,role:finalRole,locked:false,createdAt:new Date().toISOString()});
-      alert("✅ تم");
-    }else if(ch==="2"){
-      const cu=prompt("اسم المستخدم:");if(!cu)return;
-      const cp=prompt("الرمز الجديد:");if(!cp)return;
-      await uref.doc(cu).update({pin:cp});
-      alert("✅ تم");
-    }else if(ch==="3"){
-      const du=prompt("اسم المستخدم للحذف:");if(!du)return;
-      await uref.doc(du).delete();
-      alert("✅ تم");
-    }else if(ch==="4"){
-      const lu=prompt("اسم المستخدم:");if(!lu)return;
-      const d=await uref.doc(lu).get();
-      if(!d.exists){alert("مش موجود");return;}
-      await uref.doc(lu).update({locked:!d.data().locked});
-      alert(d.data().locked?"✅ تم التفعيل":"🔒 تم الإيقاف");
-    }else if(ch==="5"){
-      const ru=prompt("اسم المستخدم:");if(!ru)return;
-      const d=await uref.doc(ru).get();
-      if(!d.exists){alert("مش موجود");return;}
-      const nr2=d.data().role==="assistant"?"worker":"assistant";
-      await uref.doc(ru).update({role:nr2});
-      alert(nr2==="assistant"?"🎖️ بقي مساعد":"👷 بقي عامل");
-    }else if(ch==="6"){
-      const eu=prompt("اسم المستخدم:");if(!eu)return;
-      const en=prompt("الاسم الجديد:");if(!en)return;
-      await uref.doc(eu).update({name:en});
-      alert("✅ تم");
-    }
-  }catch(e){alert("خطأ: "+e.message);}
-}
-
 function quickLogin(id){
   localStorage.setItem("companyID",id);
   localStorage.setItem("username","owner");
@@ -218,53 +244,80 @@ function quickLogin(id){
   location.href="indextest.html";
 }
 
-function loadDemo(){
-  const list=document.getElementById("demoList");
-  list.innerHTML='<div class="empty">حساب الديمو محلي (يتمسح كل ساعة)</div>';
+async function openWorkers(id){
+  curCo=id;
+  document.getElementById("wTitle").textContent="👥 حسابات "+id;
+  show("mWorkers");
+  const box=document.getElementById("wList");
+  box.innerHTML='<div class="empty">جاري التحميل...</div>';
+  try{
+    const snap=await urefFor(id).get();
+    if(snap.empty){box.innerHTML='<div class="empty">لا يوجد حسابات — ضيف من تحت ⬇️</div>';return;}
+    let html="";
+    snap.forEach(doc=>{
+      const w=doc.data();
+      const rl=w.role==="manager"?'<span class="role rM">👔 مالك</span>':w.role==="assistant"?'<span class="role rA">🎖️ مساعد</span>':'<span class="role rW">👷 عامل</span>';
+      const av=w.role==="manager"?"👔":w.role==="assistant"?"🎖️":"👷";
+      html+='<div class="wRow"><div class="wAv">'+av+'</div><div style="flex:1"><div class="wName">'+(w.name||doc.id)+' '+rl+'</div><div class="wPin">رمز: '+(w.pin||"؟")+'</div></div><button class="chipBtn" style="'+(w.locked?"border-color:var(--red);color:var(--red)":"border-color:var(--teal);color:var(--teal)")+'" onclick="togUser(\''+doc.id+'\')">'+(w.locked?"🔒":"✅")+'</button><button class="chipBtn" onclick="openEdit(\''+doc.id+'\',\''+String(w.name||"").replace(/'/g,"")+'\',\''+String(w.pin||"").replace(/'/g,"")+'\')">✏️</button><button class="chipBtn" onclick="proUser(\''+doc.id+'\',\''+(w.role||"worker")+'\')">'+(w.role==="assistant"?"⬇️":"🎖️")+'</button><button class="chipBtn" style="border-color:var(--red);color:var(--red)" onclick="delUser(\''+doc.id+'\')">🗑️</button></div>';
+    });
+    box.innerHTML=html;
+  }catch(e){box.innerHTML='<div class="empty">خطأ في التحميل</div>';}
 }
-
-function clearDemo(){
-  if(!confirm("مسح بيانات الديمو؟"))return;
-  localStorage.clear();
-  alert("✅ تم المسح");
+async function togUser(uid){
+  const r=urefFor(curCo).doc(uid);const d=await r.get();if(!d.exists)return;
+  await r.update({locked:!d.data().locked});
+  toast(d.data().locked?"✅ تم التفعيل":"🔒 تم الإيقاف");openWorkers(curCo);
+}
+async function proUser(uid,role){
+  const nr=role==="assistant"?"worker":"assistant";
+  await urefFor(curCo).doc(uid).update({role:nr});
+  toast(nr==="assistant"?"🎖️ بقي مساعد":"👷 بقي عامل");openWorkers(curCo);
+}
+async function delUser(uid){
+  if(!confirm("حذف حساب "+uid+"؟"))return;
+  await urefFor(curCo).doc(uid).delete();
+  toast("🗑️ تم الحذف");openWorkers(curCo);
+}
+function openEdit(uid,name,p){document.getElementById("e_uid").value=uid;document.getElementById("e_name").value=name;document.getElementById("e_pin").value=p;show("mEdit");}
+async function saveEdit(){
+  const uid=document.getElementById("e_uid").value;
+  const n=document.getElementById("e_name").value.trim();
+  const p=document.getElementById("e_pin").value.trim();
+  if(!n||!p){toast("⚠️ اكمل الحقول");return;}
+  await urefFor(curCo).doc(uid).update({name:n,pin:p});
+  hide("mEdit");toast("✅ تم التعديل");openWorkers(curCo);
+}
+async function addUser(){
+  const nu=document.getElementById("w_un").value.trim();
+  const np=document.getElementById("w_pin").value.trim();
+  const nr=document.getElementById("w_role").value;
+  if(!nu||!np){toast("⚠️ اكمل الحقول");return;}
+  await urefFor(curCo).doc(nu).set({name:nu,pin:np,role:nr,locked:false,createdAt:new Date().toISOString()});
+  document.getElementById("w_un").value="";document.getElementById("w_pin").value="";
+  toast("✅ تم الإضافة");openWorkers(curCo);
 }
 
 async function loadGemini(){
-  try{
-    const doc=await db.collection("master").doc("gemini").get();
-    if(doc.exists){document.getElementById("geminiKey").value=doc.data().key||"";}
-  }catch(e){}
+  try{const doc=await db.collection("master").doc("gemini").get();if(doc.exists){document.getElementById("geminiKey").value=doc.data().key||"";}}catch(e){}
 }
-
 async function saveGemini(){
   const key=document.getElementById("geminiKey").value.trim();
-  if(!key){alert("ادخل المفتاح");return;}
-  try{
-    await db.collection("master").doc("gemini").set({key:key,updatedAt:new Date().toISOString()});
-    alert("✅ تم الحفظ");
-  }catch(e){alert("خطأ: "+e.message);}
+  if(!key){toast("⚠️ ادخل المفتاح");return;}
+  await db.collection("master").doc("gemini").set({key:key,updatedAt:new Date().toISOString()});
+  toast("✅ تم الحفظ");
 }
-
 function saveMaster(){
   const c=document.getElementById("myCid").value.trim();
   const u=document.getElementById("myUn").value.trim();
   const p=document.getElementById("myPin").value.trim();
-  if(!c||!u||!p){alert("املأ كل الحقول");return;}
-  localStorage.setItem("companyID",c);
-  localStorage.setItem("username",u);
-  localStorage.setItem("pin",p);
-  localStorage.setItem("role","master");
-  alert("✅ تم الحفظ — اخرج وادخل تاني");
+  if(!c||!u||!p){toast("⚠️ املأ كل الحقول");return;}
+  localStorage.setItem("companyID",c);localStorage.setItem("username",u);localStorage.setItem("pin",p);localStorage.setItem("role","master");
+  toast("✅ تم الحفظ — اخرج وادخل تاني");
 }
-
 function logout(){
-  localStorage.removeItem("companyID");
-  localStorage.removeItem("username");
-  localStorage.removeItem("pin");
-  localStorage.removeItem("role");
+  localStorage.removeItem("companyID");localStorage.removeItem("username");localStorage.removeItem("pin");localStorage.removeItem("role");
   location.href="indextest.html";
 }
-
 loadCompanies();
 </script>
 </body>
