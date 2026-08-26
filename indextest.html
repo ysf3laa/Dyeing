@@ -191,8 +191,8 @@ const [importBusy,setImportBusy]=useState(null);const [importDraft,setImportDraf
 const [lang,setLang]=useState(()=>localStorage.getItem("pref_lang")||"ar");
 const [dark,setDark]=useState(true);
 const [stages,setStages]=useState(DEFAULT_STAGES);const [machines,setMachines]=useState(DEFAULT_MACHINES);
-const [factory,setFactory]=useState({fname:"متابعة الصباغة",wa:"",unit:"كيلو",lateDays:2,printSize:"A5",heroT:"",heroS:""});
-const [fnameDraft,setFnameDraft]=useState("متابعة الصباغة");const [waDraft,setWaDraft]=useState("");const [lateDraft,setLateDraft]=useState(2);
+const [factory,setFactory]=useState({fname:"متابعة المراحل",wa:"",unit:"كيلو",lateDays:2,printSize:"A5",heroT:"",heroS:""});
+const [fnameDraft,setFnameDraft]=useState("متابعة المراحل");const [waDraft,setWaDraft]=useState("");const [lateDraft,setLateDraft]=useState(2);
 const [heroTDraft,setHeroTDraft]=useState("");const [heroSDraft,setHeroSDraft]=useState("");
 const [customColors,setCustomColors]=useState([]);
 const [cards,setCards]=useState([]);const [log,setLog]=useState([]);
@@ -292,7 +292,7 @@ const fm=window.Html5QrcodeSupportedFormats?[Html5QrcodeSupportedFormats.QR_CODE
 hq.start({facingMode:"environment"},Object.assign({fps:10,qrbox:{width:250,height:190}},fm?{formatsToSupport:fm}:{}),(txt)=>{if(done)return;done=true;try{hq.stop();}catch(e){}setShowScanner(false);handleScan(String(txt).trim());},()=>{}).catch(()=>{setShowScanner(false);showToast(t.cameraErr,"danger");});
 return()=>{done=true;try{hq.stop();hq.clear();}catch(e){}};},[showScanner]);
 const showToast=(m,k)=>{setToast({msg:m,kind:k||"ok"});setTimeout(()=>setToast(null),2600);};
-const confirmName=()=>{if(!nameInput.trim())return;setOwnerName(nameInput.trim());if(userId)localStorage.setItem("owner_name_"+userId,nameInput.trim());};
+const confirmName=()=>{if(!nameInput.trim())return;setOwnerName(nameInput.trim());if(userId)localStorage.setItem("owner_name_"+(localStorage.getItem("username")||userId),nameInput.trim());};
 const jumpToCard=c=>{setActiveStage(c.stage);setScreen("stage");setEditingCard(c);};
 const nextStageOf=s=>{const i=stages.indexOf(s);if(i===-1)return null;return i<stages.length-1?stages[i+1]:null;};
 const qtySum=l=>l.reduce((a,c)=>a+(parseFloat(c.quantity)||0),0);
@@ -1108,7 +1108,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <p style={{fontSize:11,color:theme.textDim,marginTop:8}}>{t.unlockHint}</p>
 </div>)}
 {can&&(<>
-<div className="lbl">👤 {t.yourNameEdit}</div><div style={{display:"flex",gap:6,marginBottom:10}}><input className="inp" style={{marginBottom:0}} value={nameDraft} onChange={e=>setNameDraft(e.target.value)}/><button onClick={()=>{if(nameDraft.trim()){setOwnerName(nameDraft.trim());localStorage.setItem("owner_name_"+userId,nameDraft.trim());showToast("✅");}}} className="chip on">{t.save}</button></div>
+<div className="lbl">👤 {t.yourNameEdit}</div><div style={{display:"flex",gap:6,marginBottom:10}}><input className="inp" style={{marginBottom:0}} value={nameDraft} onChange={e=>setNameDraft(e.target.value)}/><button onClick={()=>{if(nameDraft.trim()){setOwnerName(nameDraft.trim());localStorage.setItem("owner_name_"+(localStorage.getItem("username")||userId),nameDraft.trim());showToast("✅");}}} className="chip on">{t.save}</button></div>
 {(localStorage.getItem("role")==="manager"||localStorage.getItem("role")==="assistant"||localStorage.getItem("role")==="master")&&<>
 <div style={grid2}>
 <div><div className="lbl">⚖️ {t.unit}</div><select className="inp" value={factory.unit} onChange={e=>saveFactory({unit:e.target.value})}>{["كيلو","قطعة","متر","دستة","طن"].map(u=><option key={u}>{u}</option>)}</select></div>
