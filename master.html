@@ -151,9 +151,14 @@ async function addCompany(){
   if(!id)return;
   const name=prompt("اسم الشركة:");
   if(!name)return;
+  const mu=prompt("اسم المستخدم للمدير:");
+  if(!mu)return;
+  const mp=prompt("رمز المدير:");
+  if(!mp)return;
   try{
     await db.collection("companies").doc(id).set({name:name,createdAt:new Date().toISOString(),active:true});
-    alert("✅ تمت الإضافة");
+    await db.collection("companies").doc(id).collection("users").doc(mu).set({name:mu,pin:mp,role:"manager",createdAt:new Date().toISOString()});
+    alert("✅ تمت الإضافة\n\nالدخول: "+id+" / "+mu+" / "+mp);
     loadCompanies();
   }catch(e){alert("خطأ: "+e.message);}
 }
@@ -179,11 +184,28 @@ async function delCompany(id){
 
 async function viewWorkers(id){
   try{
-    const snap=await db.collection("companies").doc(id).collection("workers").get();
-    let msg="عمال "+id+":\n\n";
-    if(snap.empty){msg+="لا يوجد عمال";}
-    else{snap.forEach(doc=>{const w=doc.data();msg+=`• ${w.name||doc.id} — رمز: ${w.pin||"لا يوجد"}\n`;});}
-    alert(msg);
+    const snap=await db.collection("companies").doc(id).collection("users").get();
+    let msg="حسابات "+id+":\n\n";
+    if(snap.empty){msg+="لا يوجد حسابات";}
+    else{snap.forEach(doc=>{const w=doc.data();msg+="• "+(w.name||doc.id)+" — رمز: "+(w.pin||"؟")+" — "+(w.role||"عامل")+"\n";});}
+    msg+="\n1️⃣ إضافة حساب\n2️⃣ تغيير رمز\n3️⃣ حذف حساب\n\nاختار رقم:";
+    const ch=prompt(msg);
+    if(ch==="1"){
+      const nu=prompt("اسم المستخدم الجديد:");if(!nu)return;
+      const np=prompt("الرمز:");if(!np)return;
+      const nr=prompt("الدور (manager / worker):","worker");
+      await db.collection("companies").doc(id).collection("users").doc(nu).set({name:nu,pin:np,role:(nr==="manager"?"manager":"worker"),createdAt:new Date().toISOString()});
+      alert("✅ تم");
+    }else if(ch==="2"){
+      const cu=prompt("اسم المستخدم:");if(!cu)return;
+      const cp=prompt("الرمز الجديد:");if(!cp)return;
+      await db.collection("companies").doc(id).collection("users").doc(cu).update({pin:cp});
+      alert("✅ تم");
+    }else if(ch==="3"){
+      const du=prompt("اسم المستخدم للحذف:");if(!du)return;
+      await db.collection("companies").doc(id).collection("users").doc(du).delete();
+      alert("✅ تم");
+    }
   }catch(e){alert("خطأ: "+e.message);}
 }
 
