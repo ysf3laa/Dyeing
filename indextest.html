@@ -92,7 +92,7 @@ function useCountUp(v,dur){const [n,setN]=useState(0);useEffect(()=>{let s=null;
 const firebaseConfig={apiKey:"AIzaSyBEplMzCUPbZ33vpctAegDvCLFLB2d_Psc",authDomain:"dyeing-tracker-cc789.firebaseapp.com",projectId:"dyeing-tracker-cc789",storageBucket:"dyeing-tracker-cc789.firebasestorage.app",messagingSenderId:"407184511418",appId:"1:407184511418:web:16512177012e5a6ded0d83",measurementId:"G-V3ST7W6VVN"};
 // UNLOCK_CODE removed - login system handles access
 let db=null,auth=null,fbReady=false;
-try{firebase.initializeApp(firebaseConfig);auth=firebase.auth();db=firebase.firestore();(function(){const oc=db.collection.bind(db);const LEGACY="NEWTEX";db.collection=function(n){if(String(n).indexOf("companies/")===0)return oc(n);if(companyID==="DEFAULT"||companyID===LEGACY)return oc(n);return oc("companies/"+companyID+"/"+n);};})();db.enablePersistence({synchronizeTabs:true}).catch(e=>console.warn(e.code));fbReady=true;}catch(e){console.error(e);}
+try{firebase.initializeApp(firebaseConfig);auth=firebase.auth();db=firebase.firestore();(function(){const oc=db.collection.bind(db);db._raw=oc;const LEGACY="NEWTEX";db.collection=function(n){if(String(n).indexOf("companies/")===0)return oc(n);if(companyID==="DEFAULT"||companyID===LEGACY)return oc(n);return oc("companies/"+companyID+"/"+n);};})();db.enablePersistence({synchronizeTabs:true}).catch(e=>console.warn(e.code));fbReady=true;}catch(e){console.error(e);}
 const DEFAULT_STAGES=["جيتات","صباغة","تجهيز","لف","الصالة"];
 const DEFAULT_MACHINES=["1","2","3","4","5","6","7","8","9","10"];
 const STAGE_COLORS=["#7C5CFF","#5E8FD6","#2DD4A8","#FFB65C","#FF5C7A","#B98FD6","#6FBF73","#D6A24F"];
@@ -1120,6 +1120,52 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 {toast&&(<div style={{position:"fixed",bottom:90,left:"50%",transform:"translateX(-50%)",background:toast.kind==="danger"?"var(--red)":"var(--teal)",color:"#fff",padding:"10px 22px",borderRadius:30,fontSize:14,fontWeight:800,zIndex:999,animation:"pop .3s both",boxShadow:"0 8px 24px rgba(0,0,0,.4)"}}>{toast.msg}</div>)}
 </div>);
 }
+function WorkersPanel(){
+const [ws,setWs]=useState([]);
+const [nu,setNu]=useState("");
+const [np,setNp]=useState("");
+useEffect(()=>{
+var me=localStorage.getItem("username")||"owner";
+if(localStorage.getItem("role")==="manager"){db.collection("users").doc(me).get().then(function(d){if(!d.exists){db.collection("users").doc(me).set({name:me,pin:localStorage.getItem("pin")||"0000",role:"manager",locked:false,createdAt:new Date().toISOString()});}}).catch(function(){});}
+var off=db.collection("users").onSnapshot(function(s){var a=[];s.forEach(function(x){a.push(Object.assign({id:x.id},x.data()));});setWs(a);},function(){});
+return function(){off&&off();};
+},[]);
+const add=()=>{if(!nu.trim()||!np.trim()){alert("املأ الاسم والرمز");return;}db.collection("users").doc(nu.trim()).set({name:nu.trim(),pin:np.trim(),role:"worker",locked:false,createdAt:new Date().toISOString()});setNu("");setNp("");};
+const tog=(w)=>{db.collection("users").doc(w.id).update({locked:!w.locked});};
+const del=(w)=>{if(!confirm("حذف حساب "+w.id+"؟"))return;db.collection("users").doc(w.id).delete();};
+const edit=(w)=>{var nn=prompt("الاسم:",w.name||w.id);if(nn===null)return;var pp=prompt("الرمز:",w.pin);if(pp===null)return;db.collection("users").doc(w.id).update({name:nn,pin:pp});};
+const pro=(w)=>{var nr=w.role==="assistant"?"worker":"assistant";db.collection("users").doc(w.id).update({role:nr});};
+return <div className="card" style={{padding:14,marginTop:12}}>
+<div className="lbl">👥 إدارة العمال والمساعدين</div>
+{ws.filter(w=>w.role!=="manager").map(w=><div key={w.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:"1px solid #242B47"}}>
+<div><b style={{fontSize:13}}>{w.role==="assistant"?"🎖️":"👷"} {w.name||w.id}</b><div style={{fontSize:11,color:"#8A93B5"}}>رمز: {w.pin}</div></div>
+<div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+<button className="chip" onClick={()=>tog(w)} style={{borderColor:w.locked?"#FF5C7A":"#2DD4A8",color:w.locked?"#FF5C7A":"#2DD4A8"}}>{w.locked?"🔒":"✅"}</button>
+<button className="chip" onClick={()=>edit(w)}>✏️</button>
+<button className="chip" onClick={()=>pro(w)}>{w.role==="assistant"?"⬇️":"🎖️"}</button>
+<button className="chip" onClick={()=>del(w)} style={{borderColor:"#FF5C7A",color:"#FF5C7A"}}>🗑️</button>
+</div>
+</div>)}
+<div style={{display:"flex",gap:6,marginTop:10}}>
+<input style={{flex:1,padding:"10px 12px",borderRadius:10,border:"1px solid #242B47",background:"#1B2036",color:"#EDEFF5",fontSize:13,outline:"none"}} placeholder="اسم العامل" value={nu} onChange={e=>setNu(e.target.value)}/>
+<input style={{flex:1,padding:"10px 12px",borderRadius:10,border:"1px solid #242B47",background:"#1B2036",color:"#EDEFF5",fontSize:13,outline:"none"}} placeholder="الرمز" value={np} onChange={e=>setNp(e.target.value)}/>
+<button className="btnG" onClick={add}>➕</button>
+</div>
+</div>;
+}
+function MyPinPanel(){
+const [p1,setP1]=useState("");
+const [p2,setP2]=useState("");
+const save=()=>{if(!p1||p1!==p2){alert("الرمزين مش متطابقين");return;}var u=localStorage.getItem("username");db.collection("users").doc(u).get().then(function(d){if(!d.exists){alert("اسأل المالك يسجلّك في النظام الأول");return;}db.collection("users").doc(u).update({pin:p1});localStorage.setItem("pin",p1);alert("✅ تم تغيير رمزك");setP1("");setP2("");}).catch(function(){alert("خطأ في الاتصال");});};
+return <div className="card" style={{padding:14,marginTop:12}}>
+<div className="lbl">🔑 تغيير رمزي الشخصي</div>
+<div style={{display:"flex",gap:6}}>
+<input type="password" style={{flex:1,padding:"10px 12px",borderRadius:10,border:"1px solid #242B47",background:"#1B2036",color:"#EDEFF5",fontSize:13,outline:"none"}} placeholder="الرمز الجديد" value={p1} onChange={e=>setP1(e.target.value)}/>
+<input type="password" style={{flex:1,padding:"10px 12px",borderRadius:10,border:"1px solid #242B47",background:"#1B2036",color:"#EDEFF5",fontSize:13,outline:"none"}} placeholder="أكده تاني" value={p2} onChange={e=>setP2(e.target.value)}/>
+<button className="btnG" onClick={save}>💾</button>
+</div>
+</div>;
+}
 function SearchModal({t,cards,onPick}){
 const [q,setQ]=useState("");
 const r=q.trim()?cards.filter(c=>FIELD_KEYS.some(k=>(c[k]||"").toString().toLowerCase().includes(q.toLowerCase()))).slice(0,20):[];
@@ -1148,10 +1194,11 @@ var d=document.createElement("div");
 d.style.cssText="position:fixed;inset:0;background:#0B0E1A;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:20px;z-index:9999";
 d.innerHTML='<div style="background:linear-gradient(180deg,#1B2036,#141829);border:1px solid #242B47;border-radius:20px;padding:24px;width:100%;max-width:360px"><h2 style="text-align:center;margin-bottom:20px;color:#EDEFF5">\u062A\u0633\u062C\u064A\u0644 \u0627\u0644\u062F\u062E\u0648\u0644</h2><div style="font-size:12px;font-weight:800;margin-bottom:6px;color:#8A93B5">\u0645\u0639\u0631\u0641 \u0627\u0644\u0634\u0631\u0643\u0629</div><input id="lg_cid" style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid #242B47;background:#1B2036;color:#EDEFF5;font-size:15px;margin-bottom:12px;outline:none" placeholder="\u0645\u062B\u0644: ABC123 \u0623\u0648 MASTER"/><div style="font-size:12px;font-weight:800;margin-bottom:6px;color:#8A93B5">\u0627\u0633\u0645 \u0627\u0644\u0645\u0633\u062A\u062E\u062F\u0645</div><input id="lg_un" style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid #242B47;background:#1B2036;color:#EDEFF5;font-size:15px;margin-bottom:12px;outline:none" placeholder="\u0645\u062B\u0644: ahmed \u0623\u0648 admin"/><div style="font-size:12px;font-weight:800;margin-bottom:6px;color:#8A93B5">\u0627\u0644\u0631\u0645\u0632</div><input id="lg_pin" type="password" style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid #242B47;background:#1B2036;color:#EDEFF5;font-size:15px;margin-bottom:12px;outline:none" placeholder="\u0645\u062B\u0644: 1234"/><button id="lg_btn" style="width:100%;background:linear-gradient(135deg,#7C5CFF,#5E8FD6);border:none;color:#fff;border-radius:14px;padding:13px 18px;font-weight:800;font-size:14px;cursor:pointer">\u062F\u062E\u0648\u0644</button><button id="lg_demo" style="width:100%;margin-top:12px;background:rgba(255,255,255,.1);border:1px solid #242B47;color:#EDEFF5;border-radius:14px;padding:12px 16px;font-weight:700;font-size:14px;cursor:pointer">\uD83C\uDFAE \u062C\u0631\u0628 \u0628\u0628\u0644\u0627\u0634 (\u062F\u064A\u0645\u0648)</button></div>';
 document.getElementById("root").appendChild(d);
-document.getElementById("lg_btn").onclick=function(){var c=document.getElementById("lg_cid").value.trim(),u=document.getElementById("lg_un").value.trim(),p=document.getElementById("lg_pin").value.trim();if(!c||!u||!p){alert("\u0627\u0645\u0644\u0623 \u062C\u0645\u064A\u0639 \u0627\u0644\u062D\u0642\u0648\u0644");return;}if(c==="MASTER"){if(u==="admin"&&p==="20112005"){localStorage.setItem("companyID",c);localStorage.setItem("username",u);localStorage.setItem("pin",p);location.reload();}else{alert("\u0628\u064A\u0627\u0646\u0627\u062A \u0627\u0644\u0645\u0627\u0633\u062A\u0631 \u063A\u0644\u0637");}return;}if(c==="NEWTEX"||c==="DEFAULT"){localStorage.setItem("companyID",c);localStorage.setItem("username",u);localStorage.setItem("pin",p);location.reload();return;}db.collection("companies").doc(c).get().then(function(cd){if(!cd.exists){alert("\u0645\u0639\u0631\u0641 \u0627\u0644\u0634\u0631\u0643\u0629 \u063A\u0644\u0637");return;}return db.collection("companies").doc(c).collection("users").doc(u).get().then(function(ud){if(!ud.exists||ud.data().pin!==p){alert("\u0627\u0633\u0645 \u0627\u0644\u0645\u0633\u062A\u062E\u062F\u0645 \u0623\u0648 \u0627\u0644\u0631\u0645\u0632 \u063A\u0644\u0637");return;}localStorage.setItem("companyID",c);localStorage.setItem("username",u);localStorage.setItem("pin",p);location.reload();});}).catch(function(){alert("\u062E\u0637\u0623 \u0641\u064A \u0627\u0644\u0627\u062A\u0635\u0627\u0644");});};
-document.getElementById("lg_demo").onclick=function(){localStorage.setItem("companyID","DEMO");localStorage.setItem("username","demo");localStorage.setItem("pin","0000");location.reload();};
+document.getElementById("lg_btn").onclick=function(){var c=document.getElementById("lg_cid").value.trim(),u=document.getElementById("lg_un").value.trim(),p=document.getElementById("lg_pin").value.trim();if(!c||!u||!p){alert("\u0627\u0645\u0644\u0623 \u062C\u0645\u064A\u0639 \u0627\u0644\u062D\u0642\u0648\u0644");return;}if(c==="MASTER"){if(u==="admin"&&p==="20112005"){localStorage.setItem("companyID",c);localStorage.setItem("username",u);localStorage.setItem("pin",p);localStorage.setItem("role","master");location.reload();}else{alert("\u0628\u064A\u0627\u0646\u0627\u062A \u0627\u0644\u0645\u0627\u0633\u062A\u0631 \u063A\u0644\u0637");}return;}var uref=(c==="NEWTEX"||c==="DEFAULT")?db._raw("users"):db._raw("companies/"+c+"/users");uref.get().then(function(snap){if(snap.empty){localStorage.setItem("companyID",c);localStorage.setItem("username",u);localStorage.setItem("pin",p);localStorage.setItem("role","manager");location.reload();return;}uref.doc(u).get().then(function(ud){if(!ud.exists||ud.data().pin!==p){alert("\u0627\u0633\u0645 \u0627\u0644\u0645\u0633\u062A\u062E\u062F\u0645 \u0623\u0648 \u0627\u0644\u0631\u0645\u0632 \u063A\u0644\u0637");return;}if(ud.data().locked){alert("\u0627\u0644\u062D\u0633\u0627\u0628 \u0645\u0648\u0642\u0648\u0641 \u0645\u0646 \u0627\u0644\u0645\u062F\u064A\u0631");return;}localStorage.setItem("companyID",c);localStorage.setItem("username",u);localStorage.setItem("pin",p);localStorage.setItem("role",ud.data().role||"worker");location.reload();}).catch(function(){alert("\u062E\u0637\u0623 \u0641\u064A \u0627\u0644\u0627\u062A\u0635\u0627\u0644");});}).catch(function(){alert("\u062E\u0637\u0623 \u0641\u064A \u0627\u0644\u0627\u062A\u0635\u0627\u0644");});};
+document.getElementById("lg_demo").onclick=function(){localStorage.setItem("companyID","DEMO");localStorage.setItem("username","demo");localStorage.setItem("pin","0000");localStorage.setItem("role","manager");location.reload();};
 }else{
 if(window.isMaster){location.replace("master.html");}else{
+(function(){var r=localStorage.getItem("role");if(r==="worker"||r==="assistant"){var u=localStorage.getItem("username");db.collection("users").doc(u).get().then(function(d){if(!d.exists||d.data().locked){localStorage.removeItem("companyID");localStorage.removeItem("username");localStorage.removeItem("pin");localStorage.removeItem("role");alert("\u0627\u0644\u062D\u0633\u0627\u0628 \u0645\u0648\u0642\u0648\u0641 \u0645\u0646 \u0627\u0644\u0645\u062F\u064A\u0631");location.reload();}}).catch(function(){});}})();
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 window.__booted=true;
 }
