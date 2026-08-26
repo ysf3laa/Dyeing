@@ -1136,6 +1136,7 @@ d.innerHTML='<div style="background:linear-gradient(180deg,#1B2036,#141829);bord
 document.getElementById("root").appendChild(d);
 document.getElementById("lg_btn").onclick=function(){var c=document.getElementById("lg_cid").value.trim(),u=document.getElementById("lg_un").value.trim(),p=document.getElementById("lg_pin").value.trim();if(!c||!u||!p){alert("\u0627\u0645\u0644\u0623 \u062C\u0645\u064A\u0639 \u0627\u0644\u062D\u0642\u0648\u0644");return;}localStorage.setItem("companyID",c);localStorage.setItem("username",u);localStorage.setItem("pin",p);location.reload();};
 document.getElementById("lg_demo").onclick=function(){localStorage.setItem("companyID","DEMO");localStorage.setItem("username","demo");localStorage.setItem("pin","0000");location.reload();};
-return;}
+}else{
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 window.__booted=true;
+}
