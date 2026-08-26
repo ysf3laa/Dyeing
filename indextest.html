@@ -469,7 +469,8 @@ return(
 <div style={{width:44,height:44,borderRadius:50,background:"linear-gradient(135deg,var(--vio),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,boxShadow:"0 6px 18px rgba(124,92,255,.4)"}}>{(ownerName||"؟")[0]}</div>
 <div style={{flex:1}}><div style={{fontSize:12,color:theme.textDim}}>👋 مرحباً يا {ownerName}</div><div style={{fontSize:20,fontWeight:900}}>{factory.fname}</div></div>
 <button onClick={()=>setShowSearch(true)} style={hdrBtn}>🔍</button>
-<button onClick={()=>setShowMenu(true)} style={hdrBtn}>️</button>
+<button onClick={()=>setShowLateList(true)} style={{...hdrBtn,position:"relative"}}>🔔{(()=>{const n=liveCards.filter(c=>!c.delivered&&(c.urgent||daysSince(c.updatedAt||c.createdAt)>=(factory.lateDays||2))).length;return n>0?<span style={{position:"absolute",top:4,left:4,background:"var(--red)",color:"#fff",borderRadius:10,fontSize:9,fontWeight:800,padding:"1px 5px",minWidth:16,textAlign:"center"}}>{n}</span>:null;})()}</button>
+<button onClick={()=>setShowMenu(true)} style={hdrBtn}>⋯</button>
 </div>
 <div className="card grad anim" style={{animationDelay:"80ms",marginBottom:12,position:"relative",overflow:"hidden"}}>
 <div style={{position:"absolute",top:14,insetInlineEnd:14,fontSize:40,animation:"floaty 3s infinite"}}>{logoSrc?<img src={logoSrc} style={{width:56,height:56,borderRadius:16,objectFit:"cover",boxShadow:"0 4px 14px rgba(0,0,0,.35)"}}/>:"🏭"}</div>
@@ -553,6 +554,7 @@ return(<div key={c.id} className="card" onClick={()=>jumpToCard(c)} style={{curs
 <div className="anim" style={{display:"flex",alignItems:"center",gap:10,marginBottom:18}}>
 <button onClick={()=>setScreen("home")} style={hdrBtn}>→</button>
 <div style={{flex:1}}><div style={{fontSize:19,fontWeight:900}}>مراحل العمل</div><div style={{fontSize:11,color:theme.textDim}}>تابع جميع مراحل الإنتاج</div></div>
+<button onClick={()=>setShowSearch(true)} style={hdrBtn}>🔍</button>
 {can&&<button onClick={()=>setShowStageMgr(true)} style={hdrBtn}>⚙️</button>}
 <button onClick={()=>setShowSched(true)} style={hdrBtn}>📅</button>
 </div>
