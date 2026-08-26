@@ -246,7 +246,7 @@ const gotoDone=useRef(false);
 const uiRef=useRef({});
 uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,showTopCust,photoView,appQr,importMenu,importDraft,showMic,showWarehouse,addLoad,loadDetail,showLateList,showDelivered,heroEdit,showDefects,defectFor,showAnnounce,linkedFrom};
 const t=DICT[lang];const dir=lang==="ar"?"rtl":"ltr";
-const can=unlocked;
+const can=true;unlocked;
 const [themeMode,setThemeMode]=useState(localStorage.getItem("themeMode")||"dark");
 const [prefVib,setPrefVib]=useState(localStorage.getItem("prefVib")!=="0");
 const [prefSnd,setPrefSnd]=useState(localStorage.getItem("prefSnd")!=="0");
