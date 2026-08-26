@@ -1072,13 +1072,23 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div className="modal" onClick={()=>setShowSettings(false)}>
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:400}}>
 <h3 style={{margin:"0 0 14px"}}>⚙️ {t.settings}</h3>
-<button onClick={()=>{localStorage.removeItem("companyID");localStorage.removeItem("username");localStorage.removeItem("pin");setShowSettings(false);location.reload();}} className="btnO" style={{marginBottom:12,borderColor:"var(--red)",color:"var(--red)"}}>🚪 تسجيل خروج</button>
+<button onClick={()=>{localStorage.removeItem("companyID");localStorage.removeItem("username");localStorage.removeItem("pin");localStorage.removeItem("role");setShowSettings(false);location.reload();}} className="btnO" style={{marginBottom:12,borderColor:"var(--red)",color:"var(--red)"}}>🚪 تسجيل خروج</button>
+<div style={{display:"flex",alignItems:"center",gap:8,padding:"10px 12px",background:"rgba(124,92,255,.08)",border:"1px solid var(--line)",borderRadius:12,marginBottom:12}}>
+<div style={{fontSize:22}}>{localStorage.getItem("role")==="master"?"👑":localStorage.getItem("role")==="manager"?"👔":localStorage.getItem("role")==="assistant"?"🎖️":"👷"}</div>
+<div style={{flex:1}}>
+<div style={{fontSize:11,fontWeight:800,color:"var(--dim)"}}>الدور الحالي</div>
+<div style={{fontSize:14,fontWeight:900}}>{localStorage.getItem("role")==="master"?"ماستر النظام":localStorage.getItem("role")==="manager"?"مالك الشركة":localStorage.getItem("role")==="assistant"?"مساعد مدير":"عامل"} — {localStorage.getItem("username")}</div>
+</div>
+</div>
+{(localStorage.getItem("role")==="manager"||localStorage.getItem("role")==="assistant")&&<WorkersPanel/>}
+<MyPinPanel/>
 <div className="lbl">🌐 {t.language}</div><div style={{marginBottom:10}}><button onClick={()=>{const n=lang==="ar"?"en":"ar";setLang(n);localStorage.setItem("pref_lang",n);}} className="chip on">{lang==="ar"?"العربية":"English"}</button></div>
 <div style={{display:"flex",gap:6,marginBottom:12}}>
 <button onClick={()=>{const m=themeMode==="light"?"dark":"light";setThemeMode(m);localStorage.setItem("themeMode",m);}} className={"chip"+(themeMode==="light"?" on":"")} style={{flex:1}}>{themeMode==="light"?"🌙 دايم":"☀️ فاتح"}</button>
 <button onClick={()=>{setPrefVib(v=>{const nv=!v;localStorage.setItem("prefVib",nv?"1":"0");return nv;});}} className={"chip"+(prefVib?" on":"")} style={{flex:1}}>📳 اهتزاز {prefVib?"ON":"OFF"}</button>
 <button onClick={()=>{setPrefSnd(v=>{const nv=!v;localStorage.setItem("prefSnd",nv?"1":"0");return nv;});}} className={"chip"+(prefSnd?" on":"")} style={{flex:1}}>🔊 صوت {prefSnd?"ON":"OFF"}</button>
 </div>
+{(localStorage.getItem("role")==="manager"||localStorage.getItem("role")==="assistant"||localStorage.getItem("role")==="master")&&<>
 <div className="lbl">🖼️ لوجو الشركة</div>
 <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:10}}>
 {logoSrc&&<img src={logoSrc} style={{width:44,height:44,borderRadius:10,objectFit:"cover"}}/>}
@@ -1089,6 +1099,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <input className="inp" type="number" placeholder="بدون رمز" defaultValue={localStorage.getItem("pin_"+(userId||"_"))||""} onBlur={e=>localStorage.setItem("pin_"+(userId||"_"),e.target.value)}/>
 <div className="lbl">🗄️ أرشفة تلقائية للمسلّم بعد (يوم) — 0 = مقفول</div>
 <input className="inp" type="number" placeholder="0" defaultValue={localStorage.getItem("autoArch_"+(userId||"_"))||""} onBlur={e=>localStorage.setItem("autoArch_"+(userId||"_"),e.target.value)}/>
+</>}
 {!can&&(<div className="card" style={{padding:14,marginBottom:10}}>
 <div className="lbl">🔑 {t.unlockTitle}</div>
 <input className="inp" inputMode="numeric" value={codeInput} onChange={e=>setCodeInput(e.target.value)} placeholder="******"/>
