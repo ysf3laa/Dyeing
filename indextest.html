@@ -1158,8 +1158,8 @@ return <div className="card" style={{padding:14,marginTop:12}}>
 </div>
 </div>)}
 <div style={{display:"flex",gap:6,marginTop:10}}>
-<input style={{flex:1,padding:"10px 12px",borderRadius:10,border:"1px solid #242B47",background:"#1B2036",color:"#EDEFF5",fontSize:13,outline:"none"}} placeholder="اسم العامل" value={nu} onChange={e=>setNu(e.target.value)}/>
-<input style={{flex:1,padding:"10px 12px",borderRadius:10,border:"1px solid #242B47",background:"#1B2036",color:"#EDEFF5",fontSize:13,outline:"none"}} placeholder="الرمز" value={np} onChange={e=>setNp(e.target.value)}/>
+<input style={{flex:1,minWidth:0,padding:"10px 12px",borderRadius:10,border:"1px solid #242B47",background:"#1B2036",color:"#EDEFF5",fontSize:13,outline:"none"}} placeholder="اسم العامل" value={nu} onChange={e=>setNu(e.target.value)}/>
+<input style={{flex:1,minWidth:0,padding:"10px 12px",borderRadius:10,border:"1px solid #242B47",background:"#1B2036",color:"#EDEFF5",fontSize:13,outline:"none"}} placeholder="الرمز" value={np} onChange={e=>setNp(e.target.value)}/>
 <button className="btnG" onClick={add}>➕</button>
 </div>
 </div>;
@@ -1171,8 +1171,8 @@ const save=()=>{if(!p1||p1!==p2){alert("الرمزين مش متطابقين");r
 return <div className="card" style={{padding:14,marginTop:12}}>
 <div className="lbl">🔑 تغيير رمزي الشخصي</div>
 <div style={{display:"flex",gap:6}}>
-<input type="password" style={{flex:1,padding:"10px 12px",borderRadius:10,border:"1px solid #242B47",background:"#1B2036",color:"#EDEFF5",fontSize:13,outline:"none"}} placeholder="الرمز الجديد" value={p1} onChange={e=>setP1(e.target.value)}/>
-<input type="password" style={{flex:1,padding:"10px 12px",borderRadius:10,border:"1px solid #242B47",background:"#1B2036",color:"#EDEFF5",fontSize:13,outline:"none"}} placeholder="أكده تاني" value={p2} onChange={e=>setP2(e.target.value)}/>
+<input type="password" style={{flex:1,minWidth:0,padding:"10px 12px",borderRadius:10,border:"1px solid #242B47",background:"#1B2036",color:"#EDEFF5",fontSize:13,outline:"none"}} placeholder="الرمز الجديد" value={p1} onChange={e=>setP1(e.target.value)}/>
+<input type="password" style={{flex:1,minWidth:0,padding:"10px 12px",borderRadius:10,border:"1px solid #242B47",background:"#1B2036",color:"#EDEFF5",fontSize:13,outline:"none"}} placeholder="أكده تاني" value={p2} onChange={e=>setP2(e.target.value)}/>
 <button className="btnG" onClick={save}>💾</button>
 </div>
 </div>;
