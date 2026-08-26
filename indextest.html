@@ -61,7 +61,7 @@ fieldset{border:none;margin:0;padding:0;min-width:0}
 <body>
 <div id="syncBar" class="syncing-bar"></div>
 <style>@keyframes confFall{to{top:110%;transform:rotate(720deg)}}</style>
-<div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:16px"><div style="font-size:64px">🏭</div><div style="color:#8A93B5;font-size:14px">جاري التحميل...</div></div></div>
+<div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:16px"><div style="font-size:64px">🏭</div><div style="color:#8A93B5;font-size:14px">🕌 استغل الانتظار في الاستغفار</div></div></div>
 <script>
 window.onerror=function(m,u,l){if(m&&m!=="Script error."&&!window.__booted){var r=document.getElementById("root");if(r)r.innerHTML='<div style="padding:16px;color:#FF5C7A;font-size:12px;word-break:break-all;text-align:center">خطأ: '+m+'<br>سطر: '+l+'</div>';}};
 window.addEventListener("unhandledrejection",function(e){e.preventDefault();console.warn(e.reason);});
@@ -452,7 +452,7 @@ if(pubData&&!new URLSearchParams(window.location.search).get("goto"))return(<div
 <a href={APP_URL+"?goto="+encodeURIComponent(rawD)} style={{display:"block",marginTop:18,background:"#7C5CFF",color:"#fff",borderRadius:12,padding:"12px",textDecoration:"none",fontWeight:700,textAlign:"center"}}>فتح التطبيق الكامل → مكان الكرت</a>
 <div style={{fontSize:11,color:"#77705F",textAlign:"center",marginTop:10}}>🔒 التعديل للعاملين فقط بكود التفعيل</div>
 </div></div>);
-if(!ready)return(<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:theme.bg,color:theme.text,flexDirection:"column",gap:16}}><div style={{fontSize:48,animation:"floaty 2s infinite"}}>🏭</div><div className="spin" style={{fontSize:24}}>⚙️</div></div>);
+if(!ready)return(<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:theme.bg,color:theme.text,flexDirection:"column",gap:16}}><div style={{fontSize:48,animation:"floaty 2s infinite"}}>🏭</div><div className="spin" style={{fontSize:24}}>⚙️</div><div style={{fontSize:14,color:theme.textDim,marginTop:4}}>🕌 صلي على النبي</div></div>);
 if(!ownerName)return(<div dir={dir} style={{minHeight:"100vh",background:theme.bg,color:theme.text,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}><div className="card" style={{padding:32,width:"100%",maxWidth:380,textAlign:"center"}}><div style={{width:60,height:60,borderRadius:18,background:"linear-gradient(135deg,var(--vio),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px",fontSize:28,animation:"floaty 2.5s infinite",boxShadow:"0 10px 30px rgba(124,92,255,.4)"}}>🏭</div><h2 style={{margin:"0 0 6px",fontSize:20}}>{factory.fname}</h2><p style={{color:theme.textDim,fontSize:13,marginBottom:18}}>{t.yourName} — {t.enterNameHint}</p><input autoFocus value={nameInput} onChange={e=>setNameInput(e.target.value)} placeholder={t.yourName} className="inp" style={{textAlign:"center"}} onKeyDown={e=>e.key==="Enter"&&confirmName()}/><button onClick={confirmName} className="btnG">{t.confirmName}</button></div></div>);
 return(
 <div dir={dir} style={{minHeight:"100vh",background:theme.bg,color:theme.text,paddingBottom:90}}>
@@ -488,7 +488,7 @@ return(
 <div className="card anim" onClick={()=>setShowWarehouse(true)} style={{animationDelay:"260ms",cursor:"pointer"}}><div className="lbl">📦 متبقي المخزن</div><div style={{fontSize:26,fontWeight:900,color:"var(--blue)"}}>{nRem} <span style={{fontSize:11,color:theme.textDim}}>{factory.unit}</span></div></div>
 <div className="card anim" onClick={()=>setShowDelivered(true)} style={{animationDelay:"320ms",cursor:"pointer"}}><div className="lbl">✅ اتسلم</div><div style={{fontSize:26,fontWeight:900,color:"var(--teal)"}}>{nDel}</div></div>
 </div>
-<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",margin:"10px 0",fontSize:12,color:theme.textDim}}><span style={{display:"flex",alignItems:"center",gap:6}}>{logoSrc&&<img src={logoSrc} style={{width:26,height:26,borderRadius:8,objectFit:"cover"}}/>}🕌 {(()=>{try{return new Intl.DateTimeFormat("ar-SA-u-ca-islamic",{day:"numeric",month:"long",year:"numeric"}).format(new Date());}catch(e){return "";}})()}</span><span>{new Date().getHours()<12?"☀️ صباح الخير":"🌙 مساء الخير"} · {ownerName}</span></div>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",margin:"10px 0",fontSize:12,color:theme.textDim}}><span style={{display:"flex",alignItems:"center",gap:6}}>{logoSrc&&<img src={logoSrc} style={{width:26,height:26,borderRadius:8,objectFit:"cover"}}/>}🕌 {(()=>{try{return new Intl.DateTimeFormat("ar-SA-u-ca-islamic",{day:"numeric",month:"long",year:"numeric"}).format(new Date());}catch(e){return "";}})()}</span><span>{(()=>{const h=new Date().getHours();return h>=5&&h<12?"☀️ صباح الخير":h>=12&&h<17?"🌤️ مساء الخير":"🌙 مساء الخير";})()} · {ownerName}</span></div>
 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,width:"100%",alignItems:"center"}}>
 <div style={{display:"flex",alignItems:"center",gap:8}}>
 <div style={{width:44,height:44,borderRadius:14,background:"linear-gradient(135deg,var(--teal),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,boxShadow:"0 6px 18px rgba(45,212,168,.35)"}}>📅</div>
@@ -565,7 +565,7 @@ return(<div key={c.id} className="card" onClick={()=>jumpToCard(c)} style={{curs
 {stages.map((s,i)=>{const l=liveCards.filter(c=>c.stage===s);const late=l.filter(c=>daysSince(c.updatedAt||c.createdAt)>=LD).length;const q=qtySum(l);const col=STAGE_COLORS[i%8];
 return(<div key={s} className="anim" style={{display:"flex",gap:12,marginBottom:4,animationDelay:(i*100)+"ms"}}>
 <div style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
-<div className="tldot" style={{background:col+"22",border:"2px solid "+col,"--g":col+"66"}}>{S_ICONS[i%8]}</div>
+<div className="tldot" onClick={()=>{setActiveStage(s);setScreen("home");}} style={{background:col+"22",border:"2px solid "+col,"--g":col+"66",cursor:"pointer"}}>{S_ICONS[i%8]}</div>
 {i<stages.length-1&&<div className="tlline" style={{flex:1,minHeight:30,background:"linear-gradient(180deg,"+col+","+STAGE_COLORS[(i+1)%8]+")"}}/>}
 </div>
 <div className="card" onClick={()=>{setActiveStage(s);setScreen("stage");}} style={{flex:1,cursor:"pointer",marginBottom:10}}>
