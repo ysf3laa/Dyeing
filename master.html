@@ -42,23 +42,21 @@ body{font-family:'Tajawal',system-ui,sans-serif;background:radial-gradient(900px
 </div>
 
 <div class="tabs">
-  <div class="tab on" onclick="showTab('companies')">🏢 الشركات</div>
-  <div class="tab" onclick="showTab('demo')">🎮 الديمو</div>
-  <div class="tab" onclick="showTab('gemini')">🤖 Gemini</div>
-  <div class="tab" onclick="showTab('settings')">⚙️ إعداداتي</div>
+  <div class="tab on" onclick="showTab('companies',event)">🏢 الشركات</div>
+  <div class="tab" onclick="showTab('demo',event)">🎮 الديمو</div>
+  <div class="tab" onclick="showTab('gemini',event)">🤖 Gemini</div>
+  <div class="tab" onclick="showTab('settings',event)">⚙️ إعداداتي</div>
 </div>
 
-<!-- الشركات -->
 <div id="tab-companies">
   <button class="btn btnP" style="width:100%;margin-bottom:12px" onclick="addCompany()">➕ إضافة شركة جديدة</button>
   <div id="companiesList"><div class="empty">جاري التحميل...</div></div>
 </div>
 
-<!-- الديمو -->
 <div id="tab-demo" style="display:none">
   <div class="card">
     <div class="lbl">🎮 حسابات الديمو النشطة</div>
-    <div id="demoList" style="margin-top:8px"><div class="empty">لا توجد حسابات ديمو نشطة</div></div>
+    <div id="demoList" style="margin-top:8px"><div class="empty">حساب الديمو محلي (يتمسح كل ساعة)</div></div>
   </div>
   <div class="card">
     <div class="lbl">🧹 مسح كل حسابات الديمو</div>
@@ -66,7 +64,6 @@ body{font-family:'Tajawal',system-ui,sans-serif;background:radial-gradient(900px
   </div>
 </div>
 
-<!-- Gemini -->
 <div id="tab-gemini" style="display:none">
   <div class="card">
     <div class="lbl">🔑 مفتاح Gemini العام (لكل الشركات)</div>
@@ -76,7 +73,6 @@ body{font-family:'Tajawal',system-ui,sans-serif;background:radial-gradient(900px
   </div>
 </div>
 
-<!-- إعداداتي -->
 <div id="tab-settings" style="display:none">
   <div class="card">
     <div class="lbl">🔐 بيانات الدخول</div>
@@ -97,7 +93,6 @@ const firebaseConfig={apiKey:"AIzaSyBEplMzCUPbZ33vpctAegDvCLFLB2d_Psc",authDomai
 firebase.initializeApp(firebaseConfig);
 const db=firebase.firestore();
 
-// فحص الدخول
 const cid=localStorage.getItem("companyID");
 const un=localStorage.getItem("username");
 const pin=localStorage.getItem("pin");
@@ -106,10 +101,9 @@ if(cid!=="MASTER"||un!=="admin"||pin!=="20112005"){
   location.href="indextest.html";
 }
 
-// تبويبات
-function showTab(t){
+function showTab(t,ev){
   document.querySelectorAll(".tab").forEach(e=>e.classList.remove("on"));
-  event.target.classList.add("on");
+  ev.target.classList.add("on");
   ["companies","demo","gemini","settings"].forEach(id=>{
     document.getElementById("tab-"+id).style.display=(id===t?"block":"none");
   });
@@ -118,7 +112,6 @@ function showTab(t){
   if(t==="gemini")loadGemini();
 }
 
-// الشركات
 async function loadCompanies(){
   const list=document.getElementById("companiesList");
   list.innerHTML='<div class="empty">جاري التحميل...</div>';
@@ -128,20 +121,7 @@ async function loadCompanies(){
     let html="";
     snap.forEach(doc=>{
       const d=doc.data();
-      html+=`<div class="card">
-        <div class="row">
-          <div>
-            <div style="font-weight:900">${d.name||doc.id}</div>
-            <div style="font-size:11px;color:var(--dim)">المعرف: ${doc.id}</div>
-          </div>
-          <div style="display:flex;gap:6px">
-            <button class="btn btnO" onclick="viewWorkers('${doc.id}')">👥</button>
-            <button class="btn btnO" onclick="editCompany('${doc.id}')">✏️</button>
-            <button class="btn" style="background:var(--warn);color:#fff" onclick="quickLogin('${doc.id}')">⚡</button>
-            <button class="btn btnD" onclick="delCompany('${doc.id}')">🗑️</button>
-          </div>
-        </div>
-      </div>`;
+      html+='<div class="card"><div class="row"><div><div style="font-weight:900">'+(d.name||doc.id)+'</div><div style="font-size:11px;color:var(--dim)">المعرف: '+doc.id+'</div></div><div style="display:flex;gap:6px"><button class="btn btnO" onclick="viewWorkers(\''+doc.id+'\')">👥</button><button class="btn btnO" onclick="editCompany(\''+doc.id+'\')">✏️</button><button class="btn" style="background:var(--warn);color:#fff" onclick="quickLogin(\''+doc.id+'\')">⚡</button><button class="btn btnD" onclick="delCompany(\''+doc.id+'\')">🗑️</button></div></div></div>';
     });
     list.innerHTML=html;
   }catch(e){list.innerHTML='<div class="empty">خطأ في التحميل</div>';console.error(e);}
@@ -158,7 +138,7 @@ async function addCompany(){
   if(!mp)return;
   try{
     await db.collection("companies").doc(id).set({name:name,createdAt:new Date().toISOString(),active:true});
-    await db.collection("companies").doc(id).collection("users").doc(mu).set({name:mu,pin:mp,role:"manager",createdAt:new Date().toISOString()});
+    await db.collection("companies").doc(id).collection("users").doc(mu).set({name:mu,pin:mp,role:"manager",locked:false,createdAt:new Date().toISOString()});
     alert("✅ تمت الإضافة\n\nالدخول: "+id+" / "+mu+" / "+mp);
     loadCompanies();
   }catch(e){alert("خطأ: "+e.message);}
@@ -185,41 +165,60 @@ async function delCompany(id){
 
 async function viewWorkers(id){
   try{
-    const snap=await db.collection("companies").doc(id).collection("users").get();
+    const uref=(id==="NEWTEX"||id==="DEFAULT")?db.collection("users"):db.collection("companies").doc(id).collection("users");
+    const snap=await uref.get();
     let msg="حسابات "+id+":\n\n";
     if(snap.empty){msg+="لا يوجد حسابات";}
-    else{snap.forEach(doc=>{const w=doc.data();msg+="• "+(w.name||doc.id)+" — رمز: "+(w.pin||"؟")+" — "+(w.role||"عامل")+"\n";});}
-    msg+="\n1️⃣ إضافة حساب\n2️⃣ تغيير رمز\n3️⃣ حذف حساب\n\nاختار رقم:";
+    else{snap.forEach(doc=>{const w=doc.data();msg+="• "+(w.name||doc.id)+" — رمز: "+(w.pin||"؟")+" — "+(w.role==="manager"?"👔 مالك":w.role==="assistant"?"🎖️ مساعد":"👷 عامل")+(w.locked?" — 🔒 موقوف":" — ✅ نشط")+"\n";});}
+    msg+="\n1️⃣ إضافة حساب\n2️⃣ تغيير رمز\n3️⃣ حذف حساب\n4️⃣ إيقاف / تفعيل\n5️⃣ ترقية مساعد / تنزيل عامل\n6️⃣ تعديل اسم\n\nاختار رقم:";
     const ch=prompt(msg);
     if(ch==="1"){
       const nu=prompt("اسم المستخدم الجديد:");if(!nu)return;
       const np=prompt("الرمز:");if(!np)return;
-      const nr=prompt("الدور (manager / worker):","worker");
-      await db.collection("companies").doc(id).collection("users").doc(nu).set({name:nu,pin:np,role:(nr==="manager"?"manager":"worker"),createdAt:new Date().toISOString()});
+      const nr=prompt("الدور (manager / assistant / worker):","worker");
+      const finalRole=(nr==="manager"?"manager":nr==="assistant"?"assistant":"worker");
+      await uref.doc(nu).set({name:nu,pin:np,role:finalRole,locked:false,createdAt:new Date().toISOString()});
       alert("✅ تم");
     }else if(ch==="2"){
       const cu=prompt("اسم المستخدم:");if(!cu)return;
       const cp=prompt("الرمز الجديد:");if(!cp)return;
-      await db.collection("companies").doc(id).collection("users").doc(cu).update({pin:cp});
+      await uref.doc(cu).update({pin:cp});
       alert("✅ تم");
     }else if(ch==="3"){
       const du=prompt("اسم المستخدم للحذف:");if(!du)return;
-      await db.collection("companies").doc(id).collection("users").doc(du).delete();
+      await uref.doc(du).delete();
+      alert("✅ تم");
+    }else if(ch==="4"){
+      const lu=prompt("اسم المستخدم:");if(!lu)return;
+      const d=await uref.doc(lu).get();
+      if(!d.exists){alert("مش موجود");return;}
+      await uref.doc(lu).update({locked:!d.data().locked});
+      alert(d.data().locked?"✅ تم التفعيل":"🔒 تم الإيقاف");
+    }else if(ch==="5"){
+      const ru=prompt("اسم المستخدم:");if(!ru)return;
+      const d=await uref.doc(ru).get();
+      if(!d.exists){alert("مش موجود");return;}
+      const nr2=d.data().role==="assistant"?"worker":"assistant";
+      await uref.doc(ru).update({role:nr2});
+      alert(nr2==="assistant"?"🎖️ بقي مساعد":"👷 بقي عامل");
+    }else if(ch==="6"){
+      const eu=prompt("اسم المستخدم:");if(!eu)return;
+      const en=prompt("الاسم الجديد:");if(!en)return;
+      await uref.doc(eu).update({name:en});
       alert("✅ تم");
     }
   }catch(e){alert("خطأ: "+e.message);}
 }
 
-// الدخول السريع (المطلوب)
 function quickLogin(id){
   localStorage.setItem("companyID",id);
   localStorage.setItem("username","owner");
   localStorage.setItem("pin","quick");
+  localStorage.setItem("role","manager");
   location.href="indextest.html";
 }
 
-// الديمو
-async function loadDemo(){
+function loadDemo(){
   const list=document.getElementById("demoList");
   list.innerHTML='<div class="empty">حساب الديمو محلي (يتمسح كل ساعة)</div>';
 }
@@ -230,7 +229,6 @@ function clearDemo(){
   alert("✅ تم المسح");
 }
 
-// Gemini
 async function loadGemini(){
   try{
     const doc=await db.collection("master").doc("gemini").get();
@@ -247,7 +245,6 @@ async function saveGemini(){
   }catch(e){alert("خطأ: "+e.message);}
 }
 
-// إعدادات الماستر
 function saveMaster(){
   const c=document.getElementById("myCid").value.trim();
   const u=document.getElementById("myUn").value.trim();
@@ -256,6 +253,7 @@ function saveMaster(){
   localStorage.setItem("companyID",c);
   localStorage.setItem("username",u);
   localStorage.setItem("pin",p);
+  localStorage.setItem("role","master");
   alert("✅ تم الحفظ — اخرج وادخل تاني");
 }
 
@@ -263,10 +261,10 @@ function logout(){
   localStorage.removeItem("companyID");
   localStorage.removeItem("username");
   localStorage.removeItem("pin");
+  localStorage.removeItem("role");
   location.href="indextest.html";
 }
 
-// تحميل أولي
 loadCompanies();
 </script>
 </body>
