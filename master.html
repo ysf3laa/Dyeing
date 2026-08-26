@@ -135,10 +135,10 @@ async function loadCompanies(){
             <div style="font-size:11px;color:var(--dim)">المعرف: ${doc.id}</div>
           </div>
           <div style="display:flex;gap:6px">
-<button class="btn btnO" onclick="viewWorkers('${doc.id}')">👥</button>
-<button class="btn btnO" onclick="editCompany('${doc.id}')">✏️</button>
-<button class="btn" style="background:var(--warn);color:#fff" onclick="quickLogin('${doc.id}')">⚡</button>
-<button class="btn btnD" onclick="delCompany('${doc.id}')">🗑️</button>
+            <button class="btn btnO" onclick="viewWorkers('${doc.id}')">👥</button>
+            <button class="btn btnO" onclick="editCompany('${doc.id}')">✏️</button>
+            <button class="btn" style="background:var(--warn);color:#fff" onclick="quickLogin('${doc.id}')">⚡</button>
+            <button class="btn btnD" onclick="delCompany('${doc.id}')">🗑️</button>
           </div>
         </div>
       </div>`;
@@ -163,12 +163,7 @@ async function addCompany(){
     loadCompanies();
   }catch(e){alert("خطأ: "+e.message);}
 }
-function quickLogin(id){
-  localStorage.setItem("companyID",id);
-  localStorage.setItem("username","owner");
-  localStorage.setItem("pin","quick");
-  location.href="indextest.html";
-}
+
 async function editCompany(id){
   const name=prompt("الاسم الجديد:");
   if(!name)return;
@@ -213,6 +208,14 @@ async function viewWorkers(id){
       alert("✅ تم");
     }
   }catch(e){alert("خطأ: "+e.message);}
+}
+
+// الدخول السريع (المطلوب)
+function quickLogin(id){
+  localStorage.setItem("companyID",id);
+  localStorage.setItem("username","owner");
+  localStorage.setItem("pin","quick");
+  location.href="indextest.html";
 }
 
 // الديمو
