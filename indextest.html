@@ -565,7 +565,7 @@ return(<div key={c.id} className="card" onClick={()=>jumpToCard(c)} style={{curs
 {stages.map((s,i)=>{const l=liveCards.filter(c=>c.stage===s);const late=l.filter(c=>daysSince(c.updatedAt||c.createdAt)>=LD).length;const q=qtySum(l);const col=STAGE_COLORS[i%8];
 return(<div key={s} className="anim" style={{display:"flex",gap:12,marginBottom:4,animationDelay:(i*100)+"ms"}}>
 <div style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
-<div className="tldot" onClick={()=>{setActiveStage(s);setScreen("home");}} style={{background:col+"22",border:"2px solid "+col,"--g":col+"66",cursor:"pointer"}}>{S_ICONS[i%8]}</div>
+<div className="tldot" onClick={()=>{setActiveStage(s);setScreen("stage");}} style={{background:col+"22",border:"2px solid "+col,"--g":col+"66",cursor:"pointer"}}>{S_ICONS[i%8]}</div>
 {i<stages.length-1&&<div className="tlline" style={{flex:1,minHeight:30,background:"linear-gradient(180deg,"+col+","+STAGE_COLORS[(i+1)%8]+")"}}/>}
 </div>
 <div className="card" onClick={()=>{setActiveStage(s);setScreen("stage");}} style={{flex:1,cursor:"pointer",marginBottom:10}}>
