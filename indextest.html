@@ -1081,8 +1081,8 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div style={{fontSize:14,fontWeight:900}}>{localStorage.getItem("role")==="master"?"ماستر النظام":localStorage.getItem("role")==="manager"?"مالك الشركة":localStorage.getItem("role")==="assistant"?"مساعد مدير":"عامل"} — {localStorage.getItem("username")}</div>
 </div>
 </div>
-{(localStorage.getItem("role")==="manager"||localStorage.getItem("role")==="assistant")&&<WorkersPanel/>}
-<MyPinPanel/>
+{/* {(localStorage.getItem("role")==="manager"||localStorage.getItem("role")==="assistant")&&<WorkersPanel/>} */}
+{/* <MyPinPanel/> */}
 <div className="lbl">🌐 {t.language}</div><div style={{marginBottom:10}}><button onClick={()=>{const n=lang==="ar"?"en":"ar";setLang(n);localStorage.setItem("pref_lang",n);}} className="chip on">{lang==="ar"?"العربية":"English"}</button></div>
 <div style={{display:"flex",gap:6,marginBottom:12}}>
 <button onClick={()=>{const m=themeMode==="light"?"dark":"light";setThemeMode(m);localStorage.setItem("themeMode",m);}} className={"chip"+(themeMode==="light"?" on":"")} style={{flex:1}}>{themeMode==="light"?"🌙 دايم":"☀️ فاتح"}</button>
