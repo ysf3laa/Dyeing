@@ -1073,7 +1073,6 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:400}}>
 <h3 style={{margin:"0 0 14px"}}>⚙️ {t.settings}</h3>
 <button onClick={()=>{localStorage.removeItem("companyID");localStorage.removeItem("username");localStorage.removeItem("pin");setShowSettings(false);location.reload();}} className="btnO" style={{marginBottom:12,borderColor:"var(--red)",color:"var(--red)"}}>🚪 تسجيل خروج</button>
-{window.isMaster&&<button onClick={()=>location.href="master.html"} className="btnO" style={{marginBottom:12,borderColor:"var(--warn)",color:"var(--warn)"}}>👑 إدارة الشركات والعمال</button>}
 <div className="lbl">🌐 {t.language}</div><div style={{marginBottom:10}}><button onClick={()=>{const n=lang==="ar"?"en":"ar";setLang(n);localStorage.setItem("pref_lang",n);}} className="chip on">{lang==="ar"?"العربية":"English"}</button></div>
 <div style={{display:"flex",gap:6,marginBottom:12}}>
 <button onClick={()=>{const m=themeMode==="light"?"dark":"light";setThemeMode(m);localStorage.setItem("themeMode",m);}} className={"chip"+(themeMode==="light"?" on":"")} style={{flex:1}}>{themeMode==="light"?"🌙 دايم":"☀️ فاتح"}</button>
@@ -1152,6 +1151,8 @@ document.getElementById("root").appendChild(d);
 document.getElementById("lg_btn").onclick=function(){var c=document.getElementById("lg_cid").value.trim(),u=document.getElementById("lg_un").value.trim(),p=document.getElementById("lg_pin").value.trim();if(!c||!u||!p){alert("\u0627\u0645\u0644\u0623 \u062C\u0645\u064A\u0639 \u0627\u0644\u062D\u0642\u0648\u0644");return;}localStorage.setItem("companyID",c);localStorage.setItem("username",u);localStorage.setItem("pin",p);location.reload();};
 document.getElementById("lg_demo").onclick=function(){localStorage.setItem("companyID","DEMO");localStorage.setItem("username","demo");localStorage.setItem("pin","0000");location.reload();};
 }else{
+if(window.isMaster){location.replace("master.html");}else{
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 window.__booted=true;
+}
 }
