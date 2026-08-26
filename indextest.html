@@ -279,7 +279,7 @@ db.collection("defects").onSnapshot(sn=>{setDefects(sn.docs.map(d=>({id:d.id,...
 db.collection("config").onSnapshot(sn=>{const g=id=>{const d=sn.docs.find(x=>x.id===id);return d?d.data():null;};
 const s=g("stages"),m=g("machines"),f=g("factory"),cl=g("colors");
 if(s)setStages(s.list||DEFAULT_STAGES);if(m)setMachines(m.list||DEFAULT_MACHINES);
-if(f)setFactory({fname:f.fname||"متابعة الصباغة",wa:f.wa||"",unit:f.unit||"كيلو",lateDays:f.lateDays||2,printSize:f.printSize||"A5",gkey:f.gkey||"",heroT:f.heroT||"",heroS:f.heroS||""});
+if(f)setFactory({fname:f.fname||"متابعة الصباغة",wa:f.wa||"",unit:f.unit||"كيلو",lateDays:f.lateDays||2,printSize:f.printSize||"A5",gkey:f.gkey||"",heroT:f.heroT||"",heroS:f.heroS||"",logo:f.logo||""});
 if(cl)setCustomColors(cl.list||[]);
 const an=g("announce");if(an&&an.text)setAnnounce(an);else setAnnounce(null);});
 setFirebaseOk(true);setReady(true);}else{try{await auth.signInAnonymously();}catch(e){setReady(true);}}});return()=>un&&un();},[]);
