@@ -93,6 +93,7 @@ const firebaseConfig={apiKey:"AIzaSyBEplMzCUPbZ33vpctAegDvCLFLB2d_Psc",authDomai
 // UNLOCK_CODE removed - login system handles access
 let db=null,auth=null,fbReady=false;
 try{firebase.initializeApp(firebaseConfig);auth=firebase.auth();db=firebase.firestore();(function(){const oc=db.collection.bind(db);db._raw=oc;const LEGACY="NEWTEX";db.collection=function(n){if(String(n).indexOf("companies/")===0)return oc(n);if(companyID==="DEFAULT"||companyID===LEGACY)return oc(n);return oc("companies/"+companyID+"/"+n);};})();db.enablePersistence({synchronizeTabs:true}).catch(e=>console.warn(e.code));fbReady=true;}catch(e){console.error(e);}
+window.__masterGem="";try{db._raw("master").doc("gemini").get().then(function(d){if(d.exists&&d.data().key){window.__masterGem=d.data().key;}}).catch(function(){});}catch(e){}
 const DEFAULT_STAGES=["جيتات","صباغة","تجهيز","لف","الصالة"];
 const DEFAULT_MACHINES=["1","2","3","4","5","6","7","8","9","10"];
 const STAGE_COLORS=["#7C5CFF","#5E8FD6","#2DD4A8","#FFB65C","#FF5C7A","#B98FD6","#6FBF73","#D6A24F"];
@@ -1109,10 +1110,11 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 {can&&(<>
 <div className="lbl">👤 {t.yourNameEdit}</div><div style={{display:"flex",gap:6,marginBottom:10}}><input className="inp" style={{marginBottom:0}} value={nameDraft} onChange={e=>setNameDraft(e.target.value)}/><button onClick={()=>{if(nameDraft.trim()){setOwnerName(nameDraft.trim());localStorage.setItem("owner_name_"+userId,nameDraft.trim());showToast("✅");}}} className="chip on">{t.save}</button></div>
 {(localStorage.getItem("role")==="manager"||localStorage.getItem("role")==="assistant"||localStorage.getItem("role")==="master")&&<>
-<div className="lbl">🤖 مفتاح Gemini (قراءة ذكية لكل العمال)</div><input className="inp" placeholder="AIza..." value={gemKey||factory.gkey||""} onChange={e=>{setGemKey(e.target.value);localStorage.setItem("gemini_key",e.target.value.trim());saveFactory({gkey:e.target.value.trim()});}}/>
-<p style={{fontSize:11,color:theme.textDim,marginBottom:8}}>مفتاح مجاني من aistudio.google.com/app/apikey — احطه مرة واحدة ويشتغل عند كل العمال تلقائياً</p>
-<div className="lbl">🏭 {t.factoryName}</div><input className="inp" value={fnameDraft} onChange={e=>setFnameDraft(e.target.value)}/>
-<div className="lbl">📱 {t.waNumber}</div><input className="inp" inputMode="numeric" placeholder="201xxxxxxxxx" value={waDraft} onChange={e=>setWaDraft(e.target.value)}/>
+const handleImportFile=e=>{const f=e.target.files?.[0];if(!f)return;setImportMenu(false);
+const key=String(factory.gkey||localStorage.getItem("gemini_key")||window.__masterGem||"").trim();
+if(key){setImportBusy(0);
+const rr4=new FileReader();
+rr4.onload=()=>{const im=new Image();im.onload=()=>{
 <div style={grid2}>
 <div><div className="lbl">⚖️ {t.unit}</div><select className="inp" value={factory.unit} onChange={e=>saveFactory({unit:e.target.value})}>{["كيلو","قطعة","متر","دستة","طن"].map(u=><option key={u}>{u}</option>)}</select></div>
 <div><div className="lbl">🖨️ {t.printSize}</div><select className="inp" value={factory.printSize} onChange={e=>saveFactory({printSize:e.target.value})}>{["A5","A4"].map(u=><option key={u}>{u}</option>)}</select></div></div>
