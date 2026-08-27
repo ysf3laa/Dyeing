@@ -216,7 +216,7 @@ const [dark,setDark]=useState(true);
 const [stages,setStages]=useState(DEFAULT_STAGES);const [machines,setMachines]=useState(DEFAULT_MACHINES);
 const [showMyWork,setShowMyWork]=useState(false);
 const [companyMembers,setCompanyMembers]=useState([]);
-useEffect(()=>{if(!db)return 0;const cid=localStorage.getItem("companyID");return db.collection("users").onSnapshot(snap=>{const arr=[];snap.forEach(d=>{const u=d.data()||{};if(!cid||u.companyID===cid||u.company===cid||u.companyId===cid)arr.push(d.id);});arr.sort();setCompanyMembers(arr);});},[]);
+{[ownerName].concat(companyMembers||[]).filter((v,i,a)=>v&&a.indexOf(v)===i).map(w=><option key={w} value={w}>{w===ownerName?"👑 "+w:"👷 "+w}</option>)}
 const [factory,setFactory]=useState({fname:"متابعة المراحل",wa:"",unit:"كيلو",lateDays:2,printSize:"A5",heroT:"",heroS:""});
 const [fnameDraft,setFnameDraft]=useState("متابعة المراحل");const [waDraft,setWaDraft]=useState("");const [lateDraft,setLateDraft]=useState(2);
 const [heroTDraft,setHeroTDraft]=useState("");const [heroSDraft,setHeroSDraft]=useState("");
