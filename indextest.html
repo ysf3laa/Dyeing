@@ -118,59 +118,15 @@ const lds=loads.filter(l=>l.customer===name);
 const inf=knownCustomers.find(k=>k.name===name)||{};
 const q=qtySum(cs);
 const delQ=cs.reduce((a,c)=>a+(c.delivered?(parseFloat(c.quantity)||0):(parseFloat(c.deliveredQty)||0)),0);
-const lt=lds.reduce((a,l)=>a+(parseFloat(l.total)||0),0);
-const ldel=lds.reduce((a,l)=>a+loadStats(l).del,0);
-const lrem=lds.reduce((a,l)=>a+loadStats(l).rem,0);
-const rows=cs.slice().sort((a,b)=>toMs(b.updatedAt)-toMs(a.updatedAt)).map(c=>{const si=stages.indexOf(c.stage);const sc=STAGE_COLORS[(si>=0?si:0)%8];return '<tr style="border-bottom:1px solid #E5E7EB"><td style="padding:8px;font-size:12px">'+(c.code||"—")+'</td><td style="padding:8px;font-size:12px;color:'+sc+';font-weight:700">'+(c.stage||"—")+'</td><td style="padding:8px;font-size:12px">'+(c.color||"—")+'</td><td style="padding:8px;font-size:12px;text-align:center">'+(c.quantity||"—")+'</td><td style="padding:8px;font-size:12px;text-align:center">'+(c.delivered?"✅":"")+'</td><td style="padding:8px;font-size:12px">'+fmtTime(c.updatedAt||c.createdAt,lang)+'</td></tr>';}).join("");
-const w=window.open("","_blank","width=800,height=900");if(!w)return;
-w.document.write('<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>كشف حساب - '+name+'</title><style>
-body{font-family:"Tajawal","Segoe UI",sans-serif;padding:24px;color:#1A1E30;background:#fff;margin:0}
-.hd{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #7C5CFF;padding-bottom:14px;margin-bottom:20px}
-.hd .lg{display:flex;align-items:center;gap:12px}
-.hd .lg img{width:52px;height:52px;border-radius:12px;object-fit:cover}
-.hd h1{font-size:22px;margin:0;color:#1A1E30}
-.hd .nm{font-size:12px;color:#66708F;margin-top:2px}
-.hd .rt{text-align:left;font-size:11px;color:#66708F}
-.hd .rt b{color:#1A1E30;display:block;font-size:13px;margin-bottom:2px}
-.box{background:#F9FAFB;border:1px solid #E5E7EB;border-radius:12px;padding:14px;margin-bottom:16px}
-.box .row{display:flex;flex-wrap:wrap;gap:12px;font-size:13px}
-.box .row > div{flex:1;min-width:140px}
-.box .row .k{color:#66708F;font-size:11px;margin-bottom:2px}
-.box .row .v{font-weight:800;color:#1A1E30;font-size:15px}
-table{width:100%;border-collapse:collapse;background:#fff;border:1px solid #E5E7EB;border-radius:10px;overflow:hidden}
-th{background:#7C5CFF;color:#fff;font-size:12px;padding:10px;text-align:start;font-weight:700}
-.ft{margin-top:24px;padding-top:14px;border-top:1px solid #E5E7EB;text-align:center;color:#66708F;font-size:11px}
-.totals{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
-.totals > div{background:linear-gradient(135deg,#7C5CFF,#5E8FD6);color:#fff;padding:12px;border-radius:10px;text-align:center}
-.totals > div .n{font-size:18px;font-weight:900}
-.totals > div .l{font-size:10px;opacity:.9;margin-top:2px}
-@media print{body{padding:12px}.no-print{display:none}}
-</style></head><body>
-<div class="hd">
-  <div class="lg">'+(logoSrc?'<img src="'+logoSrc+'"/>':'')+'<div><h1>'+(factory.fname||"متابعة المراحل")+'</h1><div class="nm">'+(factory.wa?"📞 "+factory.wa:"")+'</div></div></div>
-  <div class="rt"><b>كشف حساب عميل</b>'+new Date().toLocaleDateString("ar-EG",{year:"numeric",month:"long",day:"numeric"})+'</div>
-</div>
-<div class="box">
-  <div class="row">
-    <div><div class="k">اسم العميل</div><div class="v">'+name+'</div></div>
-    '+(inf.phone?'<div><div class="k">التليفون</div><div class="v">📞 '+inf.phone+'</div></div>':'')+
-    (inf.address?'<div><div class="k">العنوان</div><div class="v">📍 '+inf.address+'</div></div>':'')+
-    '<div><div class="k">إجمالي كروت</div><div class="v">'+cs.length+'</div></div>
-  </div>
-</div>
-<div class="totals">
-  <div><div class="n">'+q+' '+factory.unit+'</div><div class="l">إجمالي الكميات</div></div>
-  <div><div class="n">'+delQ+' '+factory.unit+'</div><div class="l">تم التسليم</div></div>
-  <div><div class="n">'+(q-delQ)+' '+factory.unit+'</div><div class="l">قيد العمل</div></div>
-  <div><div class="n">'+lds.length+'</div><div class="l">حمولات</div></div>
-</div>
-<h3 style="margin:14px 0 8px;font-size:14px;color:#1A1E30">📋 تفاصيل الكروت</h3>
-<table>
-  <thead><tr><th>الكود</th><th>المرحلة</th><th>اللون</th><th style="text-align:center">الكمية</th><th style="text-align:center">التسليم</th><th>آخر حركة</th></tr></thead>
-  <tbody>'+rows+'</tbody>
-</table>
-<div class="ft">طُبع من نظام متابعة المراحل — '+new Date().toLocaleString("ar-EG")+'</div>
-</body></html>');
+const rows=cs.slice().sort((a,b)=>toMs(b.updatedAt)-toMs(a.updatedAt)).map(c=>{const si=stages.indexOf(c.stage);const sc=STAGE_COLORS[(si>=0?si:0)%8];return "<tr><td style='padding:8px;font-size:12px'>"+(c.code||"—")+"</td><td style='padding:8px;font-size:12px;color:"+sc+";font-weight:700'>"+(c.stage||"—")+"</td><td style='padding:8px;font-size:12px'>"+(c.color||"—")+"</td><td style='padding:8px;font-size:12px;text-align:center'>"+(c.quantity||"—")+"</td><td style='padding:8px;font-size:12px;text-align:center'>"+(c.delivered?"✅":"")+"</td><td style='padding:8px;font-size:12px'>"+fmtTime(c.updatedAt||c.createdAt,lang)+"</td></tr>";}).join("");
+const logoHtml=logoSrc?"<img src='"+logoSrc+"' style='width:52px;height:52px;border-radius:12px;object-fit:cover'/>":"";
+const waHtml=factory.wa?"<div style='font-size:11px;color:#66708F;margin-top:2px'>📞 "+factory.wa+"</div>":"";
+const phHtml=inf.phone?"<div><div style='color:#66708F;font-size:11px;margin-bottom:2px'>التليفون</div><div style='font-weight:800;font-size:15px'>📞 "+inf.phone+"</div></div>":"";
+const addrHtml=inf.address?"<div><div style='color:#66708F;font-size:11px;margin-bottom:2px'>العنوان</div><div style='font-weight:800;font-size:15px'>📍 "+inf.address+"</div></div>":"";
+const w=window.open("","_blank","width=800,height=900");
+if(!w)return;
+const html="<!DOCTYPE html><html dir='rtl' lang='ar'><head><meta charset='utf-8'><title>كشف حساب - "+name+"</title><style>body{font-family:'Tajawal','Segoe UI',sans-serif;padding:24px;color:#1A1E30;background:#fff;margin:0}.hd{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #7C5CFF;padding-bottom:14px;margin-bottom:20px}.hd .lg{display:flex;align-items:center;gap:12px}.hd h1{font-size:22px;margin:0;color:#1A1E30}.hd .rt{text-align:left;font-size:11px;color:#66708F}.hd .rt b{color:#1A1E30;display:block;font-size:13px;margin-bottom:2px}.box{background:#F9FAFB;border:1px solid #E5E7EB;border-radius:12px;padding:14px;margin-bottom:16px}.box .row{display:flex;flex-wrap:wrap;gap:12px;font-size:13px}.box .row > div{flex:1;min-width:140px}table{width:100%;border-collapse:collapse;background:#fff;border:1px solid #E5E7EB;border-radius:10px;overflow:hidden}th{background:#7C5CFF;color:#fff;font-size:12px;padding:10px;text-align:start;font-weight:700}.ft{margin-top:24px;padding-top:14px;border-top:1px solid #E5E7EB;text-align:center;color:#66708F;font-size:11px}.totals{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}.totals > div{background:linear-gradient(135deg,#7C5CFF,#5E8FD6);color:#fff;padding:12px;border-radius:10px;text-align:center}.totals .n{font-size:18px;font-weight:900}.totals .l{font-size:10px;opacity:.9;margin-top:2px}@media print{body{padding:12px}}</style></head><body><div class='hd'><div class='lg'>"+logoHtml+"<div><h1>"+(factory.fname||"متابعة المراحل")+"</h1>"+waHtml+"</div></div><div class='rt'><b>كشف حساب عميل</b>"+new Date().toLocaleDateString("ar-EG",{year:"numeric",month:"long",day:"numeric"})+"</div></div><div class='box'><div class='row'><div><div style='color:#66708F;font-size:11px;margin-bottom:2px'>اسم العميل</div><div style='font-weight:800;font-size:15px'>"+name+"</div></div>"+phHtml+addrHtml+"<div><div style='color:#66708F;font-size:11px;margin-bottom:2px'>إجمالي كروت</div><div style='font-weight:800;font-size:15px'>"+cs.length+"</div></div></div></div><div class='totals'><div><div class='n'>"+q+" "+factory.unit+"</div><div class='l'>إجمالي الكميات</div></div><div><div class='n'>"+delQ+" "+factory.unit+"</div><div class='l'>تم التسليم</div></div><div><div class='n'>"+(q-delQ)+" "+factory.unit+"</div><div class='l'>قيد العمل</div></div><div><div class='n'>"+lds.length+"</div><div class='l'>حمولات</div></div></div><h3 style='margin:14px 0 8px;font-size:14px;color:#1A1E30'>📋 تفاصيل الكروت</h3><table><thead><tr><th>الكود</th><th>المرحلة</th><th>اللون</th><th style='text-align:center'>الكمية</th><th style='text-align:center'>التسليم</th><th>آخر حركة</th></tr></thead><tbody>"+rows+"</tbody></table><div class='ft'>طُبع من نظام متابعة المراحل — "+new Date().toLocaleString("ar-EG")+"</div></body></html>";
+w.document.write(html);
 w.document.close();
 setTimeout(()=>{w.focus();w.print();},400);
 }
