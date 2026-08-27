@@ -115,7 +115,6 @@ setInterval(touchLastSeen,60000);touchLastSeen();
 function LastSeen(props){var _s=React.useState(0),ls=_s[0],setLs=_s[1];React.useEffect(()=>{if(!window.db||!props.name)return 0;return db.collection("users").doc(props.name).onSnapshot(d=>{if(d.exists)setLs(d.data().lastSeen||0);});},[props.name]);if(!ls)return(<span style={{fontSize:10,color:"#8A93B5"}}>—</span>);var mins=Math.floor((Date.now()-ls)/60000);var txt=mins<1?"دلوقتي":mins<60?"من "+mins+" د":mins<1440?"من "+Math.floor(mins/60)+" س":"من "+Math.floor(mins/1440)+" يوم";return(<span style={{fontSize:10,color:mins<5?"#2DD4A8":"#8A93B5"}}>{mins<5?"🟢":"🕐"} {txt}</span>);}
 function fmtDur(ms){const m=Math.max(0,Math.floor(ms/60000));if(m<60)return m+"د";const h=Math.floor(m/60);if(h<24)return (m%60)?h+"س "+(m%60)+"د":h+"س";const d=Math.floor(h/24);return (h%24)?d+"ي "+(h%24)+"س":d+"ي";}
 function daysSince(v){const m=toMs(v);if(!m)return 0;return(Date.now()-m)/86400000;}
-const touchLastSeen=()=>{const u=localStorage.getItem("username");if(!u||!db)return;try{db.collection("users").doc(u).set({lastSeen:Date.now()},{merge:true});}catch(e){}};
 function localDate(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
 function printStatement(name){
 const cs=cards.filter(c=>c.customer===name);
