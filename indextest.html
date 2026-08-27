@@ -455,7 +455,9 @@ const moveCardTo=async(c,d)=>{if(!can||!db)return;d=d||(stages[0]||"");try{await
 const copyCardTo=async(c,d)=>{if(!can||!db)return;try{const id=uid();await db.collection("cards").doc(id).set({...c,id,stage:d,pinned:false,createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp(),createdBy:ownerName,history:[{stage:d,by:ownerName,at:nowISO()}]});await addLog("نسخ",c);setCopyCard(null);setActionCard(null);showToast("📋 ✅");}catch(e){}};
 const togglePin=async c=>{if(!can||!db)return;try{await db.collection("cards").doc(c.id).set({pinned:!c.pinned},{merge:true});setActionCard(null);}catch(e){}};
 const toggleArchive=async c=>{if(!can||!db)return;try{await db.collection("cards").doc(c.id).set({archived:!c.archived},{merge:true});await addLog(c.archived?"رجوع":"أرشفة",c);setActionCard(null);}catch(e){}};
-const isLate=c=>daysSince(c.updatedAt||c.createdAt)>=1;
+const holCount=ms=>{const hs=factory.holidays||[];let n=0;hs.forEach(d=>{const m=toMs(d);if(m&&m>=ms&&m<Date.now())n++;});return n;};
+const adjDays=c=>Math.max(0,daysSince(c.updatedAt||c.createdAt)-holCount(toMs(c.updatedAt||c.createdAt)));
+const isLate=c=>adjDays(c)>=1;
 const dueInfo=c=>{if(!c.due)return null;const today=localDate(new Date());if(c.due<today)return{txt:t.overdue,col:theme.danger};if((new Date(c.due).getTime()-new Date(today).getTime())/86400000<=1)return{txt:t.dueSoon,col:theme.warn};return null;};
 const liveCards=cards.filter(c=>!c.archived&&!c.stored);
 const storedCards=cards.filter(c=>!!c.stored&&!c.archived);
@@ -467,8 +469,8 @@ const cardsToShow=activeStage?liveCards.filter(c=>c.stage===activeStage).filter(
 const statusMsg=syncStatus==="syncing"?t.syncing:syncStatus==="synced"?t.synced:(isOnline?t.online:t.offline);
 const statusColor=syncStatus==="syncing"?theme.warn:syncStatus==="synced"?theme.accent2:(isOnline?theme.accent2:theme.danger);
 const onlineNames=[...new Set(onlineUsers.map(u=>u.name))];
-const lateCount=liveCards.filter(c=>daysSince(c.updatedAt||c.createdAt)>=LD).length;
-const lateAll=liveCards.filter(c=>daysSince(c.updatedAt||c.createdAt)>=LD);
+const lateCount=liveCards.filter(c=>adjDays(c)>=LD).length;
+const lateAll=liveCards.filter(c=>adjDays(c)>=LD);
 const delAll=liveCards.filter(c=>c.delivered||(parseFloat(c.deliveredQty)||0)>0);
 const todayLogCount=log.filter(e=>localDate(new Date(toMs(e.time||e.timeLocal)))===localDate(new Date())).length;
 const recent3=liveCards.slice().sort((a,b)=>toMs(b.updatedAt)-toMs(a.updatedAt)).slice(0,3);
@@ -511,7 +513,7 @@ return(
 <div style={{width:44,height:44,borderRadius:50,background:"linear-gradient(135deg,var(--vio),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,boxShadow:"0 6px 18px rgba(124,92,255,.4)"}}>{(ownerName||"؟")[0]}</div>
 <div style={{flex:1}}><div style={{fontSize:12,color:theme.textDim}}>👋 مرحباً يا {ownerName}</div><div style={{fontSize:20,fontWeight:900}}>{factory.fname}</div></div>
 <button onClick={()=>setShowSearch(true)} style={hdrBtn}>🔍</button>
-<button onClick={()=>setShowLateList(true)} style={{...hdrBtn,position:"relative"}}>🔔{(()=>{const n=liveCards.filter(c=>!c.delivered&&(c.urgent||daysSince(c.updatedAt||c.createdAt)>=(factory.lateDays||2))).length;return n>0?<span style={{position:"absolute",top:4,left:4,background:"var(--red)",color:"#fff",borderRadius:10,fontSize:9,fontWeight:800,padding:"1px 5px",minWidth:16,textAlign:"center"}}>{n}</span>:null;})()}</button>
+<button onClick={()=>setShowLateList(true)} style={{...hdrBtn,position:"relative"}}>🔔{(()=>{const n=liveCards.filter(c=>!c.delivered&&(c.urgent||adjDays(c)>=(factory.lateDays||2))).length;return n>0?<span style={{position:"absolute",top:4,left:4,background:"var(--red)",color:"#fff",borderRadius:10,fontSize:9,fontWeight:800,padding:"1px 5px",minWidth:16,textAlign:"center"}}>{n}</span>:null;})()}</button>
 <button onClick={()=>setShowMenu(true)} style={hdrBtn}>⋯</button>
 </div>
 <div className="card grad anim" style={{animationDelay:"80ms",marginBottom:12,position:"relative",overflow:"hidden"}}>
@@ -1189,11 +1191,12 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div className="lbl">⏰ {t.lateDays}</div><input className="inp" type="number" min="1" value={lateDraft} onChange={e=>setLateDraft(e.target.value)}/>
 <button onClick={saveFactoryDrafts} className="btnG" style={{marginBottom:10}}>💾 {t.saveFactoryBtn}</button>
 </>}
-<div className="lbl">🎚️ {t.manageStages}</div><div style={{marginBottom:10}}>{stages.map(s=>(<div key={s} style={{display:"flex",gap:6,alignItems:"center",marginBottom:6}}><span style={{flex:1,fontSize:13}}>{s}</span><button onClick={()=>{const n=prompt(t.rename,s);if(n&&n.trim()&&n!==s)renameStage(s,n.trim());}} className="chip">✏️</button><button onClick={()=>{if(confirm(t.delete+" "+s))saveStages(stages.filter(x=>x!==s));}} className="chip">🗑️</button></div>))}
+<div className="lbl">🎚️ {t.manageStages}</div><div style={{marginBottom:10}}>{stages.map(s=>(<div key={s} style={{display:"flex",gap:6,alignItems:"center",marginBottom:6}}><span style={{flex:1,fontSize:13}}>{s}</span><button onClick={()=>{const cur=(factory.stageLocks||{})[s];const nx={...(factory.stageLocks||{})};if(cur)delete nx[s];else nx[s]=1;saveFactory({stageLocks:nx});}} className={"chip"+((factory.stageLocks||{})[s]?" on":"")} title="قفل المرحلة">{(factory.stageLocks||{})[s]?"🔒":"🔓"}</button><button onClick={()=>{const n=prompt(t.rename,s);if(n&&n.trim()&&n!==s)renameStage(s,n.trim());}} className="chip">✏️</button><button onClick={()=>{if(confirm(t.delete+" "+s))saveStages(stages.filter(x=>x!==s));}} className="chip">🗑️</button></div>))}
 <button onClick={()=>{const n=prompt(t.addStage);if(n&&n.trim()&&!stages.includes(n.trim()))saveStages(stages.concat([n.trim()]));}} className="chip" style={{marginTop:4}}>➕</button></div>
 <div className="lbl">🔧 {t.manageMachines}</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{machines.map(m=><button key={m} onClick={()=>{if(confirm(t.delete+" "+m))saveMachines(machines.filter(x=>x!==m));}} className="chip">{m} ✕</button>)}<button onClick={()=>{const n=prompt(t.add);if(n&&n.trim()&&!machines.includes(n.trim()))saveMachines(machines.concat([n.trim()]));}} className="chip on">➕</button></div>
 <div className="lbl">🎨 {t.manageColors}</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{customColors.map(c=><button key={c} onClick={()=>saveColors(customColors.filter(x=>x!==c))} className="chip">{c} ✕</button>)}<button onClick={()=>{const n=prompt(t.add);if(n&&n.trim())saveColors(customColors.concat([n.trim()]));}} className="chip on">➕</button></div>
 <div className="lbl">🚩 أعلام الكروت</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{(factory.flags||[]).map(f=><button key={f} onClick={()=>{if(confirm("حذف العلم: "+f))saveFactory({flags:(factory.flags||[]).filter(x=>x!==f)});}} className="chip">{f} ✕</button>)}<button onClick={()=>{const n=prompt("اسم العلم الجديد (مثال: 🖨️ طباعة قماش)");if(n&&n.trim())saveFactory({flags:[...(factory.flags||[]),n.trim()]});}} className="chip on">➕</button></div>
+<div className="lbl">🏖️ أجازات المصنع</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>{(factory.holidays||[]).map(h=><button key={h} onClick={()=>{if(confirm("حذف إجازة "+h+"؟"))saveFactory({holidays:(factory.holidays||[]).filter(x=>x!==h)});}} className="chip">{h} ✕</button>)}</div><input type="date" className="inp" style={{marginBottom:8}} onChange={e=>{if(e.target.value&&!((factory.holidays)||[]).includes(e.target.value))saveFactory({holidays:[...(factory.holidays||[]),e.target.value]});e.target.value="";}}/><button onClick={()=>saveFactory({closed:!factory.closed})} className={"chip"+(factory.closed?" on":"")} style={{marginBottom:10}}>{factory.closed?"🔒 المصنع مقفل اليوم":"🔓 المصنع شغال"}</button>
 {(localStorage.getItem("role")==="manager"||localStorage.getItem("role")==="assistant"||localStorage.getItem("role")==="master")&&<>
 <div style={{...grid2,marginTop:8}}>
 <button onClick={()=>setAppQr(true)} className="btnO">🔳 {t.appQr}</button>
