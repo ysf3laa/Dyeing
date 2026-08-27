@@ -1080,7 +1080,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 {showStored&&(
 <div className="modal" onClick={()=>setShowStored(false)}>
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:400}}>
-<h3 style={{margin:"0 0 12px"}}>📦 المخزن المجهز ({storedCards.length})</h3>
+<div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}><h3 style={{flex:1,margin:0}}>📦 المخزن المجهز ({storedCards.length})</h3><button className="chip on" onClick={()=>exportSheet(storedCards,"مخزن-مجهز")}>💾 تصدير</button></div>
 {storedCards.length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center",padding:16}}>فاضي — انقل كروت له من زرار 📦</p>}
 {storedCards.slice().sort((a,b)=>toMs(b.updatedAt)-toMs(a.updatedAt)).map(c=>(<div key={c.id} onClick={()=>{setShowStored(false);setActionCard(c);}} className="card" style={{padding:"10px 12px",marginBottom:8,cursor:"pointer"}}><b style={{fontSize:13}}>{c.customer} · {c.code}</b><div style={{fontSize:11,color:theme.textDim}}>{c.color} — {c.quantity}</div></div>))}
 </div></div>)}
