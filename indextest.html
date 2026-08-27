@@ -352,8 +352,14 @@ const toggleStored=async c=>{if(!can||!db)return;await db.collection("cards").do
 const partialDeliver=async(c,q)=>{if(!can||!db)return;const v=Math.min(parseFloat(q)||0,parseFloat(c.quantity)||0);await db.collection("cards").doc(c.id).set({deliveredQty:v,delivered:v>=(parseFloat(c.quantity)||0)},{merge:true});await addLog("تسليم جزئي",c,String(v));setActionCard(null);};
 const saveHero=()=>{if(!can||!db)return;saveFactory({heroT:heroTDraft.trim(),heroS:heroSDraft.trim()});setHeroEdit(false);showToast("🎨 ✅");};
 const saveAnnounce=()=>{if(!can||!db)return;const el=document.getElementById("annBox");const txt=el?el.value:"";db.collection("config").doc("announce").set({text:txt.trim(),by:ownerName||"",time:Date.now()});setShowAnnounce(false);showToast("📢 اتنشر");};
-const saveDefect=async()=>{if(!can||!db||!defectFor)return;await db.collection("defects").doc(uid()).set({cardId:defectFor.id,customer:defectFor.customer||"",code:defectFor.code||"",stage:defectFor.stage||"",reason:defectDraft.reason||"",qty:defectDraft.qty||"",notes:defectDraft.notes||"",by:ownerName||"",time:Date.now(),date:localDate(new Date())});setDefectFor(null);setDefectDraft({reason:"",qty:"",notes:""});showToast("⚠️ تم التسجيل");};
-const saveFactory=patch=>{if(!can||!db)return;db.collection("config").doc("factory").set({...factory,...patch},{merge:true});};
+ const saveDefect=async()=>{if(!can||!db||!defectFor)return;await db.collection("defects").doc(uid()).set({cardId:defectFor.id,customer:defectFor.customer||"",code:defectFor.code||"",stage:defectFor.stage||"",reason:defectDraft.reason||"",qty:defectDraft.qty||"",notes:defectDraft.notes||"",by:ownerName||"",time:Date.now(),date:localDate(new Date())});setDefectFor(null);setDefectDraft({reason:"",qty:"",notes:""});showToast("⚠️ تم التسجيل");};
+const saveFactory=patch=>{
+if(!db){showToast("❌ مفيش اتصال");return;}
+if(!can){alert("المالك فقط يقدر يعدّل الإعدادات");return;}
+const next={...factory,...patch};
+setFactory(next);
+db.collection("config").doc("factory").set(patch,{merge:true}).then(()=>showToast("✅ اتحفظ")).catch(e=>{console.error(e);showToast("❌ خطأ في الحفظ");});
+};
 const saveFactoryDrafts=()=>{saveFactory({fname:fnameDraft.trim()||"متابعة المراحل",wa:waDraft.trim(),lateDays:+lateDraft||2,heroT:heroTDraft.trim(),heroS:heroSDraft.trim()});showToast("✅");};
 const saveStages=l=>{if(!can||!db)return;db.collection("config").doc("stages").set({list:l});};
 const renameStage=(o,n)=>{if(!can)return;saveStages(stages.map(s=>s===o?n:s));cards.filter(c=>c.stage===o).forEach(c=>db.collection("cards").doc(c.id).set({stage:n},{merge:true}));};
