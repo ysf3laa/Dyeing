@@ -222,6 +222,7 @@ const [showLateList,setShowLateList]=useState(false);const [showDelivered,setSho
 const [showStored,setShowStored]=useState(false);
 const [defects,setDefects]=useState([]);const [showDefects,setShowDefects]=useState(false);const [defectFor,setDefectFor]=useState(null);const [defectDraft,setDefectDraft]=useState({reason:"",qty:"",notes:""});
 const [linkedFrom,setLinkedFrom]=useState(null);
+const [showFlags,setShowFlags]=useState(false);
 const [screen,setScreen]=useState("home");const [activeStage,setActiveStage]=useState(null);
 const [lateOnly,setLateOnly]=useState(false);
 const [selectMode,setSelectMode]=useState(false);const [selected,setSelected]=useState([]);const [bulkMoveTo,setBulkMoveTo]=useState("");
@@ -708,6 +709,17 @@ return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noRe
 <input ref={importCamRef} type="file" accept="image/*" capture="environment" style={{display:"none"}} onChange={handleImportFile}/>
 <input ref={importGalRef} type="file" accept="image/*" style={{display:"none"}} onChange={handleImportFile}/>
 <input ref={restoreRef} type="file" accept="application/json" style={{display:"none"}} onChange={restoreJSON}/>
+{showFlags&&(
+<div className="modal" onClick={()=>setShowFlags(false)}>
+<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:380}}>
+<h3 style={{margin:"0 0 12px"}}>🚩 أعلام الكروت</h3>
+{(factory.flags||[]).length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center"}}>المالك يعرّف الأعلام من الإعدادات ⚙️</p>}
+{(factory.flags||[]).map(f=>{const cs=liveCards.filter(c=>(c.flags||[]).includes(f));const done=cs.filter(c=>(c.flagsDone||[]).includes(f)).length;return(<div key={f} style={{marginBottom:12}}>
+<div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:6}}><b>{f}</b><span style={{color:theme.textDim}}>{done}/{cs.length} خلص</span></div>
+{cs.length===0&&<div style={{fontSize:12,color:theme.textDim}}>مفيش كروت معلمة</div>}
+{cs.map(c=>{const d=(c.flagsDone||[]).includes(f);return(<div key={c.id} onClick={()=>{setShowFlags(false);jumpToCard(c);}} style={{display:"flex",gap:8,alignItems:"center",padding:"6px 10px",marginBottom:4,borderRadius:10,background:theme.panelAlt,cursor:"pointer",fontSize:12,opacity:d?0.55:1}}><span>{d?"✅":"☐"}</span><b>{c.code||"—"}</b><span style={{color:theme.textDim}}>{c.customer}</span><span style={{marginInlineStart:"auto"}}>{c.stage}</span></div>);})}
+</div>);})}
+</div></div>)}
 {showMenu&&(
 <div className="modal" onClick={()=>setShowMenu(false)}>
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:300}}>
@@ -724,6 +736,8 @@ return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noRe
 <MenuBtn onClick={()=>{exportCSV();setShowMenu(false);}}>💾 {t.backup}</MenuBtn>
 <MenuBtn onClick={()=>{setScreen("archive");setShowMenu(false);}}>🗄️ {t.archive}</MenuBtn>
 <MenuBtn onClick={()=>{setScreen("log");setShowMenu(false);}}>📋 {t.dailyLog}</MenuBtn>
+<div className="lbl">🎨 {t.manageColors}</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{customColors.map(c=><button key={c} onClick={()=>saveColors(customColors.filter(x=>x!==c))} className="chip">{c} ✕</button>)}<button onClick={()=>{const n=prompt(t.add);if(n&&n.trim())saveColors(customColors.concat([n.trim()]));}} className="chip on">➕</button></div>
+<div className="lbl">🚩 أعلام الكروت</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{(factory.flags||[]).map(f=><button key={f} onClick={()=>{if(confirm("حذف العلم: "+f))saveFactory({flags:(factory.flags||[]).filter(x=>x!==f)});}} className="chip">{f} ✕</button>)}<button onClick={()=>{const n=prompt("اسم العلم الجديد (مثال: 🖨️ طباعة قماش)");if(n&&n.trim())saveFactory({flags:[...(factory.flags||[]),n.trim()]});}} className="chip on">➕</button></div>
 <MenuBtn onClick={()=>{setNameDraft(ownerName);openSettingsGuard();setShowMenu(false);}}>⚙️ {t.settings}</MenuBtn>
 <MenuBtn onClick={()=>{window.open("https://wa.me/"+SUPPORT_WA+"?text="+encodeURIComponent("🆘 دعم — "+(factory.fname||"")+" | المستخدم: "+(ownerName||"")+" | الشركة: "+(localStorage.getItem("companyID")||"")),"_blank");setShowMenu(false);}}>🆘 دعم واتساب</MenuBtn>
 </div></div>)}
@@ -1047,6 +1061,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 {editingCard.phone&&(<div style={{display:"flex",gap:8,marginBottom:10}}><a href={"tel:"+editingCard.phone} className="btnO" style={{textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>📞</a><a href={"https://wa.me/"+editingCard.phone.replace(/\D/g,"")} target="_blank" rel="noreferrer" className="btnO" style={{textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>💬</a></div>)}
 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><div className="lbl">{t.notes}</div><button onClick={noteMic} className={"chip"+(micOn?" on":"")}>🎙️</button></div><textarea rows={2} className="inp" value={editingCard.notes} onChange={e=>setEditingCard({...editingCard,notes:e.target.value})}/>
 <label style={{display:"flex",alignItems:"center",gap:8,marginBottom:14,fontSize:14}}><input type="checkbox" checked={!!editingCard.urgent} onChange={e=>setEditingCard({...editingCard,urgent:e.target.checked})}/> ⚠️ {t.urgent}</label>
+{(factory.flags||[]).length>0&&(<div style={{marginBottom:12}}><div className="lbl">🚩 أعلام الكرت</div><div style={{display:"flex",gap:6,flexWrap:"wrap"}}>{(factory.flags||[]).map(f=>{const on=(editingCard.flags||[]).includes(f);const done=(editingCard.flagsDone||[]).includes(f);return(<span key={f} style={{display:"inline-flex",gap:4,alignItems:"center"}}><button onClick={()=>{const cur=editingCard.flags||[];setEditingCard({...editingCard,flags:on?cur.filter(x=>x!==f):[...cur,f]});}} className={"chip"+(on?" on":"")}>{f}</button>{on&&<button onClick={()=>{const cur=editingCard.flagsDone||[];setEditingCard({...editingCard,flagsDone:done?cur.filter(x=>x!==f):[...cur,f]});}} className="chip" style={{background:done?"var(--teal)":"transparent"}}>{done?"✅":"☐"}</button>}</span>);})}</div></div>)}
 {(()=>{const qp=queuePos(editingCard);if(!qp||editingCard.delivered)return null;return(<div style={{padding:"8px 12px",marginBottom:10,background:"rgba(45,212,168,.08)",border:"1px solid rgba(45,212,168,.35)",borderRadius:12,fontSize:12,color:theme.textDim}}>📍 ترتيبك في مرحلة <b>{editingCard.stage}</b>: <b style={{color:"var(--teal)"}}>{qp.pos} من {qp.total}</b> — الأقدم بيتشتغل الأول</div>);})()}
 {(()=>{if(!editingCard||editingCard.delivered)return null;const eta=etaOf(editingCard);if(!eta)return null;const d=Math.max(0,Math.round((eta-Date.now())/86400000));return(<div style={{padding:"8px 12px",marginBottom:12,background:"rgba(94,143,214,.10)",border:"1px solid rgba(94,143,214,.35)",borderRadius:12,fontSize:12,color:theme.textDim}}>🗓️ الجاهزية المتوقعة: <b style={{color:"var(--blue)"}}>{new Date(eta).toLocaleDateString(lang==="ar"?"ar-EG":"en-GB",{weekday:"long",day:"numeric",month:"long"})}</b> (بعد ~{d} يوم)</div>);})()}
 {Array.isArray(editingCard.history)&&editingCard.history.length>0&&(<div style={{marginBottom:14}}><div className="lbl">📜 {t.history}</div>{editingCard.history.slice().reverse().map((h,i)=>{const arr=editingCard.history;const idx=arr.indexOf(h);const nxt=arr[idx+1];const ms=(nxt?toMs(nxt.at):Date.now())-toMs(h.at);return(<div key={i} style={{display:"flex",gap:8,flexWrap:"wrap",fontSize:12,color:theme.textDim,padding:"6px 10px",marginBottom:4,borderInlineStart:"2px solid var(--vio)",background:theme.panelAlt,borderRadius:8}}><span>📍 {h.stage}</span><span>· {h.by}</span><span>· {fmtTime(h.at,lang)}</span><span style={{color:"var(--warn)",fontWeight:800}}>⏱️ {fmtDur(ms)}</span></div>);})}</div>)}
