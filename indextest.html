@@ -736,8 +736,7 @@ return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noRe
 <MenuBtn onClick={()=>{exportCSV();setShowMenu(false);}}>💾 {t.backup}</MenuBtn>
 <MenuBtn onClick={()=>{setScreen("archive");setShowMenu(false);}}>🗄️ {t.archive}</MenuBtn>
 <MenuBtn onClick={()=>{setScreen("log");setShowMenu(false);}}>📋 {t.dailyLog}</MenuBtn>
-<div className="lbl">🎨 {t.manageColors}</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{customColors.map(c=><button key={c} onClick={()=>saveColors(customColors.filter(x=>x!==c))} className="chip">{c} ✕</button>)}<button onClick={()=>{const n=prompt(t.add);if(n&&n.trim())saveColors(customColors.concat([n.trim()]));}} className="chip on">➕</button></div>
-<div className="lbl">🚩 أعلام الكروت</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{(factory.flags||[]).map(f=><button key={f} onClick={()=>{if(confirm("حذف العلم: "+f))saveFactory({flags:(factory.flags||[]).filter(x=>x!==f)});}} className="chip">{f} ✕</button>)}<button onClick={()=>{const n=prompt("اسم العلم الجديد (مثال: 🖨️ طباعة قماش)");if(n&&n.trim())saveFactory({flags:[...(factory.flags||[]),n.trim()]});}} className="chip on">➕</button></div>
+<MenuBtn onClick={()=>{setShowFlags(true);setShowMenu(false);}}>🚩 أعلام الكروت</MenuBtn>
 <MenuBtn onClick={()=>{setNameDraft(ownerName);openSettingsGuard();setShowMenu(false);}}>⚙️ {t.settings}</MenuBtn>
 <MenuBtn onClick={()=>{window.open("https://wa.me/"+SUPPORT_WA+"?text="+encodeURIComponent("🆘 دعم — "+(factory.fname||"")+" | المستخدم: "+(ownerName||"")+" | الشركة: "+(localStorage.getItem("companyID")||"")),"_blank");setShowMenu(false);}}>🆘 دعم واتساب</MenuBtn>
 </div></div>)}
