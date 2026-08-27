@@ -1224,7 +1224,7 @@ const pro=(w)=>{var nr=w.role==="assistant"?"worker":"assistant";db.collection("
 return <div className="card" style={{padding:14,marginTop:12}}>
 <div className="lbl">👥 إدارة العمال والمساعدين</div>
 {ws.filter(w=>w.role!=="manager").map(w=><div key={w.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:"1px solid #242B47"}}>
-<div><b style={{fontSize:13}}>{w.role==="assistant"?"🎖️":"👷"} {w.name||w.id}</b><div style={{fontSize:11,color:"#8A93B5"}}>رمز: {w.pin}</div></div>
+<div><b style={{fontSize:13}}>{w.role==="assistant"?"🎖️":"👷"} {w.name||w.id}</b><div style={{fontSize:11,color:"#8A93B5"}}>رمز: {w.pin}</div><div style={{marginTop:3}}><LastSeen name={w.id}/></div></div>
 <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
 <button className="chip" onClick={()=>tog(w)} style={{borderColor:w.locked?"#FF5C7A":"#2DD4A8",color:w.locked?"#FF5C7A":"#2DD4A8"}}>{w.locked?"🔒":"✅"}</button>
 <button className="chip" onClick={()=>edit(w)}>✏️</button>
