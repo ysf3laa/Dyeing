@@ -109,8 +109,71 @@ function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2
 function nowISO(){return new Date().toISOString();}
 function toMs(v){if(!v)return 0;if(typeof v==="number")return v;if(v.toDate)return v.toDate().getTime();const d=new Date(v);return isNaN(d.getTime())?0:d.getTime();}
 function fmtTime(v,l){const m=toMs(v);if(!m)return "";return new Date(m).toLocaleString(l==="ar"?"ar-EG":"en-GB",{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"});}
+function fmtDur(ms){const m=Math.max(0,Math.floor(ms/60000));if(m<60)return m+"د";const h=Math.floor(m/60);if(h<24)return (m%60)?h+"س "+(m%60)+"د":h+"س";const d=Math.floor(h/24);return (h%24)?d+"ي "+(h%24)+"س":d+"ي";}
 function daysSince(v){const m=toMs(v);if(!m)return 0;return(Date.now()-m)/86400000;}
 function localDate(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function printStatement(name){
+const cs=cards.filter(c=>c.customer===name);
+const lds=loads.filter(l=>l.customer===name);
+const inf=knownCustomers.find(k=>k.name===name)||{};
+const q=qtySum(cs);
+const delQ=cs.reduce((a,c)=>a+(c.delivered?(parseFloat(c.quantity)||0):(parseFloat(c.deliveredQty)||0)),0);
+const lt=lds.reduce((a,l)=>a+(parseFloat(l.total)||0),0);
+const ldel=lds.reduce((a,l)=>a+loadStats(l).del,0);
+const lrem=lds.reduce((a,l)=>a+loadStats(l).rem,0);
+const rows=cs.slice().sort((a,b)=>toMs(b.updatedAt)-toMs(a.updatedAt)).map(c=>{const si=stages.indexOf(c.stage);const sc=STAGE_COLORS[(si>=0?si:0)%8];return '<tr style="border-bottom:1px solid #E5E7EB"><td style="padding:8px;font-size:12px">'+(c.code||"—")+'</td><td style="padding:8px;font-size:12px;color:'+sc+';font-weight:700">'+(c.stage||"—")+'</td><td style="padding:8px;font-size:12px">'+(c.color||"—")+'</td><td style="padding:8px;font-size:12px;text-align:center">'+(c.quantity||"—")+'</td><td style="padding:8px;font-size:12px;text-align:center">'+(c.delivered?"✅":"")+'</td><td style="padding:8px;font-size:12px">'+fmtTime(c.updatedAt||c.createdAt,lang)+'</td></tr>';}).join("");
+const w=window.open("","_blank","width=800,height=900");if(!w)return;
+w.document.write('<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>كشف حساب - '+name+'</title><style>
+body{font-family:"Tajawal","Segoe UI",sans-serif;padding:24px;color:#1A1E30;background:#fff;margin:0}
+.hd{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #7C5CFF;padding-bottom:14px;margin-bottom:20px}
+.hd .lg{display:flex;align-items:center;gap:12px}
+.hd .lg img{width:52px;height:52px;border-radius:12px;object-fit:cover}
+.hd h1{font-size:22px;margin:0;color:#1A1E30}
+.hd .nm{font-size:12px;color:#66708F;margin-top:2px}
+.hd .rt{text-align:left;font-size:11px;color:#66708F}
+.hd .rt b{color:#1A1E30;display:block;font-size:13px;margin-bottom:2px}
+.box{background:#F9FAFB;border:1px solid #E5E7EB;border-radius:12px;padding:14px;margin-bottom:16px}
+.box .row{display:flex;flex-wrap:wrap;gap:12px;font-size:13px}
+.box .row > div{flex:1;min-width:140px}
+.box .row .k{color:#66708F;font-size:11px;margin-bottom:2px}
+.box .row .v{font-weight:800;color:#1A1E30;font-size:15px}
+table{width:100%;border-collapse:collapse;background:#fff;border:1px solid #E5E7EB;border-radius:10px;overflow:hidden}
+th{background:#7C5CFF;color:#fff;font-size:12px;padding:10px;text-align:start;font-weight:700}
+.ft{margin-top:24px;padding-top:14px;border-top:1px solid #E5E7EB;text-align:center;color:#66708F;font-size:11px}
+.totals{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.totals > div{background:linear-gradient(135deg,#7C5CFF,#5E8FD6);color:#fff;padding:12px;border-radius:10px;text-align:center}
+.totals > div .n{font-size:18px;font-weight:900}
+.totals > div .l{font-size:10px;opacity:.9;margin-top:2px}
+@media print{body{padding:12px}.no-print{display:none}}
+</style></head><body>
+<div class="hd">
+  <div class="lg">'+(logoSrc?'<img src="'+logoSrc+'"/>':'')+'<div><h1>'+(factory.fname||"متابعة المراحل")+'</h1><div class="nm">'+(factory.wa?"📞 "+factory.wa:"")+'</div></div></div>
+  <div class="rt"><b>كشف حساب عميل</b>'+new Date().toLocaleDateString("ar-EG",{year:"numeric",month:"long",day:"numeric"})+'</div>
+</div>
+<div class="box">
+  <div class="row">
+    <div><div class="k">اسم العميل</div><div class="v">'+name+'</div></div>
+    '+(inf.phone?'<div><div class="k">التليفون</div><div class="v">📞 '+inf.phone+'</div></div>':'')+
+    (inf.address?'<div><div class="k">العنوان</div><div class="v">📍 '+inf.address+'</div></div>':'')+
+    '<div><div class="k">إجمالي كروت</div><div class="v">'+cs.length+'</div></div>
+  </div>
+</div>
+<div class="totals">
+  <div><div class="n">'+q+' '+factory.unit+'</div><div class="l">إجمالي الكميات</div></div>
+  <div><div class="n">'+delQ+' '+factory.unit+'</div><div class="l">تم التسليم</div></div>
+  <div><div class="n">'+(q-delQ)+' '+factory.unit+'</div><div class="l">قيد العمل</div></div>
+  <div><div class="n">'+lds.length+'</div><div class="l">حمولات</div></div>
+</div>
+<h3 style="margin:14px 0 8px;font-size:14px;color:#1A1E30">📋 تفاصيل الكروت</h3>
+<table>
+  <thead><tr><th>الكود</th><th>المرحلة</th><th>اللون</th><th style="text-align:center">الكمية</th><th style="text-align:center">التسليم</th><th>آخر حركة</th></tr></thead>
+  <tbody>'+rows+'</tbody>
+</table>
+<div class="ft">طُبع من نظام متابعة المراحل — '+new Date().toLocaleString("ar-EG")+'</div>
+</body></html>');
+w.document.close();
+setTimeout(()=>{w.focus();w.print();},400);
+}
 function b64e(s){return btoa(unescape(encodeURIComponent(s))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");}
 function b64d(s){s=String(s).replace(/-/g,"+").replace(/_/g,"/");while(s.length%4)s+="=";return JSON.parse(decodeURIComponent(escape(atob(s))));}
 function pubUrl(c){try{const v=c.barcode||c.code||c.id;return APP_URL+"?d="+b64e(JSON.stringify({n:c.customer||"",c:v,col:c.color||"",cat:c.category||"",q:c.quantity||""}));}catch(e){return APP_URL;}}
@@ -929,7 +992,7 @@ return(<div key={c.id} className="card" onClick={()=>{setStatementFor(null);jump
 <pre style={{whiteSpace:"pre-wrap",background:theme.panelAlt,borderRadius:14,padding:12,fontSize:13,color:theme.text,fontFamily:"inherit"}}>{buildStatement(statementFor)}</pre>
 </div>);})()}
 </div>)}
-<div style={{display:"flex",gap:8,marginTop:12}}><button onClick={()=>{try{navigator.clipboard.writeText(buildStatement(statementFor));showToast("✅");}catch(e){}}} className="btnO">{t.copy}</button><a href={waLink(buildStatement(statementFor||""))} target="_blank" rel="noreferrer" className="btnG" style={{textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>💬 واتساب</a></div>
+<div style={{display:"flex",gap:8,marginTop:12,flexWrap:"wrap"}}><button onClick={()=>printStatement(statementFor)} className="btnO" style={{flex:1}}>🖨️ طباعة</button><button onClick={()=>{try{navigator.clipboard.writeText(buildStatement(statementFor));showToast("✅");}catch(e){}}} className="btnO" style={{flex:1}}>{t.copy}</button><a href={waLink(buildStatement(statementFor||""))} target="_blank" rel="noreferrer" className="btnG" style={{textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center",flex:1}}>💬 واتساب</a></div>
 </div></div>)}
 {showTopCust&&(
 <div className="modal" onClick={()=>setShowTopCust(false)}>
@@ -1022,7 +1085,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 {editingCard.phone&&(<div style={{display:"flex",gap:8,marginBottom:10}}><a href={"tel:"+editingCard.phone} className="btnO" style={{textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>📞</a><a href={"https://wa.me/"+editingCard.phone.replace(/\D/g,"")} target="_blank" rel="noreferrer" className="btnO" style={{textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>💬</a></div>)}
 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><div className="lbl">{t.notes}</div><button onClick={noteMic} className={"chip"+(micOn?" on":"")}>🎙️</button></div><textarea rows={2} className="inp" value={editingCard.notes} onChange={e=>setEditingCard({...editingCard,notes:e.target.value})}/>
 <label style={{display:"flex",alignItems:"center",gap:8,marginBottom:14,fontSize:14}}><input type="checkbox" checked={!!editingCard.urgent} onChange={e=>setEditingCard({...editingCard,urgent:e.target.checked})}/> ⚠️ {t.urgent}</label>
-{Array.isArray(editingCard.history)&&editingCard.history.length>0&&(<div style={{marginBottom:14}}><div className="lbl">📜 {t.history}</div>{editingCard.history.slice().reverse().map((h,i)=>(<div key={i} style={{display:"flex",gap:8,flexWrap:"wrap",fontSize:12,color:theme.textDim,padding:"6px 10px",marginBottom:4,borderInlineStart:"2px solid var(--vio)",background:theme.panelAlt,borderRadius:8}}><span>📍 {h.stage}</span><span>· {h.by}</span><span>· {fmtTime(h.at,lang)}</span></div>))}</div>)}
+{Array.isArray(editingCard.history)&&editingCard.history.length>0&&(<div style={{marginBottom:14}}><div className="lbl">📜 {t.history}</div>{editingCard.history.slice().reverse().map((h,i)=>{const arr=editingCard.history;const idx=arr.indexOf(h);const nxt=arr[idx+1];const ms=(nxt?toMs(nxt.at):Date.now())-toMs(h.at);return(<div key={i} style={{display:"flex",gap:8,flexWrap:"wrap",fontSize:12,color:theme.textDim,padding:"6px 10px",marginBottom:4,borderInlineStart:"2px solid var(--vio)",background:theme.panelAlt,borderRadius:8}}><span>📍 {h.stage}</span><span>· {h.by}</span><span>· {fmtTime(h.at,lang)}</span><span style={{color:"var(--warn)",fontWeight:800}}>⏱️ {fmtDur(ms)}</span></div>);})}</div>)}
 {can&&<div style={{display:"flex",gap:8}}><button onClick={()=>saveCard({...editingCard,__dupWarning:undefined},!!editingCard.__dupWarning)} className="btnG">{editingCard.__dupWarning?t.saveAnyway:t.save}</button><button onClick={()=>setEditingCard(null)} className="btnO">{t.cancel}</button></div>}
 {can&&cards.some(c=>c.id===editingCard.id)&&nextStageOf(editingCard.stage)&&(<button onClick={()=>{const n=nextStageOf(editingCard.stage);const c=editingCard;setEditingCard(null);moveCardTo(c,n);}} className="btnO" style={{marginTop:8}}>⏭️ → {nextStageOf(editingCard.stage)}</button>)}
 </fieldset>

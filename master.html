@@ -79,6 +79,7 @@ body{font-family:system-ui,'Tajawal',sans-serif;background:radial-gradient(900px
   <div class="stat"><div class="num" id="stCo">0</div><div class="lab">شركات</div></div>
   <div class="stat"><div class="num" id="stUs">0</div><div class="lab">حسابات</div></div>
   <div class="stat"><div class="num" id="stLo">0</div><div class="lab">موقوفين</div></div>
+  <div class="stat"><div class="num" id="stAc">0</div><div class="lab">نشطة</div></div>
 </div>
 
 <div class="tabs">
@@ -188,7 +189,7 @@ async function loadCompanies(){
   list.innerHTML='<div class="empty">جاري التحميل...</div>';
   try{
     const snap=await db.collection("companies").get();
-    let total=0,locked=0;
+    let total=0,locked=0,activeCount=0;
     if(snap.empty){list.innerHTML='<div class="empty">لا توجد شركات — ضيف أول شركة ⬆️</div>';}
     else{
       let html="",i=0;
@@ -196,7 +197,9 @@ async function loadCompanies(){
         const d=doc.data();let us=0,lo=0;
         try{const u=await urefFor(doc.id).get();us=u.size;u.forEach(x=>{if(x.data().locked)lo++;});}catch(e){}
         total+=us;locked+=lo;
-        html+='<div class="card anim" style="animation-delay:'+(i*60)+'ms"><div class="coHead"><div class="coLogo">🏢</div><div style="flex:1"><div class="coName">'+(d.name||doc.id)+'</div><div class="coId">'+doc.id+' • 👥 '+us+'</div></div><span class="badge ok">نشطة</span></div><div class="acts"><button class="act" onclick="openWorkers(\''+doc.id+'\')">👥<span>العمال</span></button><button class="act" onclick="editCompany(\''+doc.id+'\',\''+String(d.name||"").replace(/'/g,"")+'\')">✏️<span>تعديل</span></button><button class="act warn" onclick="quickLogin(\''+doc.id+'\')">⚡<span>دخول</span></button><button class="act del" onclick="delCompany(\''+doc.id+'\')">🗑️<span>حذف</span></button></div></div>';
+        let last=0;try{const cc=await db.collection("companies/"+doc.id+"/cards").orderBy("updatedAt","desc").limit(3).get();cc.forEach(x=>{const v=x.data().updatedAt||x.data().createdAt;const t=typeof v==="number"?v:(v&&v.toDate?v.toDate().getTime():new Date(v).getTime());if(!isNaN(t)&&t>last)last=t;});}catch(e){}
+const days=last?(Date.now()-last)/86400000:null;const actTxt=!last?"لا نشاط":days<1?"نشط النهارده":days<2?"نشط أمس":"آخر حركة من "+Math.floor(days)+" يوم";const badgeHtml='<span class="badge" style="background:'+(days!==null&&days<=7?"rgba(45,212,168,.15);color:#2DD4A8":"rgba(255,182,92,.15);color:#FFB65C")+'">'+actTxt+'</span>';if(days!==null&&days<=7)activeCount++;
+        html+='<div class="card anim" style="animation-delay:'+(i*60)+'ms"><div class="coHead"><div class="coLogo">🏢</div><div style="flex:1"><div class="coName">'+(d.name||doc.id)+'</div><div class="coId">'+doc.id+' • 👥 '+us+'</div></div>'+badgeHtml+'</div><div class="acts"><button class="act" onclick="openWorkers(\''+doc.id+'\')">👥<span>العمال</span></button><button class="act" onclick="editCompany(\''+doc.id+'\',\''+String(d.name||"").replace(/'/g,"")+'\')">✏️<span>تعديل</span></button><button class="act warn" onclick="quickLogin(\''+doc.id+'\')">⚡<span>دخول</span></button><button class="act del" onclick="delCompany(\''+doc.id+'\')">🗑️<span>حذف</span></button></div></div>';
         i++;
       }
       list.innerHTML=html;
@@ -204,6 +207,7 @@ async function loadCompanies(){
     document.getElementById("stCo").textContent=snap.size;
     document.getElementById("stUs").textContent=total;
     document.getElementById("stLo").textContent=locked;
+    document.getElementById("stAc").textContent=activeCount;
   }catch(e){list.innerHTML='<div class="empty">خطأ في التحميل</div>';}
 }
 
