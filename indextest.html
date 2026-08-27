@@ -486,13 +486,31 @@ const annVisible=!!(announce&&announce.text)&&annDismissed!==String(announce.tim
 const badge=(c,x)=><span className="badge" style={{background:c}}>{x}</span>;
 const rawD=(()=>{try{return new URLSearchParams(window.location.search).get("d");}catch(e){return null;}})();
 const pubData=(()=>{if(!rawD)return null;try{return b64d(rawD);}catch(e){return null;}})();
-if(pubData&&!new URLSearchParams(window.location.search).get("goto"))return(<div dir="rtl" style={{minHeight:"100vh",background:"#fff",color:"#232016",display:"flex",alignItems:"center",justifyContent:"center",padding:20,fontFamily:"system-ui,sans-serif"}}>
+const liveID=(()=>{try{return new URLSearchParams(window.location.search).get("live");}catch(e){return null;}})();
+const liveCID=(()=>{try{return new URLSearchParams(window.location.search).get("c");}catch(e){return null;}})();
+const [liveCard,setLiveCard]=useState(null);
+const [liveErr,setLiveErr]=useState("");
+useEffect(()=>{if(!liveID||!db)return 0;const base=(liveCID&&liveCID!=="DEFAULT")?"companies/"+liveCID+"/cards":"cards";try{return db._raw(base).doc(liveID).onSnapshot(d=>{if(d.exists)setLiveCard(d.data());else setLiveErr("nf");},()=>setLiveErr("er"));}catch(e){setLiveErr("er");}return 0;},[liveID,liveCID]);
+if(pubData&&!new URLSearchParams(window.location.search).get("goto")&&!liveID)return(<div dir="rtl" style={{minHeight:"100vh",background:"#fff",color:"#232016",display:"flex",alignItems:"center",justifyContent:"center",padding:20,fontFamily:"system-ui,sans-serif"}}>
 <div style={{width:"100%",maxWidth:380,border:"4px solid #7C5CFF",borderRadius:20,padding:24}}>
 <div style={{fontSize:22,fontWeight:900,textAlign:"center",marginBottom:4}}>🏭 متابعة الصباغة</div>
 <div style={{fontSize:12,color:"#77705F",textAlign:"center",marginBottom:18}}>بيانات بطاقة الشغل</div>
 {[["اسم العمل",pubData.n],["الكود",pubData.c],["اللون",pubData.col],["الصنف",pubData.cat],["الوزن",pubData.q]].map(r=>r[1]?<div key={r[0]} style={{display:"flex",justifyContent:"space-between",borderBottom:"1px solid #DFD9CB",padding:"10px 4px",fontSize:15}}><b>{r[0]}</b><span>{r[1]}</span></div>:null)}
 <a href={APP_URL+"?goto="+encodeURIComponent(rawD)} style={{display:"block",marginTop:18,background:"#7C5CFF",color:"#fff",borderRadius:12,padding:"12px",textDecoration:"none",fontWeight:700,textAlign:"center"}}>فتح التطبيق الكامل → مكان الكرت</a>
 <div style={{fontSize:11,color:"#77705F",textAlign:"center",marginTop:10}}>🔒 التعديل للعاملين فقط بكود التفعيل</div>
+</div></div>);
+if(liveID)return(<div dir="rtl" style={{minHeight:"100vh",background:"#fff",color:"#232016",display:"flex",alignItems:"center",justifyContent:"center",padding:20,fontFamily:"system-ui,sans-serif"}}>
+<div style={{width:"100%",maxWidth:400,border:"4px solid #7C5CFF",borderRadius:20,padding:24}}>
+<div style={{fontSize:22,fontWeight:900,textAlign:"center",marginBottom:4}}>🏭 {factory.fname||"متابعة الصباغة"}</div>
+<div style={{fontSize:12,color:"#77705F",textAlign:"center",marginBottom:18}}>📡 حالة الطلب لحظة بلحظة</div>
+{!liveCard&&!liveErr&&<div style={{textAlign:"center",padding:30,fontSize:14,color:"#77705F"}}>⏳ تحميل...</div>}
+{liveErr&&<div style={{textAlign:"center",padding:30,fontSize:14,color:"#c0392b"}}>❌ الكرت مش موجود</div>}
+{liveCard&&(<div>
+{[["👤 العميل",liveCard.customer],["🔢 الكود",liveCard.code],["🎨 اللون",liveCard.color],["⚖️ الكمية",liveCard.quantity],["📍 المرحلة الحالية",liveCard.stage]].map(r=>r[1]?<div key={r[0]} style={{display:"flex",justifyContent:"space-between",borderBottom:"1px solid #DFD9CB",padding:"10px 4px",fontSize:15}}><b>{r[0]}</b><span>{r[1]}</span></div>:null)}
+{liveCard.delivered&&<div style={{marginTop:14,background:"#E8F8F2",border:"1px solid #2DD4A8",borderRadius:12,padding:10,textAlign:"center",fontWeight:800,color:"#0B7A5E"}}>✅ تم التسليم</div>}
+{(liveCard.photos||[]).length>0&&<img src={liveCard.photos[0]} style={{width:"100%",borderRadius:12,marginTop:12}}/>}
+{factory.wa&&<a href={"https://wa.me/"+String(factory.wa).replace(/\D/g,"")} target="_blank" rel="noreferrer" style={{display:"block",marginTop:16,background:"#25D366",color:"#fff",borderRadius:12,padding:"12px",textDecoration:"none",fontWeight:700,textAlign:"center"}}>💬 كلم المصنع</a>}
+</div>)}
 </div></div>);
 if(!ready)return(<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:theme.bg,color:theme.text,flexDirection:"column",gap:16}}><div style={{fontSize:48,animation:"floaty 2s infinite"}}>🏭</div><div className="spin" style={{fontSize:24}}>⚙️</div><div style={{fontSize:14,color:theme.textDim,marginTop:4}}>🕌 صلي على النبي</div></div>);
 if(!ownerName)return(<div dir={dir} style={{minHeight:"100vh",background:theme.bg,color:theme.text,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}><div className="card" style={{padding:32,width:"100%",maxWidth:380,textAlign:"center"}}><div style={{width:60,height:60,borderRadius:18,background:"linear-gradient(135deg,var(--vio),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px",fontSize:28,animation:"floaty 2.5s infinite",boxShadow:"0 10px 30px rgba(124,92,255,.4)"}}>🏭</div><h2 style={{margin:"0 0 6px",fontSize:20}}>{factory.fname}</h2><p style={{color:theme.textDim,fontSize:13,marginBottom:18}}>{t.yourName} — {t.enterNameHint}</p><input autoFocus value={nameInput} onChange={e=>setNameInput(e.target.value)} placeholder={t.yourName} className="inp" style={{textAlign:"center"}} onKeyDown={e=>e.key==="Enter"&&confirmName()}/><button onClick={confirmName} className="btnG">{t.confirmName}</button></div></div>);
@@ -1132,7 +1150,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div className="modal" onClick={()=>setQrCard(null)}>
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:340,textAlign:"center"}}>
 <h3>📱 {t.showQr}</h3>
-<div style={{display:"flex",justifyContent:"center",margin:"10px 0"}}><QrView value={pubUrl(qrCard)} size={200}/></div>
+<div style={{display:"flex",justifyContent:"center",margin:"10px 0"}}><QrView value={pubUrl(qrCard)+(pubUrl(qrCard).indexOf("?")>=0?"&":"?")+"live="+qrCard.id+"&c="+(localStorage.getItem("companyID")||"DEFAULT")} size={200}/></div>
 <p style={{fontSize:13,color:theme.textDim}}>{qrCard.customer} · {qrCard.barcode||qrCard.code}</p>
 </div></div>)}
 {showSearch&&(
