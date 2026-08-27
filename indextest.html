@@ -1234,7 +1234,7 @@ return <div className="card" style={{padding:14,marginTop:12}}>
 <input style={{flex:1,minWidth:0,padding:"10px 12px",borderRadius:10,border:"1px solid #242B47",background:"#1B2036",color:"#EDEFF5",fontSize:13,outline:"none"}} placeholder="اسم العامل" value={nu} onChange={e=>setNu(e.target.value)}/>
 <input style={{flex:1,minWidth:0,padding:"10px 12px",borderRadius:10,border:"1px solid #242B47",background:"#1B2036",color:"#EDEFF5",fontSize:13,outline:"none"}} placeholder="الرمز" value={np} onChange={e=>setNp(e.target.value)}/>
 <button onClick={add} style={{padding:"10px 14px",borderRadius:10,border:"none",background:"linear-gradient(135deg,#7C5CFF,#5E8FD6)",color:"#fff",fontSize:14,fontWeight:800,cursor:"pointer"}}>➕</button>
-<button onClick={()=>{if(!confirm("ربط كل العمال الحاليين بالشركة دي؟"))return;db.collection("config").doc("factory").update({team:ws.filter(w=>w.role!=="manager").map(w=>w.name||w.id)});}} style={{padding:"10px 14px",borderRadius:10,border:"1px solid #2DD4A8",background:"transparent",color:"#2DD4A8",fontSize:13,fontWeight:800,cursor:"pointer",marginInlineStart:6}}>🔗 اربط الكل</button>
+<button onClick={()=>{if(!confirm("ربط كل العمال الحاليين بالشركة دي؟"))return;var names=ws.filter(w=>w.role!=="manager").map(w=>w.name||w.id);db.collection("config").doc("factory").set({team:names},{merge:true}).then(()=>alert("✅ تم ربط "+names.length+" عامل بالشركة")).catch(e=>alert("❌ حصل خطأ: "+e.message));}} style={{padding:"10px 14px",borderRadius:10,border:"1px solid #2DD4A8",background:"transparent",color:"#2DD4A8",fontSize:13,fontWeight:800,cursor:"pointer",marginInlineStart:6}}>🔗 اربط الكل</button>
 </div>
 </div>;
 }
