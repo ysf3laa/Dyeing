@@ -304,7 +304,7 @@ const hdrBtn={width:42,height:42,borderRadius:14,border:"1px solid "+theme.borde
 const LD=+factory.lateDays||2;
 const allColors=PRESET_COLORS.concat(customColors);
 useEffect(()=>{setFnameDraft(factory.fname);setWaDraft(factory.wa);setLateDraft(factory.lateDays);setHeroTDraft(factory.heroT||"");setHeroSDraft(factory.heroS||"");},[factory.fname,factory.wa,factory.lateDays,factory.heroT,factory.heroS]);
-useEffect(()=>{history.pushState({guard:1},"");const onPop=()=>{const u=uiRef.current;
+useEffect(()=>{history.pushState({guard:1},"");const onPop=()=>{const u=uiRef.current;try{showToast("🔙 screen:"+u.screen+" modal:"+(u.editingCard||u.showSettings||u.showSched||u.showStored?"1":"0"));}catch(e){}
 if(u.showAsk)setShowAsk(false);else if(u.showBook)setShowBook(false);else if(u.showBlack)setShowBlack(false);else if(u.showFlags)setShowFlags(false);else if(u.showMyWork)setShowMyWork(false);else if(u.showSched)setShowSched(false);else if(u.showStored)setShowStored(false);else if(u.showTopCust)setShowTopCust(false);else if(u.showLateList)setShowLateList(false);else if(u.showDelivered)setShowDelivered(false);else if(u.heroEdit)setHeroEdit(false);else if(u.showDefects)setShowDefects(false);else if(u.defectFor)setDefectFor(null);else if(u.showAnnounce)setShowAnnounce(false);else if(u.linkedFrom)setLinkedFrom(null);else if(u.addLoad)setAddLoad(false);else if(u.loadDetail)setLoadDetail(null);else if(u.showWarehouse)setShowWarehouse(false);else if(u.showMic)setShowMic(false);else if(u.importMenu)setImportMenu(false);else if(u.importDraft)setImportDraft(null);
 else if(u.reportText)setReportText(null);else if(u.showScanner)setShowScanner(false);else if(u.bcCard)setBcCard(null);
 else if(u.statementFor)setStatementFor(null);else if(u.showWorkers)setShowWorkers(false);
@@ -1155,7 +1155,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 ...(can?[{icon:"📋",label:t.copyCard,fn:()=>{setCopyCard(actionCard);setActionCard(null);}},
 {icon:"🔄",label:t.moveCard,fn:()=>{setMoveCard(actionCard);setActionCard(null);}},
 {icon:"⭐",label:actionCard.pinned?t.unpin:t.pinCard,fn:()=>togglePin(actionCard)}]:[]),
-{icon:"🖨️",label:t.printCard,fn:()=>{printCard(actionCard);setActionCard(null);}},
+{icon:"🖨️",label:t.printCard,fn:()=>{setPrintTarget(actionCard);setActionCard(null);}},
 {icon:"🔳",label:t.showBarcode,fn:()=>{setBcCard(actionCard);setActionCard(null);}},
 {icon:"📱",label:t.showQr,fn:()=>{setQrCard(actionCard);setActionCard(null);}},
 {icon:"🖨️",label:"طباعة الكرت",fn:()=>{setPrintCard(actionCard);setActionCard(null);}},
