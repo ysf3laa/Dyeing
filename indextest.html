@@ -276,64 +276,117 @@ const stOrder=(s,dir)=>{const i2=stages.indexOf(s);const j=i2+dir;if(j<0||j>=sta
 const stDel=s=>{const rest=stages.filter(x=>x!==s);const to=prompt("⚠️ كروت "+s+" هتنتقل لمرحلة:\n"+rest.join(" ، "));if(!to||!rest.includes(to.trim()))return;saveStages(rest);cards.filter(c=>c.stage===s).forEach(c=>db.collection("cards").doc(c.id).set({stage:to.trim()},{merge:true}));};
 const [stageQ,setStageQ]=useState("");
 const [announce,setAnnounce]=useState(null);const [showAnnounce,setShowAnnounce]=useState(false);const [announceDraft,setAnnounceDraft]=useState("");const [annDismissed,setAnnDismissed]=useState(localStorage.getItem("ann_dismiss"));
-const [showSettings,setShowSettings]=useState(false);const [showSearch,setShowSearch]=useState(false);
-const [showMenu,setShowMenu]=useState(false);const [showScanner,setShowScanner]=useState(false);
-const [bcCard,setBcCard]=useState(null);const [nameDraft,setNameDraft]=useState("");
-const [editingCard,setEditingCard]=useState(null);const [actionCard,setActionCard]=useState(null);
-const [moveCard_,setMoveCard]=useState(null);const [copyCard_,setCopyCard]=useState(null);
-const [qrCard,setQrCard]=useState(null);const [toast,setToast]=useState(null);
-const modalRef=React.useRef(false);const screenRef=React.useRef("home");
-useEffect(()=>{
-  const onPop=()=>{
-    const u=uiRef.current;
-    if(u.showAsk)setShowAsk(false);
-    else if(u.showBook)setShowBook(false);
-    else if(u.showBlack)setShowBlack(false);
-    else if(u.showFlags)setShowFlags(false);
-    else if(u.showMyWork)setShowMyWork(false);
-    else if(u.showSched)setShowSched(false);
-    else if(u.showStored)setShowStored(false);
-    else if(u.showTopCust)setShowTopCust(false);
-    else if(u.showLateList)setShowLateList(false);
-    else if(u.showDelivered)setShowDelivered(false);
-    else if(u.heroEdit)setHeroEdit(false);
-    else if(u.showDefects)setShowDefects(false);
-    else if(u.defectFor)setDefectFor(null);
-    else if(u.showAnnounce)setShowAnnounce(false);
-    else if(u.linkedFrom)setLinkedFrom(null);
-    else if(u.addLoad)setAddLoad(false);
-    else if(u.loadDetail)setLoadDetail(null);
-    else if(u.showWarehouse)setShowWarehouse(false);
-    else if(u.showMic)setShowMic(false);
-    else if(u.importMenu)setImportMenu(false);
-    else if(u.importDraft)setImportDraft(null);
-    else if(u.reportText)setReportText(null);
-    else if(u.showScanner)setShowScanner(false);
-    else if(u.bcCard)setBcCard(null);
-    else if(u.statementFor)setStatementFor(null);
-    else if(u.showWorkers)setShowWorkers(false);
-    else if(u.photoView)setPhotoView(null);
-    else if(u.appQr)setAppQr(false);
-    else if(u.showMenu)setShowMenu(false);
-    else if(u.editingCard)setEditingCard(null);
-    else if(u.actionCard)setActionCard(null);
-    else if(u.moveCard_)setMoveCard(null);
-    else if(u.copyCard_)setCopyCard(null);
-    else if(u.qrCard)setQrCard(null);
-    else if(u.showSearch)setShowSearch(false);
-    else if(u.showSettings)setShowSettings(false);
-    else if(u.screen==="stage")setScreen("stages");
-    else if(u.screen==="stages")setScreen("home");
-    else if(u.screen==="log")setScreen("home");
-    else if(u.screen==="archive")setScreen("home");
-    else if(u.screen!=="home"){setScreen("home");}
-    else{history.back();return;}
-    history.pushState({guard:1},"");
+const [showSettings, setShowSettings] = useState(false);
+const [showSearch, setShowSearch] = useState(false);
+const [showMenu, setShowMenu] = useState(false);
+const [showScanner, setShowScanner] = useState(false);
+const [bcCard, setBcCard] = useState(null);
+const [nameDraft, setNameDraft] = useState("");
+const [editingCard, setEditingCard] = useState(null);
+const [actionCard, setActionCard] = useState(null);
+const [moveCard_, setMoveCard] = useState(null);
+const [copyCard_, setCopyCard] = useState(null);
+const [qrCard, setQrCard] = useState(null);
+const [toast, setToast] = useState(null);
+
+const modalRef = React.useRef(false);
+const screenRef = React.useRef("home");
+
+useEffect(() => {
+  history.pushState({ guard: 1 }, "");
+
+  const onPop = () => {
+    const u = uiRef?.current;
+    if (!u) return;
+
+    if (u.showAsk) setShowAsk(false);
+    else if (u.showBook) setShowBook(false);
+    else if (u.showBlack) setShowBlack(false);
+    else if (u.showFlags) setShowFlags(false);
+    else if (u.showMyWork) setShowMyWork(false);
+    else if (u.showSched) setShowSched(false);
+    else if (u.showStored) setShowStored(false);
+    else if (u.showTopCust) setShowTopCust(false);
+    else if (u.showLateList) setShowLateList(false);
+    else if (u.showDelivered) setShowDelivered(false);
+    else if (u.heroEdit) setHeroEdit(false);
+    else if (u.showDefects) setShowDefects(false);
+    else if (u.defectFor) setDefectFor(null);
+    else if (u.showAnnounce) setShowAnnounce(false);
+    else if (u.linkedFrom) setLinkedFrom(null);
+    else if (u.addLoad) setAddLoad(false);
+    else if (u.loadDetail) setLoadDetail(null);
+    else if (u.showWarehouse) setShowWarehouse(false);
+    else if (u.showMic) setShowMic(false);
+    else if (u.importMenu) setImportMenu(false);
+    else if (u.importDraft) setImportDraft(null);
+    else if (u.reportText) setReportText(null);
+    else if (u.showScanner) setShowScanner(false);
+    else if (u.bcCard) setBcCard(null);
+    else if (u.statementFor) setStatementFor(null);
+    else if (u.showWorkers) setShowWorkers(false);
+    else if (u.photoView) setPhotoView(null);
+    else if (u.appQr) setAppQr(false);
+    else if (u.showMenu) setShowMenu(false);
+    else if (u.editingCard) setEditingCard(null);
+    else if (u.actionCard) setActionCard(null);
+    else if (u.moveCard_) setMoveCard(null);
+    else if (u.copyCard_) setCopyCard(null);
+    else if (u.qrCard) setQrCard(null);
+    else if (u.showSearch) setShowSearch(false);
+    else if (u.showSettings) setShowSettings(false);
+    else if (u.screen === "stage") setScreen("stages");
+    else if (u.screen === "stages") setScreen("home");
+    else if (["log", "archive"].includes(u.screen)) setScreen("home");
+    else if (u.screen !== "home") setScreen("home");
+    else {
+      window.removeEventListener("popstate", onPop);
+      history.back();
+      return;
+    }
+
+    history.pushState({ guard: 1 }, "");
   };
-  window.addEventListener("popstate",onPop);
-  return()=>window.removeEventListener("popstate",onPop);
-},[]);
-useEffect(()=>{const on=()=>{setIsOnline(true);setSyncStatus("syncing");setTimeout(()=>{setSyncStatus("synced");setTimeout(()=>setSyncStatus("idle"),2000);},1500);};const off=()=>{setIsOnline(false);setSyncStatus("idle");};window.addEventListener("online",on);window.addEventListener("offline",off);return()=>{window.removeEventListener("online",on);window.removeEventListener("offline",off);};},[]);
+
+  window.addEventListener("popstate", onPop);
+
+  return () => {
+    window.removeEventListener("popstate", onPop);
+  };
+}, []);
+
+useEffect(() => {
+  let syncTimer;
+  let idleTimer;
+
+  const onOnline = () => {
+    setIsOnline(true);
+    setSyncStatus("syncing");
+
+    syncTimer = setTimeout(() => {
+      setSyncStatus("synced");
+
+      idleTimer = setTimeout(() => {
+        setSyncStatus("idle");
+      }, 2000);
+    }, 1500);
+  };
+
+  const onOffline = () => {
+    setIsOnline(false);
+    setSyncStatus("idle");
+  };
+
+  window.addEventListener("online", onOnline);
+  window.addEventListener("offline", onOffline);
+
+  return () => {
+    clearTimeout(syncTimer);
+    clearTimeout(idleTimer);
+    window.removeEventListener("online", onOnline);
+    window.removeEventListener("offline", onOffline);
+  };
+}, []);
 useEffect(()=>{const b=document.getElementById("syncBar");if(b)b.classList.toggle("active",syncStatus==="syncing");},[syncStatus]);
 useEffect(()=>{if(!fbReady||!auth||!db)return;const un=auth.onAuthStateChanged(async user=>{if(user){setUserId(user.uid);const s=localStorage.getItem("owner_name_"+(localStorage.getItem("username")||user.uid));if(s)setOwnerName(s);else{const o=localStorage.getItem("owner_name_"+user.uid);if(o)setOwnerName(o);}
 db.collection("cards").onSnapshot(sn=>{setCards(sn.docs.map(d=>({id:d.id,...d.data()})));},e=>console.error(e));
