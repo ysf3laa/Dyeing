@@ -314,8 +314,7 @@ else if(u.editingCard)setEditingCard(null);else if(u.actionCard)setActionCard(nu
 else if(u.moveCard_)setMoveCard(null);else if(u.copyCard_)setCopyCard(null);else if(u.qrCard)setQrCard(null);
 else if(u.showSearch)setShowSearch(false);else if(u.showSettings)setShowSettings(false);
 else if(u.screen==="stage")setScreen("stages");else if(u.screen==="stages")setScreen("home");else if(u.screen==="log")setScreen("home");
-else if(u.screen==="archive")setScreen("home");else if(u.screen!=="home"){setScreen("home");}else{history.back();return;}
-history.pushState({guard:1},"");};
+else if(u.screen==="archive")setScreen("home");else if(u.screen!=="home"){setScreen("home");}else{history.back();return;}};
 window.addEventListener("popstate",onPop);return()=>window.removeEventListener("popstate",onPop);},[]);
 useEffect(()=>{const on=()=>{setIsOnline(true);setSyncStatus("syncing");setTimeout(()=>{setSyncStatus("synced");setTimeout(()=>setSyncStatus("idle"),2000);},1500);};const off=()=>{setIsOnline(false);setSyncStatus("idle");};window.addEventListener("online",on);window.addEventListener("offline",off);return()=>{window.removeEventListener("online",on);window.removeEventListener("offline",off);};},[]);
 useEffect(()=>{const b=document.getElementById("syncBar");if(b)b.classList.toggle("active",syncStatus==="syncing");},[syncStatus]);
