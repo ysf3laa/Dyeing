@@ -283,7 +283,19 @@ const [editingCard,setEditingCard]=useState(null);const [actionCard,setActionCar
 const [moveCard_,setMoveCard]=useState(null);const [copyCard_,setCopyCard]=useState(null);
 const [qrCard,setQrCard]=useState(null);const [toast,setToast]=useState(null);
 const modalRef=React.useRef(false);const screenRef=React.useRef("home");
-useEffect(()=>{screenRef.current=screen;},[screen]);
+useEffect(()=>{
+  screenRef.current=screen;
+
+  try{
+    history.pushState(
+      {
+        guard:1,
+        screen:screen
+      },
+      ""
+    );
+  }catch(e){}
+},[screen]);
 useEffect(()=>{modalRef.current=!!(photoView||showAsk||showBook||editingCard||showMenu||showFlags||showWorkers||showMyWork||qrCard||actionCard||showSettings||showSched||showStored);},[photoView,showAsk,showBook,editingCard,showMenu,showFlags,showWorkers,showMyWork,qrCard,actionCard,showSettings,showSched,showStored]);
 const [micOn,setMicOn]=useState(false);const [micText,setMicText]=useState("");const [showMic,setShowMic]=useState(false);const [micLang,setMicLang]=useState("ar-EG");
 const recRef=useRef(null);
