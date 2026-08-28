@@ -61,9 +61,10 @@ fieldset{border:none;margin:0;padding:0;min-width:0}
 <body>
 <div id="syncBar" class="syncing-bar"></div>
 <style>@keyframes confFall{to{top:110%;transform:rotate(720deg)}}</style>
+<style>@media print{body *{visibility:hidden;}#printSheet,#printSheet *{visibility:visible;}#printSheet{display:block!important;position:absolute;top:0;left:0;right:0;}}</style>
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:16px"><div style="font-size:64px">🏭</div><div style="color:#8A93B5;font-size:14px">🕌 استغل الانتظار في الاستغفار</div></div></div>
 <script>
-window.onerror=function(m,u,l){if(m&&m!=="Script error."&&!window.__booted){var r=document.getElementById("root");if(r)r.innerHTML='<div style="padding:16px;color:#FF5C7A;font-size:12px;word-break:break-all;text-align:center">خطأ: '+m+'<br>سطر: '+l+'</div>';}};
+window.onerror=function(m,u,l){if(m&&m!=="Script error."&&!window.__booted){var r=document.getElementById("root");if(r)r.innerHTML='<div style="padding:16px;color:#FF5C7A;font-size:12px;word-break:break-all;text-align:center">خطأ: '+m+'<br>سطر: '+l+'<br>📄 الملف: '+u+'</div>';}};
 window.addEventListener("unhandledrejection",function(e){e.preventDefault();console.warn(e.reason);});
 setTimeout(function(){if(!window.__booted){var r=document.getElementById("root");if(r&&r.innerHTML.indexOf("خطأ")===-1){var d=document.createElement("div");d.style.cssText="position:fixed;bottom:10px;left:10px;right:10px;background:#1B2036;color:#FF5C7A;border:1px solid #FF5C7A;border-radius:14px;padding:12px;font-size:12px;text-align:center;z-index:99999";d.innerHTML="⚠️ المكتبات لسه بتتحمل — دوس إعادة أو غيّر الشبكة<br><button onclick='location.reload()' style='margin-top:8px;background:#7C5CFF;color:#fff;border:none;border-radius:10px;padding:9px 22px;font-size:13px;font-weight:700'>🔄 إعادة المحاولة</button>";r.appendChild(d);}}},45000);
 </script>
@@ -82,7 +83,7 @@ if(window.isDemo){setInterval(()=>{localStorage.clear();location.reload();},3600
 <script src="lib/fbapp.js"></script>
 <script src="lib/fbauth.js"></script>
 <script src="lib/fbfs.js"></script>
-<script src="lib/jsbarcode.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 <script src="lib/qrcode.js"></script>
 <script src="lib/html5qrcode.js"></script>
 <script src="lib/tesseract.js"></script>
@@ -109,8 +110,32 @@ function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2
 function nowISO(){return new Date().toISOString();}
 function toMs(v){if(!v)return 0;if(typeof v==="number")return v;if(v.toDate)return v.toDate().getTime();const d=new Date(v);return isNaN(d.getTime())?0:d.getTime();}
 function fmtTime(v,l){const m=toMs(v);if(!m)return "";return new Date(m).toLocaleString(l==="ar"?"ar-EG":"en-GB",{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"});}
+const SUPPORT_WA="201044836450";
+function touchLastSeen(){var u=localStorage.getItem("username");if(!u)return;try{db.collection("users").doc(u).set({lastSeen:Date.now()},{merge:true});}catch(e){}}
+setInterval(touchLastSeen,20000);setTimeout(touchLastSeen,2000);setTimeout(touchLastSeen,6000);
+function compressImg(file,maxW,cb){var r=new FileReader();r.onload=function(){var img=new Image();img.onload=function(){var sc=Math.min(1,(maxW||800)/img.width);var cv=document.createElement("canvas");cv.width=Math.round(img.width*sc);cv.height=Math.round(img.height*sc);cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);cb(cv.toDataURL("image/jpeg",0.7));};img.src=r.result;};r.readAsDataURL(file);}
+function LastSeen(props){var _s=React.useState(0),ls=_s[0],setLs=_s[1];React.useEffect(()=>{if(!props.name)return 0;var key=(props.name||"").trim().toLowerCase();try{return db.collection("presence").onSnapshot(sn=>{var best=0;sn.forEach(d=>{var p=d.data()||{};var pn=(p.name||"").trim().toLowerCase();if((pn===key||(d.id||"").toLowerCase()===key)&&(p.last||0)>best)best=p.last||0;});setLs(best);});}catch(e){return 0;}},[props.name]);if(!ls)return(<span style={{fontSize:10,color:"#8A93B5"}}>—</span>);var mins=Math.floor((Date.now()-ls)/60000);var txt=mins<1?"دلوقتي":mins<60?"من "+mins+" د":mins<1440?"من "+Math.floor(mins/60)+" س":"من "+Math.floor(mins/1440)+" يوم";return(<span style={{fontSize:10,color:mins<5?"#2DD4A8":"#8A93B5"}}>{mins<5?"🟢":"🕐"} {txt}</span>);}
+function fmtDur(ms){const m=Math.max(0,Math.floor(ms/60000));if(m<60)return m+"د";const h=Math.floor(m/60);if(h<24)return (m%60)?h+"س "+(m%60)+"د":h+"س";const d=Math.floor(h/24);return (h%24)?d+"ي "+(h%24)+"س":d+"ي";}
 function daysSince(v){const m=toMs(v);if(!m)return 0;return(Date.now()-m)/86400000;}
 function localDate(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function printStatement(name){
+const cs=cards.filter(c=>c.customer===name);
+const lds=loads.filter(l=>l.customer===name);
+const inf=knownCustomers.find(k=>k.name===name)||{}
+const q=qtySum(cs);
+const delQ=cs.reduce((a,c)=>a+(c.delivered?(parseFloat(c.quantity)||0):(parseFloat(c.deliveredQty)||0)),0);
+const rows=cs.slice().sort((a,b)=>toMs(b.updatedAt)-toMs(a.updatedAt)).map(c=>{const si=stages.indexOf(c.stage);const sc=STAGE_COLORS[(si>=0?si:0)%8];return "<tr><td style='padding:8px;font-size:12px'>"+(c.code||"—")+"</td><td style='padding:8px;font-size:12px;color:"+sc+";font-weight:700'>"+(c.stage||"—")+"</td><td style='padding:8px;font-size:12px'>"+(c.color||"—")+"</td><td style='padding:8px;font-size:12px;text-align:center'>"+(c.quantity||"—")+"</td><td style='padding:8px;font-size:12px;text-align:center'>"+(c.delivered?"✅":"")+"</td><td style='padding:8px;font-size:12px'>"+fmtTime(c.updatedAt||c.createdAt,lang)+"</td></tr>";}).join("");
+const logoHtml=logoSrc?"<img src='"+logoSrc+"' style='width:52px;height:52px;border-radius:12px;object-fit:cover'/>":"";
+const waHtml=factory.wa?"<div style='font-size:11px;color:#66708F;margin-top:2px'>📞 "+factory.wa+"</div>":"";
+const phHtml=inf.phone?"<div><div style='color:#66708F;font-size:11px;margin-bottom:2px'>التليفون</div><div style='font-weight:800;font-size:15px'>📞 "+inf.phone+"</div></div>":"";
+const addrHtml=inf.address?"<div><div style='color:#66708F;font-size:11px;margin-bottom:2px'>العنوان</div><div style='font-weight:800;font-size:15px'>📍 "+inf.address+"</div></div>":"";
+const w=window.open("","_blank","width=800,height=900");
+if(!w)return;
+const html="<!DOCTYPE html><html dir='rtl' lang='ar'><head><meta charset='utf-8'><title>كشف حساب - "+name+"</title><style>body{font-family:'Tajawal','Segoe UI',sans-serif;padding:24px;color:#1A1E30;background:#fff;margin:0}.hd{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #7C5CFF;padding-bottom:14px;margin-bottom:20px}.hd .lg{display:flex;align-items:center;gap:12px}.hd h1{font-size:22px;margin:0;color:#1A1E30}.hd .rt{text-align:left;font-size:11px;color:#66708F}.hd .rt b{color:#1A1E30;display:block;font-size:13px;margin-bottom:2px}.box{background:#F9FAFB;border:1px solid #E5E7EB;border-radius:12px;padding:14px;margin-bottom:16px}.box .row{display:flex;flex-wrap:wrap;gap:12px;font-size:13px}.box .row > div{flex:1;min-width:140px}table{width:100%;border-collapse:collapse;background:#fff;border:1px solid #E5E7EB;border-radius:10px;overflow:hidden}th{background:#7C5CFF;color:#fff;font-size:12px;padding:10px;text-align:start;font-weight:700}.ft{margin-top:24px;padding-top:14px;border-top:1px solid #E5E7EB;text-align:center;color:#66708F;font-size:11px}.totals{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}.totals > div{background:linear-gradient(135deg,#7C5CFF,#5E8FD6);color:#fff;padding:12px;border-radius:10px;text-align:center}.totals .n{font-size:18px;font-weight:900}.totals .l{font-size:10px;opacity:.9;margin-top:2px}@media print{body{padding:12px}}</style></head><body><div class='hd'><div class='lg'>"+logoHtml+"<div><h1>"+(factory.fname||"متابعة المراحل")+"</h1>"+waHtml+"</div></div><div class='rt'><b>كشف حساب عميل</b>"+new Date().toLocaleDateString("ar-EG",{year:"numeric",month:"long",day:"numeric"})+"</div></div><div class='box'><div class='row'><div><div style='color:#66708F;font-size:11px;margin-bottom:2px'>اسم العميل</div><div style='font-weight:800;font-size:15px'>"+name+"</div></div>"+phHtml+addrHtml+"<div><div style='color:#66708F;font-size:11px;margin-bottom:2px'>إجمالي كروت</div><div style='font-weight:800;font-size:15px'>"+cs.length+"</div></div></div></div><div class='totals'><div><div class='n'>"+q+" "+factory.unit+"</div><div class='l'>إجمالي الكميات</div></div><div><div class='n'>"+delQ+" "+factory.unit+"</div><div class='l'>تم التسليم</div></div><div><div class='n'>"+(q-delQ)+" "+factory.unit+"</div><div class='l'>قيد العمل</div></div><div><div class='n'>"+lds.length+"</div><div class='l'>حمولات</div></div></div><h3 style='margin:14px 0 8px;font-size:14px;color:#1A1E30'>📋 تفاصيل الكروت</h3><table><thead><tr><th>الكود</th><th>المرحلة</th><th>اللون</th><th style='text-align:center'>الكمية</th><th style='text-align:center'>التسليم</th><th>آخر حركة</th></tr></thead><tbody>"+rows+"</tbody></table><div class='ft'>طُبع من نظام متابعة المراحل — "+new Date().toLocaleString("ar-EG")+"</div></body></html>";
+w.document.write(html);
+w.document.close();
+setTimeout(()=>{w.focus();w.print();},400);
+}
 function b64e(s){return btoa(unescape(encodeURIComponent(s))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");}
 function b64d(s){s=String(s).replace(/-/g,"+").replace(/_/g,"/");while(s.length%4)s+="=";return JSON.parse(decodeURIComponent(escape(atob(s))));}
 function pubUrl(c){try{const v=c.barcode||c.code||c.id;return APP_URL+"?d="+b64e(JSON.stringify({n:c.customer||"",c:v,col:c.color||"",cat:c.category||"",q:c.quantity||""}));}catch(e){return APP_URL;}}
@@ -191,6 +216,24 @@ const [importBusy,setImportBusy]=useState(null);const [importDraft,setImportDraf
 const [lang,setLang]=useState(()=>localStorage.getItem("pref_lang")||"ar");
 const [dark,setDark]=useState(true);
 const [stages,setStages]=useState(DEFAULT_STAGES);const [machines,setMachines]=useState(DEFAULT_MACHINES);
+const [showMyWork,setShowMyWork]=useState(false);
+const [showAsk,setShowAsk]=useState(false);const [askQ,setAskQ]=useState("");const [askA,setAskA]=useState("");const [askBusy,setAskBusy]=useState(0);
+const [showBook,setShowBook]=useState(false);
+const [gemKeyDraft,setGemKeyDraft]=useState(localStorage.getItem("gemini_key")||"");
+const [showBlack,setShowBlack]=useState(false);const [blackIdx,setBlackIdx]=useState(0);const [blackPlay,setBlackPlay]=useState(0);
+const [printTarget,setPrintTarget]=useState(null);const [printSize,setPrintSize]=useState(localStorage.getItem("printSize")||"A5");const [printDesign,setPrintDesign]=useState(localStorage.getItem("printDesign")||"1");
+const blackList=()=>{const arr=[];(cards||[]).forEach(c=>{(c.history||[]).forEach(h=>arr.push({stage:h.stage,by:h.by,at:h.at,cust:c.customer}));});arr.sort((a,b)=>toMs(a.at)-toMs(b.at));return arr;};
+useEffect(()=>{if(!blackPlay)return 0;const iv=setInterval(()=>setBlackIdx(i=>i+1),400);return()=>clearInterval(iv);},[blackPlay]);
+useEffect(()=>{const L=blackList().length;if(blackIdx>L)setBlackIdx(L);if(blackPlay&&blackIdx>=L)setBlackPlay(0);},[blackIdx,blackPlay]);
+const askGemini=async()=>{const q=askQ.trim();if(!q||askBusy)return;setAskBusy(1);setAskA("");const key=String(factory.gkey||localStorage.getItem("gemini_key")||window.__masterGem||"").trim();if(!key){setAskA("❌ مفيش مفتاح Gemini");setAskBusy(0);return;}
+const cardsDump=liveCards.slice(0,300).map(c=>[c.customer,c.code,c.color,c.category,c.quantity,c.stage,c.delivered?"مسلّم":""].filter(Boolean).join("|")).join("\n");
+const loadsDump=(loads||[]).map(l=>{const s=loadStats(l);return [l.name||l.category||l.title||"خامة","كلي:"+(l.total||0),"باقي:"+Math.max(0,Math.round(s.rem))].join("|");}).join("\n");
+const ctx="انت مساعد ذكي داخل تطبيق مصنع صباغة اسمه "+(factory.fname||"")+". عندك كل بيانات الموقع لحظياً — جاوب أي سؤال منها بالعامية المصرية وبأرقام حقيقية:\n\n🃏 كروت الشغل (عميل|كود|لون|خامة|وزن|مرحلة|حالة):\n"+cardsDump+"\n\n🧵 المخزن الرئيسي (خامة|إجمالي|باقي):\n"+loadsDump+"\n\n📊 ملخص: كروت حية="+liveCards.length+" · متأخرة="+lateCount+"\n🟢 المتصلين دلوقتي: "+(onlineUsers||[]).map(u=>u.name).join("، ")+"\n\n❓ سؤال صاحب المصنع: "+q;
+try{let models=["gemini-2.5-flash","gemini-2.0-flash"];try{const mj=await(await fetch("https://generativelanguage.googleapis.com/v1beta/models?key="+key)).json();if(mj&&mj.models){let av=mj.models.map(m=>String(m.name).replace("models/","")).filter(n=>/flash/.test(n)&&!/image|tts|embed|imagen|video/i.test(n));const nl=av.filter(n=>!n.includes("lite"));if(nl.length)av=nl;if(av.length)models=av.slice(0,3);}}catch(e){}let lastErr="";for(const md of models){try{const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+md+":generateContent?key="+key,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{parts:[{text:ctx}]}]})});const j=await r.json();if(j.error){lastErr=j.error.message||"err";continue;}const txt=j.candidates&&j.candidates[0]&&j.candidates[0].content.parts[0]&&j.candidates[0].content.parts[0].text;if(txt){setAskA(txt);setAskBusy(0);return;}}catch(e){}}setAskA("❌ معرفتش أوصل للنموذج"+(lastErr?" — "+lastErr:""));}catch(e){setAskA("❌ "+e.message);}setAskBusy(0);};
+const [companyMembers,setCompanyMembers]=useState([]);
+const [allUsersLive,setAllUsersLive]=useState([]);
+useEffect(()=>{if(!db)return 0;return db.collection("users").onSnapshot(s=>{const a=[];s.forEach(d=>a.push(d.data().name||d.id));a.sort();setAllUsersLive(a);});},[]);
+{[ownerName].concat(allUsersLive||[]).filter((v,i,a)=>v&&a.indexOf(v)===i).map(w=><option key={w} value={w}>{w===ownerName?"👑 "+w:"👷 "+w}</option>)}
 const [factory,setFactory]=useState({fname:"متابعة المراحل",wa:"",unit:"كيلو",lateDays:2,printSize:"A5",heroT:"",heroS:""});
 const [fnameDraft,setFnameDraft]=useState("متابعة المراحل");const [waDraft,setWaDraft]=useState("");const [lateDraft,setLateDraft]=useState(2);
 const [heroTDraft,setHeroTDraft]=useState("");const [heroSDraft,setHeroSDraft]=useState("");
@@ -202,6 +245,7 @@ const [showLateList,setShowLateList]=useState(false);const [showDelivered,setSho
 const [showStored,setShowStored]=useState(false);
 const [defects,setDefects]=useState([]);const [showDefects,setShowDefects]=useState(false);const [defectFor,setDefectFor]=useState(null);const [defectDraft,setDefectDraft]=useState({reason:"",qty:"",notes:""});
 const [linkedFrom,setLinkedFrom]=useState(null);
+const [showFlags,setShowFlags]=useState(false);
 const [screen,setScreen]=useState("home");const [activeStage,setActiveStage]=useState(null);
 const [lateOnly,setLateOnly]=useState(false);
 const [selectMode,setSelectMode]=useState(false);const [selected,setSelected]=useState([]);const [bulkMoveTo,setBulkMoveTo]=useState("");
@@ -238,6 +282,21 @@ const [bcCard,setBcCard]=useState(null);const [nameDraft,setNameDraft]=useState(
 const [editingCard,setEditingCard]=useState(null);const [actionCard,setActionCard]=useState(null);
 const [moveCard_,setMoveCard]=useState(null);const [copyCard_,setCopyCard]=useState(null);
 const [qrCard,setQrCard]=useState(null);const [toast,setToast]=useState(null);
+const modalRef=React.useRef(false);const screenRef=React.useRef("home");
+useEffect(()=>{
+  screenRef.current=screen;
+  if(window.__navLock&&Date.now()-window.__navLock<650)return;
+  try{
+    history.pushState(
+      {
+        guard:1,
+        screen:screen
+      },
+      ""
+    );
+  }catch(e){}
+},[screen]);
+useEffect(()=>{const m=!!(photoView||showAsk||showBook||editingCard||showMenu||showFlags||showWorkers||showMyWork||qrCard||actionCard||showSettings||showSched||showStored);if(m&&!modalRef.current){try{history.pushState({guard:1},"");}catch(e){}}modalRef.current=m;},[photoView,showAsk,showBook,editingCard,showMenu,showFlags,showWorkers,showMyWork,qrCard,actionCard,showSettings,showSched,showStored]);
 const [micOn,setMicOn]=useState(false);const [micText,setMicText]=useState("");const [showMic,setShowMic]=useState(false);const [micLang,setMicLang]=useState("ar-EG");
 const recRef=useRef(null);
 const photoInputRef=useRef(null);const photoGalRef=useRef(null);const scanFileRef=useRef(null);
@@ -245,7 +304,7 @@ const importCamRef=useRef(null);const importGalRef=useRef(null);
 const scannerRef=useRef(null);const restoreRef=useRef(null);const scanMode=useRef("form");
 const gotoDone=useRef(false);
 const uiRef=useRef({});
-uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,showTopCust,photoView,appQr,importMenu,importDraft,showMic,showWarehouse,addLoad,loadDetail,showLateList,showDelivered,heroEdit,showDefects,defectFor,showAnnounce,linkedFrom};
+uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,showTopCust,photoView,appQr,importMenu,importDraft,showMic,showWarehouse,addLoad,loadDetail,showLateList,showDelivered,heroEdit,showDefects,defectFor,showAnnounce,linkedFrom,showAsk,showBook,showBlack,showFlags,showMyWork,showSched,showStored};
 const t=DICT[lang];const dir=lang==="ar"?"rtl":"ltr";
 const can=true;unlocked;
 const [themeMode,setThemeMode]=useState(localStorage.getItem("themeMode")||"dark");
@@ -258,8 +317,8 @@ const hdrBtn={width:42,height:42,borderRadius:14,border:"1px solid "+theme.borde
 const LD=+factory.lateDays||2;
 const allColors=PRESET_COLORS.concat(customColors);
 useEffect(()=>{setFnameDraft(factory.fname);setWaDraft(factory.wa);setLateDraft(factory.lateDays);setHeroTDraft(factory.heroT||"");setHeroSDraft(factory.heroS||"");},[factory.fname,factory.wa,factory.lateDays,factory.heroT,factory.heroS]);
-useEffect(()=>{history.pushState({guard:1},"");const onPop=()=>{const u=uiRef.current;
-if(u.showTopCust)setShowTopCust(false);else if(u.showLateList)setShowLateList(false);else if(u.showDelivered)setShowDelivered(false);else if(u.heroEdit)setHeroEdit(false);else if(u.showDefects)setShowDefects(false);else if(u.defectFor)setDefectFor(null);else if(u.showAnnounce)setShowAnnounce(false);else if(u.linkedFrom)setLinkedFrom(null);else if(u.addLoad)setAddLoad(false);else if(u.loadDetail)setLoadDetail(null);else if(u.showWarehouse)setShowWarehouse(false);else if(u.showMic)setShowMic(false);else if(u.importMenu)setImportMenu(false);else if(u.importDraft)setImportDraft(null);
+useEffect(()=>{history.pushState({guard:1},"");const iv=setInterval(()=>{try{if(!history.state||!history.state.guard)history.pushState({guard:1},"");}catch(e){}},800);const onPop=()=>{const u=uiRef.current;window.__navLock=Date.now();
+if(u.showAsk)setShowAsk(false);else if(u.showBook)setShowBook(false);else if(u.showBlack)setShowBlack(false);else if(u.showFlags)setShowFlags(false);else if(u.showMyWork)setShowMyWork(false);else if(u.showSched)setShowSched(false);else if(u.showStored)setShowStored(false);else if(u.showTopCust)setShowTopCust(false);else if(u.showLateList)setShowLateList(false);else if(u.showDelivered)setShowDelivered(false);else if(u.heroEdit)setHeroEdit(false);else if(u.showDefects)setShowDefects(false);else if(u.defectFor)setDefectFor(null);else if(u.showAnnounce)setShowAnnounce(false);else if(u.linkedFrom)setLinkedFrom(null);else if(u.addLoad)setAddLoad(false);else if(u.loadDetail)setLoadDetail(null);else if(u.showWarehouse)setShowWarehouse(false);else if(u.showMic)setShowMic(false);else if(u.importMenu)setImportMenu(false);else if(u.importDraft)setImportDraft(null);
 else if(u.reportText)setReportText(null);else if(u.showScanner)setShowScanner(false);else if(u.bcCard)setBcCard(null);
 else if(u.statementFor)setStatementFor(null);else if(u.showWorkers)setShowWorkers(false);
 else if(u.photoView)setPhotoView(null);else if(u.appQr)setAppQr(false);else if(u.showMenu)setShowMenu(false);
@@ -267,9 +326,9 @@ else if(u.editingCard)setEditingCard(null);else if(u.actionCard)setActionCard(nu
 else if(u.moveCard_)setMoveCard(null);else if(u.copyCard_)setCopyCard(null);else if(u.qrCard)setQrCard(null);
 else if(u.showSearch)setShowSearch(false);else if(u.showSettings)setShowSettings(false);
 else if(u.screen==="stage")setScreen("stages");else if(u.screen==="stages")setScreen("home");else if(u.screen==="log")setScreen("home");
-else if(u.screen==="archive")setScreen("home");else{history.back();return;}
-history.pushState({guard:1},"");};
-window.addEventListener("popstate",onPop);return()=>window.removeEventListener("popstate",onPop);},[]);
+else if(u.screen==="archive")setScreen("home");else if(u.screen!=="home"){setScreen("home");}else{const n=Date.now();if(window.__lastExit&&n-window.__lastExit<900)return;window.__lastExit=n;history.back();return;}};
+window.addEventListener("popstate",onPop);return()=>{clearInterval(iv);window.removeEventListener("popstate",onPop);};},[]);
+useEffect(()=>{const h=()=>{if(window.__navLock&&Date.now()-window.__navLock<650)return;const s=screenRef.current;if(s==="stage")setScreen("stages");else if(s==="stages"||s==="log"||s==="archive")setScreen("home");};window.addEventListener("hashchange",h);return()=>window.removeEventListener("hashchange",h);},[]);
 useEffect(()=>{const on=()=>{setIsOnline(true);setSyncStatus("syncing");setTimeout(()=>{setSyncStatus("synced");setTimeout(()=>setSyncStatus("idle"),2000);},1500);};const off=()=>{setIsOnline(false);setSyncStatus("idle");};window.addEventListener("online",on);window.addEventListener("offline",off);return()=>{window.removeEventListener("online",on);window.removeEventListener("offline",off);};},[]);
 useEffect(()=>{const b=document.getElementById("syncBar");if(b)b.classList.toggle("active",syncStatus==="syncing");},[syncStatus]);
 useEffect(()=>{if(!fbReady||!auth||!db)return;const un=auth.onAuthStateChanged(async user=>{if(user){setUserId(user.uid);const s=localStorage.getItem("owner_name_"+(localStorage.getItem("username")||user.uid));if(s)setOwnerName(s);else{const o=localStorage.getItem("owner_name_"+user.uid);if(o)setOwnerName(o);}
@@ -280,7 +339,7 @@ db.collection("defects").onSnapshot(sn=>{setDefects(sn.docs.map(d=>({id:d.id,...
 db.collection("config").onSnapshot(sn=>{const g=id=>{const d=sn.docs.find(x=>x.id===id);return d?d.data():null;};
 const s=g("stages"),m=g("machines"),f=g("factory"),cl=g("colors");
 if(s)setStages(s.list||DEFAULT_STAGES);if(m)setMachines(m.list||DEFAULT_MACHINES);
-if(f)setFactory({fname:(f.fname&&f.fname!=="متابعة الصباغة"?f.fname:"متابعة المراحل"),wa:f.wa||"",unit:f.unit||"كيلو",lateDays:f.lateDays||2,printSize:f.printSize||"A5",gkey:f.gkey||"",heroT:f.heroT||"",heroS:f.heroS||"",logo:f.logo||""});
+if(f)setFactory({fname:(f.fname&&f.fname!=="متابعة الصباغة"?f.fname:"متابعة المراحل"),wa:f.wa||"",unit:f.unit||"كيلو",lateDays:f.lateDays||2,printSize:f.printSize||"A5",gkey:f.gkey||"",heroT:f.heroT||"",heroS:f.heroS||"",logo:f.logo||"",closed:!!f.closed,holidays:f.holidays||[],flags:f.flags||[],colorBook:f.colorBook||[],stageLocks:f.stageLocks||{}});
 if(cl)setCustomColors(cl.list||[]);
 const an=g("announce");if(an&&an.text)setAnnounce(an);else setAnnounce(null);});
 setFirebaseOk(true);setReady(true);}else{try{await auth.signInAnonymously();}catch(e){setReady(true);}}});return()=>un&&un();},[]);
@@ -295,6 +354,7 @@ return()=>{done=true;try{hq.stop();hq.clear();}catch(e){}};},[showScanner]);
 const showToast=(m,k)=>{setToast({msg:m,kind:k||"ok"});setTimeout(()=>setToast(null),2600);};
 const confirmName=()=>{if(!nameInput.trim())return;setOwnerName(nameInput.trim());if(userId)localStorage.setItem("owner_name_"+(localStorage.getItem("username")||userId),nameInput.trim());};
 const jumpToCard=c=>{setActiveStage(c.stage);setScreen("stage");setEditingCard(c);};
+const repeatOrder=name=>{const cs=cards.filter(c=>c.customer===name).sort((a,b)=>toMs(b.updatedAt||b.createdAt)-toMs(a.updatedAt||a.createdAt));const L=cs[0]||{};setStatementFor(null);setEditingCard({customer:name,color:L.color||"",category:L.category||"",quantity:"",phone:L.phone||"",address:L.address||"",notes:"",stage:stages[0],code:"",machine:L.machine||"",prepare:L.prepare||"",dye:L.dye||""});};
 const nextStageOf=s=>{const i=stages.indexOf(s);if(i===-1)return null;return i<stages.length-1?stages[i+1]:null;};
 const qtySum=l=>l.reduce((a,c)=>a+(parseFloat(c.quantity)||0),0);
 const knownCustomers=(()=>{const m={};cards.forEach(c=>{if(c.customer){m[c.customer]=m[c.customer]||{};if(c.phone)m[c.customer].phone=c.phone;if(c.address)m[c.customer].address=c.address;}});return Object.keys(m).map(k=>({name:k,phone:(m[k]||{}).phone||"",address:(m[k]||{}).address||""}));})();
@@ -330,8 +390,14 @@ const toggleStored=async c=>{if(!can||!db)return;await db.collection("cards").do
 const partialDeliver=async(c,q)=>{if(!can||!db)return;const v=Math.min(parseFloat(q)||0,parseFloat(c.quantity)||0);await db.collection("cards").doc(c.id).set({deliveredQty:v,delivered:v>=(parseFloat(c.quantity)||0)},{merge:true});await addLog("تسليم جزئي",c,String(v));setActionCard(null);};
 const saveHero=()=>{if(!can||!db)return;saveFactory({heroT:heroTDraft.trim(),heroS:heroSDraft.trim()});setHeroEdit(false);showToast("🎨 ✅");};
 const saveAnnounce=()=>{if(!can||!db)return;const el=document.getElementById("annBox");const txt=el?el.value:"";db.collection("config").doc("announce").set({text:txt.trim(),by:ownerName||"",time:Date.now()});setShowAnnounce(false);showToast("📢 اتنشر");};
-const saveDefect=async()=>{if(!can||!db||!defectFor)return;await db.collection("defects").doc(uid()).set({cardId:defectFor.id,customer:defectFor.customer||"",code:defectFor.code||"",stage:defectFor.stage||"",reason:defectDraft.reason||"",qty:defectDraft.qty||"",notes:defectDraft.notes||"",by:ownerName||"",time:Date.now(),date:localDate(new Date())});setDefectFor(null);setDefectDraft({reason:"",qty:"",notes:""});showToast("⚠️ تم التسجيل");};
-const saveFactory=patch=>{if(!can||!db)return;db.collection("config").doc("factory").set({...factory,...patch},{merge:true});};
+ const saveDefect=async()=>{if(!can||!db||!defectFor)return;await db.collection("defects").doc(uid()).set({cardId:defectFor.id,customer:defectFor.customer||"",code:defectFor.code||"",stage:defectFor.stage||"",reason:defectDraft.reason||"",qty:defectDraft.qty||"",notes:defectDraft.notes||"",by:ownerName||"",time:Date.now(),date:localDate(new Date())});setDefectFor(null);setDefectDraft({reason:"",qty:"",notes:""});showToast("⚠️ تم التسجيل");};
+const saveFactory=patch=>{
+if(!db){showToast("❌ مفيش اتصال");return;}
+if(!can){alert("المالك فقط يقدر يعدّل الإعدادات");return;}
+const next={...factory,...patch};
+setFactory(next);
+db.collection("config").doc("factory").set(patch,{merge:true}).then(()=>showToast("✅ اتحفظ")).catch(e=>{console.error(e);showToast("❌ خطأ في الحفظ");});
+};
 const saveFactoryDrafts=()=>{saveFactory({fname:fnameDraft.trim()||"متابعة المراحل",wa:waDraft.trim(),lateDays:+lateDraft||2,heroT:heroTDraft.trim(),heroS:heroSDraft.trim()});showToast("✅");};
 const saveStages=l=>{if(!can||!db)return;db.collection("config").doc("stages").set({list:l});};
 const renameStage=(o,n)=>{if(!can)return;saveStages(stages.map(s=>s===o?n:s));cards.filter(c=>c.stage===o).forEach(c=>db.collection("cards").doc(c.id).set({stage:n},{merge:true}));};
@@ -415,21 +481,27 @@ try{if(ex){await db.collection("cards").doc(card.id).set({...card,updatedAt:fire
 else{const id=card.id||uid();await db.collection("cards").doc(id).set({...card,id,createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp(),createdBy:ownerName,history:[{stage:card.stage,by:ownerName,at:nowISO()}]});await addLog("إضافة",card);}
 setEditingCard(null);showToast(isOnline?"✅":"📱");}catch(e){showToast("خطأ: "+(e.code||e.message),"danger");}};
 const deleteCard=async c=>{if(!can||!db)return;try{await db.collection("cards").doc(c.id).delete();await addLog("حذف",c);setActionCard(null);showToast("🗑️","danger");}catch(e){}};
-const moveCardTo=async(c,d)=>{if(!can||!db)return;d=d||(stages[0]||"");try{await db.collection("cards").doc(c.id).set({stage:d,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),history:firebase.firestore.FieldValue.arrayUnion({stage:d,by:ownerName,at:nowISO()})},{merge:true});await addLog("نقل",c,"→ "+d);setMoveCard(null);setActionCard(null);showToast("→ "+d);}catch(e){}};
+const moveCardTo=async(c,d)=>{if(!db)return;const role=localStorage.getItem("role")||"";const isOwner=(role==="manager"||role==="master");const isAssist=role==="assistant";if(factory.closed&&!isOwner){alert("🔒 المصنع مقفل اليوم — مفيش نقل");return;}const locks=factory.stageLocks||{};if(locks[d]&&!isOwner&&!isAssist){alert("🔒 مرحلة "+d+" مقفولة — للمساعد أو المالك فقط");return;}if(locks[c.stage]&&!isOwner&&!isAssist){alert("🔒 مرحلة "+c.stage+" مقفولة للخروج — للمساعد أو المالك فقط");return;}d=d||(stages[0]||"");try{await db.collection("cards").doc(c.id).set({stage:d,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),history:firebase.firestore.FieldValue.arrayUnion({stage:d,by:ownerName,at:nowISO()})},{merge:true});await addLog("نقل",c,"→ "+d);setMoveCard(null);setActionCard(null);showToast("→ "+d);}catch(e){}};
 const copyCardTo=async(c,d)=>{if(!can||!db)return;try{const id=uid();await db.collection("cards").doc(id).set({...c,id,stage:d,pinned:false,createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp(),createdBy:ownerName,history:[{stage:d,by:ownerName,at:nowISO()}]});await addLog("نسخ",c);setCopyCard(null);setActionCard(null);showToast("📋 ✅");}catch(e){}};
 const togglePin=async c=>{if(!can||!db)return;try{await db.collection("cards").doc(c.id).set({pinned:!c.pinned},{merge:true});setActionCard(null);}catch(e){}};
 const toggleArchive=async c=>{if(!can||!db)return;try{await db.collection("cards").doc(c.id).set({archived:!c.archived},{merge:true});await addLog(c.archived?"رجوع":"أرشفة",c);setActionCard(null);}catch(e){}};
-const isLate=c=>daysSince(c.updatedAt||c.createdAt)>=1;
+const holCount=ms=>{const hs=factory.holidays||[];let n=0;hs.forEach(d=>{const m=toMs(d);if(m&&m>=ms&&m<Date.now())n++;});return n;};
+const adjDays=c=>Math.max(0,daysSince(c.updatedAt||c.createdAt)-holCount(toMs(c.updatedAt||c.createdAt)));
+const isLate=c=>adjDays(c)>=1;
 const dueInfo=c=>{if(!c.due)return null;const today=localDate(new Date());if(c.due<today)return{txt:t.overdue,col:theme.danger};if((new Date(c.due).getTime()-new Date(today).getTime())/86400000<=1)return{txt:t.dueSoon,col:theme.warn};return null;};
 const liveCards=cards.filter(c=>!c.archived&&!c.stored);
 const storedCards=cards.filter(c=>!!c.stored&&!c.archived);
+const stageAvgMemo=(()=>{const tot={},cnt={};cards.forEach(c=>{const h=c.history||[];for(let i=0;i<h.length;i++){const st=toMs(h[i].at);const end=i+1<h.length?toMs(h[i+1].at):0;if(st&&end){const d=end-st;if(d>0&&d<30*86400000){const s=h[i].stage;tot[s]=(tot[s]||0)+d;cnt[s]=(cnt[s]||0)+1;}}}});const a={};Object.keys(tot).forEach(s=>{a[s]=tot[s]/cnt[s];});return a;})();
+const etaOf=c=>{if(!c||c.delivered)return null;const idx=stages.indexOf(c.stage);if(idx===-1)return null;const h=c.history||[];const lastE=h[h.length-1];const elapsed=(lastE&&lastE.stage===c.stage)?Date.now()-toMs(lastE.at):0;const cur=stageAvgMemo[c.stage]||4*3600000;let ms=Math.max(0,cur-elapsed);for(let i=idx+1;i<stages.length;i++){ms+=stageAvgMemo[stages[i]]||cur;}return Date.now()+ms;};
+const queuePos=c=>{if(!c)return null;const list=liveCards.filter(x=>x.stage===c.stage).sort((a,b)=>toMs(a.updatedAt||a.createdAt)-toMs(b.updatedAt||b.createdAt));const i=list.findIndex(x=>x.id===c.id);if(i===-1)return null;return{pos:i+1,total:list.length};};
 const archivedCards=cards.filter(c=>c.archived);
 const cardsToShow=activeStage?liveCards.filter(c=>c.stage===activeStage).filter(c=>!lateOnly||isLate(c)).filter(c=>{const q=stageQ.trim().toLowerCase();if(!q)return true;return FIELD_KEYS.some(k=>((c[k]||"")+"").toLowerCase().includes(q));}).sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||toMs(b.updatedAt)-toMs(a.updatedAt)):[];
 const statusMsg=syncStatus==="syncing"?t.syncing:syncStatus==="synced"?t.synced:(isOnline?t.online:t.offline);
 const statusColor=syncStatus==="syncing"?theme.warn:syncStatus==="synced"?theme.accent2:(isOnline?theme.accent2:theme.danger);
 const onlineNames=[...new Set(onlineUsers.map(u=>u.name))];
-const lateCount=liveCards.filter(c=>daysSince(c.updatedAt||c.createdAt)>=LD).length;
-const lateAll=liveCards.filter(c=>daysSince(c.updatedAt||c.createdAt)>=LD);
+const lateCount=liveCards.filter(c=>adjDays(c)>=LD).length;
+useEffect(()=>{const iv=setInterval(()=>{try{if(!("Notification" in window)||Notification.permission!=="granted")return;const late=liveCards.filter(c=>!c.delivered&&adjDays(c)>=LD);const done=(localStorage.getItem("notifiedLate")||"").split(",").filter(Boolean);const fresh=late.filter(c=>!done.includes(c.id));if(!fresh.length)return;fresh.slice(0,3).forEach(c=>{try{new Notification("⏰ كرت متأخر — "+(c.stage||""),{body:(c.customer||"")+" · "+(c.code||"")+" · "+(c.color||"")});}catch(e){}});localStorage.setItem("notifiedLate",[...done,...fresh.map(c=>c.id)].join(","));fx("danger");}catch(e){}},60000);return()=>clearInterval(iv);},[cards]);
+const lateAll=liveCards.filter(c=>adjDays(c)>=LD);
 const delAll=liveCards.filter(c=>c.delivered||(parseFloat(c.deliveredQty)||0)>0);
 const todayLogCount=log.filter(e=>localDate(new Date(toMs(e.time||e.timeLocal)))===localDate(new Date())).length;
 const recent3=liveCards.slice().sort((a,b)=>toMs(b.updatedAt)-toMs(a.updatedAt)).slice(0,3);
@@ -444,13 +516,29 @@ const annVisible=!!(announce&&announce.text)&&annDismissed!==String(announce.tim
 const badge=(c,x)=><span className="badge" style={{background:c}}>{x}</span>;
 const rawD=(()=>{try{return new URLSearchParams(window.location.search).get("d");}catch(e){return null;}})();
 const pubData=(()=>{if(!rawD)return null;try{return b64d(rawD);}catch(e){return null;}})();
-if(pubData&&!new URLSearchParams(window.location.search).get("goto"))return(<div dir="rtl" style={{minHeight:"100vh",background:"#fff",color:"#232016",display:"flex",alignItems:"center",justifyContent:"center",padding:20,fontFamily:"system-ui,sans-serif"}}>
+const liveID=(()=>{try{return new URLSearchParams(window.location.search).get("live");}catch(e){return null;}})();
+const liveCID=(()=>{try{return new URLSearchParams(window.location.search).get("c");}catch(e){return null;}})();
+const [liveCard,setLiveCard]=useState(null);
+const [liveErr,setLiveErr]=useState("");
+useEffect(()=>{if(!liveID||!db)return 0;const base=(liveCID&&liveCID!=="DEFAULT")?"companies/"+liveCID+"/cards":"cards";try{return db._raw(base).doc(liveID).onSnapshot(d=>{if(d.exists)setLiveCard(d.data());else setLiveErr("nf");},()=>setLiveErr("er"));}catch(e){setLiveErr("er");}return 0;},[liveID,liveCID]);
+if(pubData&&!new URLSearchParams(window.location.search).get("goto")&&!liveID)return(<div dir="rtl" style={{minHeight:"100vh",background:"#fff",color:"#232016",display:"flex",alignItems:"center",justifyContent:"center",padding:20,fontFamily:"system-ui,sans-serif"}}>
 <div style={{width:"100%",maxWidth:380,border:"4px solid #7C5CFF",borderRadius:20,padding:24}}>
 <div style={{fontSize:22,fontWeight:900,textAlign:"center",marginBottom:4}}>🏭 متابعة الصباغة</div>
 <div style={{fontSize:12,color:"#77705F",textAlign:"center",marginBottom:18}}>بيانات بطاقة الشغل</div>
 {[["اسم العمل",pubData.n],["الكود",pubData.c],["اللون",pubData.col],["الصنف",pubData.cat],["الوزن",pubData.q]].map(r=>r[1]?<div key={r[0]} style={{display:"flex",justifyContent:"space-between",borderBottom:"1px solid #DFD9CB",padding:"10px 4px",fontSize:15}}><b>{r[0]}</b><span>{r[1]}</span></div>:null)}
-<a href={APP_URL+"?goto="+encodeURIComponent(rawD)} style={{display:"block",marginTop:18,background:"#7C5CFF",color:"#fff",borderRadius:12,padding:"12px",textDecoration:"none",fontWeight:700,textAlign:"center"}}>فتح التطبيق الكامل → مكان الكرت</a>
-<div style={{fontSize:11,color:"#77705F",textAlign:"center",marginTop:10}}>🔒 التعديل للعاملين فقط بكود التفعيل</div>
+</div></div>);
+if(liveID)return(<div dir="rtl" style={{minHeight:"100vh",background:"#fff",color:"#232016",display:"flex",alignItems:"center",justifyContent:"center",padding:20,fontFamily:"system-ui,sans-serif"}}>
+<div style={{width:"100%",maxWidth:400,border:"4px solid #7C5CFF",borderRadius:20,padding:24}}>
+<div style={{fontSize:22,fontWeight:900,textAlign:"center",marginBottom:4}}>🏭 {factory.fname||"متابعة الصباغة"}</div>
+<div style={{fontSize:12,color:"#77705F",textAlign:"center",marginBottom:18}}>📡 حالة الطلب لحظة بلحظة</div>
+{!liveCard&&!liveErr&&<div style={{textAlign:"center",padding:30,fontSize:14,color:"#77705F"}}>⏳ تحميل...</div>}
+{liveErr&&<div style={{textAlign:"center",padding:30,fontSize:14,color:"#c0392b"}}>❌ الكرت مش موجود</div>}
+{liveCard&&(<div>
+{[["👤 العميل",liveCard.customer],["🔢 الكود",liveCard.code],["🎨 اللون",liveCard.color],["⚖️ الكمية",liveCard.quantity],["📍 المرحلة الحالية",liveCard.stage]].map(r=>r[1]?<div key={r[0]} style={{display:"flex",justifyContent:"space-between",borderBottom:"1px solid #DFD9CB",padding:"10px 4px",fontSize:15}}><b>{r[0]}</b><span>{r[1]}</span></div>:null)}
+{liveCard.delivered&&<div style={{marginTop:14,background:"#E8F8F2",border:"1px solid #2DD4A8",borderRadius:12,padding:10,textAlign:"center",fontWeight:800,color:"#0B7A5E"}}>✅ تم التسليم</div>}
+{(liveCard.photos||[]).length>0&&<img src={liveCard.photos[0]} style={{width:"100%",borderRadius:12,marginTop:12}}/>}
+{factory.wa&&<a href={"https://wa.me/"+String(factory.wa).replace(/\D/g,"")} target="_blank" rel="noreferrer" style={{display:"block",marginTop:16,background:"#25D366",color:"#fff",borderRadius:12,padding:"12px",textDecoration:"none",fontWeight:700,textAlign:"center"}}>💬 كلم المصنع</a>}
+</div>)}
 </div></div>);
 if(!ready)return(<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:theme.bg,color:theme.text,flexDirection:"column",gap:16}}><div style={{fontSize:48,animation:"floaty 2s infinite"}}>🏭</div><div className="spin" style={{fontSize:24}}>⚙️</div><div style={{fontSize:14,color:theme.textDim,marginTop:4}}>🕌 صلي على النبي</div></div>);
 if(!ownerName)return(<div dir={dir} style={{minHeight:"100vh",background:theme.bg,color:theme.text,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}><div className="card" style={{padding:32,width:"100%",maxWidth:380,textAlign:"center"}}><div style={{width:60,height:60,borderRadius:18,background:"linear-gradient(135deg,var(--vio),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px",fontSize:28,animation:"floaty 2.5s infinite",boxShadow:"0 10px 30px rgba(124,92,255,.4)"}}>🏭</div><h2 style={{margin:"0 0 6px",fontSize:20}}>{factory.fname}</h2><p style={{color:theme.textDim,fontSize:13,marginBottom:18}}>{t.yourName} — {t.enterNameHint}</p><input autoFocus value={nameInput} onChange={e=>setNameInput(e.target.value)} placeholder={t.yourName} className="inp" style={{textAlign:"center"}} onKeyDown={e=>e.key==="Enter"&&confirmName()}/><button onClick={confirmName} className="btnG">{t.confirmName}</button></div></div>);
@@ -472,7 +560,7 @@ return(
 <div style={{width:44,height:44,borderRadius:50,background:"linear-gradient(135deg,var(--vio),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,boxShadow:"0 6px 18px rgba(124,92,255,.4)"}}>{(ownerName||"؟")[0]}</div>
 <div style={{flex:1}}><div style={{fontSize:12,color:theme.textDim}}>👋 مرحباً يا {ownerName}</div><div style={{fontSize:20,fontWeight:900}}>{factory.fname}</div></div>
 <button onClick={()=>setShowSearch(true)} style={hdrBtn}>🔍</button>
-<button onClick={()=>setShowLateList(true)} style={{...hdrBtn,position:"relative"}}>🔔{(()=>{const n=liveCards.filter(c=>!c.delivered&&(c.urgent||daysSince(c.updatedAt||c.createdAt)>=(factory.lateDays||2))).length;return n>0?<span style={{position:"absolute",top:4,left:4,background:"var(--red)",color:"#fff",borderRadius:10,fontSize:9,fontWeight:800,padding:"1px 5px",minWidth:16,textAlign:"center"}}>{n}</span>:null;})()}</button>
+<button onClick={()=>setShowLateList(true)} style={{...hdrBtn,position:"relative"}}>🔔{(()=>{const n=liveCards.filter(c=>!c.delivered&&(c.urgent||adjDays(c)>=(factory.lateDays||2))).length;return n>0?<span style={{position:"absolute",top:4,left:4,background:"var(--red)",color:"#fff",borderRadius:10,fontSize:9,fontWeight:800,padding:"1px 5px",minWidth:16,textAlign:"center"}}>{n}</span>:null;})()}</button>
 <button onClick={()=>setShowMenu(true)} style={hdrBtn}>⋯</button>
 </div>
 <div className="card grad anim" style={{animationDelay:"80ms",marginBottom:12,position:"relative",overflow:"hidden"}}>
@@ -597,14 +685,14 @@ return(<div key={s} className="anim" style={{display:"flex",gap:12,marginBottom:
 {cardsToShow.length===0&&<p style={{textAlign:"center",padding:"50px 10px",color:theme.textDim}}>{t.noCardsHere}</p>}
 {cardsToShow.map((c,i)=>{const d=daysSince(c.updatedAt||c.createdAt);const l1=d>=1&&d<LD;const l2=d>=LD;const lk=liveCards.filter(x=>x.message&&x.message===c.message&&x.id!==c.id).length;const di=dueInfo(c);const bc=c.urgent?"var(--red)":l2?"var(--red)":l1?"var(--warn)":di?di.col:STAGE_COLORS[(stages.indexOf(c.stage)>=0?stages.indexOf(c.stage):0)%8];
 return(<div key={c.id} className="card" onClick={()=>selectMode?toggleSelect(c.id):setEditingCard(c)} onContextMenu={e=>{e.preventDefault();setActionCard(c);}} style={{userSelect:"none",cursor:"pointer",marginBottom:10,borderInlineStart:"4px solid "+(selected.includes(c.id)?"var(--teal)":bc),boxShadow:selected.includes(c.id)?"0 0 0 2px var(--teal)":"none",animationDelay:(i*70)+"ms"}}>
-<div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:15}}>{selectMode&&(selected.includes(c.id)?"☑️ ":" ")}{c.customer||"—"} {c.pinned&&"📌"}</b><span style={{display:"flex",alignItems:"center",gap:6}}>{(c.photo||c.img)&&<img src={c.photo||c.img} style={{width:34,height:34,borderRadius:8,objectFit:"cover"}}/>}<span style={{fontSize:11,color:theme.textDim}}>{c.time||fmtTime(c.updatedAt,lang)}</span></span></div>
+<div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:15}}>{selectMode&&(selected.includes(c.id)?"☑️ ":" ")}{c.customer||"—"} {c.pinned&&"📌"}</b><span style={{display:"flex",alignItems:"center",gap:6}}>{((c.photos||[]).length>0)?<span onClick={(e)=>{e.stopPropagation();setPhotoView(c.photos[0]);}} style={{display:"inline-flex",gap:2,alignItems:"center",cursor:"zoom-in"}}><img src={c.photos[0]} style={{width:34,height:34,borderRadius:8,objectFit:"cover"}}/><span style={{fontSize:11,color:"var(--teal)",fontWeight:800}}>📸{c.photos.length}</span></span>:((c.photo||c.img)?<img src={c.photo||c.img} onClick={(e)=>{e.stopPropagation();setPhotoView(c.photo||c.img);}} style={{width:34,height:34,borderRadius:8,objectFit:"cover",cursor:"zoom-in"}}/>:null)}<span style={{fontSize:11,color:theme.textDim}}>{c.time||fmtTime(c.updatedAt,lang)}</span></span></div>
 <div style={{display:"flex",flexWrap:"wrap",gap:"4px 12px",fontSize:12.5,color:theme.textDim,marginTop:5}}>
 <span>{t.code}: <b style={{color:theme.text}}>{c.code||"—"}</b></span>
 <span>{t.color}: <b style={{color:theme.text}}>{c.color||"—"}</b></span>
 <span>{t.quantity}: <b style={{color:theme.text}}>{c.quantity||"—"}</b></span>
 {c.machine&&<span>{t.machine}: <b style={{color:theme.text}}>{c.machine}</b></span>}
 {c.barcode&&<span>🔳 <b style={{color:theme.text}}>{c.barcode}</b></span>}</div>
-{(c.urgent||l2||l1||lk>0||di||c.delivered||c.deliveredQty)&&(<div style={{display:"flex",gap:6,marginTop:8,flexWrap:"wrap"}}>{c.urgent&&badge("var(--red)",t.urgent)}{l2&&badge("var(--red)",t.aged2)}{!l2&&l1&&badge("var(--warn)",t.aged1)}{di&&badge(di.col,di.txt)}{lk>0&&<span onClick={(e)=>{e.stopPropagation();setLinkedFrom(c);}} style={{cursor:"pointer"}}>{badge("var(--blue)",t.linkedCards+": "+lk+" ←")}</span>}{c.delivered&&badge("var(--teal)","✅ مسلّم")}{!c.delivered&&c.deliveredQty&&badge("var(--teal)","⚖️ "+c.deliveredQty)}</div>)}
+{(c.urgent||l2||l1||lk>0||di||c.delivered||c.deliveredQty||(c.flags||[]).length)&&(<div style={{display:"flex",gap:6,marginTop:8,flexWrap:"wrap"}}>{(c.flags||[]).map(f=>badge((c.flagsDone||[]).includes(f)?"var(--teal)":"var(--vio)",f+((c.flagsDone||[]).includes(f)?" ✅":"")))}{c.urgent&&badge("var(--red)",t.urgent)}{l2&&badge("var(--red)",t.aged2)}{!l2&&l1&&badge("var(--warn)",t.aged1)}{di&&badge(di.col,di.txt)}{lk>0&&<span onClick={(e)=>{e.stopPropagation();setLinkedFrom(c);}} style={{cursor:"pointer"}}>{badge("var(--blue)",t.linkedCards+": "+lk+" ←")}</span>}{c.delivered&&badge("var(--teal)","✅ مسلّم")}{!c.delivered&&c.deliveredQty&&badge("var(--teal)","⚖️ "+c.deliveredQty)}</div>)}
 </div>);})}
 </div>)}
 {selectMode&&(<div style={{position:"fixed",bottom:70,left:0,right:0,zIndex:400,display:"flex",justifyContent:"center",pointerEvents:"none"}}>
@@ -684,6 +772,27 @@ return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noRe
 <input ref={importCamRef} type="file" accept="image/*" capture="environment" style={{display:"none"}} onChange={handleImportFile}/>
 <input ref={importGalRef} type="file" accept="image/*" style={{display:"none"}} onChange={handleImportFile}/>
 <input ref={restoreRef} type="file" accept="application/json" style={{display:"none"}} onChange={restoreJSON}/>
+{showMyWork&&(<div className="modal" onClick={()=>setShowMyWork(false)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:420}}><h3 style={{margin:"0 0 12px"}}>👷 شغلي أنا — {ownerName||"العامل"}</h3>{(()=>{const my=liveCards.filter(c=>c.assignedTo===ownerName&&!c.delivered).sort((a,b)=>toMs(a.updatedAt||a.createdAt)-toMs(b.updatedAt||b.createdAt));if(my.length===0)return(<p style={{color:theme.textDim,fontSize:13,textAlign:"center",padding:20}}>🎉 مفيش شغل عليك دلوقتي</p>);return my.map((c,i)=>(<div key={c.id} onClick={()=>{setShowMyWork(false);jumpToCard(c);}} style={{display:"flex",gap:10,alignItems:"center",padding:"10px 12px",marginBottom:8,borderRadius:12,background:theme.panelAlt,cursor:"pointer",borderInlineStart:"3px solid var(--vio)"}}><span style={{fontSize:18,color:theme.textDim}}>{i+1}</span><div style={{flex:1}}><div style={{fontWeight:700,fontSize:13}}>{c.code||"—"} · {c.customer}</div><div style={{fontSize:11,color:theme.textDim,marginTop:2}}>{c.stage} · {c.color||""} · {c.quantity||""}</div></div><span style={{fontSize:20}}>→</span></div>));})()}</div></div>)}
+{printTarget&&(<div className="modal" onClick={()=>setPrintTarget(null)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:400}}><h3 style={{margin:"0 0 10px"}}>🖨️ اختار شكل الورقة</h3><div style={{display:"flex",gap:6,marginBottom:8,flexWrap:"wrap"}}>{["1","2","3"].map(d=><button key={d} onClick={()=>{setPrintDesign(d);localStorage.setItem("printDesign",d);}} className={"chip"+(printDesign===d?" on":"")}>{d==="1"?"📋 كلاسيكي":d==="2"?"🎨 مودرن":"⚡ مختصر"}</button>)}</div>
+<div style={{display:"flex",gap:6,marginBottom:12}}>{["A5","A4"].map(s=><button key={s} onClick={()=>{setPrintSize(s);localStorage.setItem("printSize",s);}} className={"chip"+(printSize===s?" on":"")}>📄 {s}</button>)}</div><p style={{fontSize:11,color:theme.textDim,marginBottom:10}}>📋 جدول رسمي · 🎨 رأس بنفسجي وكروت · ⚡ اسم العميل كبير بس</p><button className="btnG" onClick={()=>{setTimeout(()=>{try{if(window.JsBarcode&&(printTarget.barcode||printTarget.code))JsBarcode("#printBC",printTarget.barcode||printTarget.code,{displayValue:false,margin:0});}catch(e){}window.print();},200);}}>🖨️ اطبع</button></div></div>)}
+<div id="printSheet" style={{display:"none",width:printSize==="A4"?"210mm":"148mm"}}>
+{printTarget&&(()=>{const c=printTarget;const rows=[["العميل",c.customer],["الكود",c.code],["اللون",c.color],["الخامة",c.category],["الوزن",c.quantity],["الماكينة",c.machine],["التاريخ",c.time]];
+if(printDesign==="2")return(<div style={{padding:"8mm",fontFamily:"Arial",color:"#1A1E30",direction:"rtl"}}><div style={{background:"#7C5CFF",color:"#fff",borderRadius:"4mm",padding:"4mm",display:"flex",justifyContent:"space-between",alignItems:"center"}}><div style={{fontWeight:900,fontSize:"16px"}}>{factory.fname}</div><div style={{fontSize:"10px"}}>🏭 كرت شغل صباغة</div></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"2mm",marginTop:"4mm"}}>{rows.map(r=><div key={r[0]} style={{border:"0.4mm solid #D8DCEB",borderRadius:"2mm",padding:"2mm"}}><div style={{fontSize:"9px",color:"#66708F"}}>{r[0]}</div><div style={{fontSize:"12px",fontWeight:800}}>{r[1]||"—"}</div></div>)}</div><div style={{marginTop:"4mm",textAlign:"center"}}><svg id="printBC"/></div></div>);
+if(printDesign==="3")return(<div style={{padding:"8mm",fontFamily:"Arial",color:"#000",direction:"rtl",textAlign:"center"}}><div style={{fontWeight:900,fontSize:"18px"}}>{c.customer||"—"}</div><div style={{fontSize:"13px",marginTop:"2mm"}}>{c.color} · {c.quantity}</div><div style={{fontSize:"11px",marginTop:"1mm"}}>{factory.fname}</div><div style={{marginTop:"4mm"}}><svg id="printBC"/></div></div>);
+return(<div style={{padding:"8mm",fontFamily:"Arial",color:"#000",direction:"rtl"}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:"0.6mm solid #000",paddingBottom:"2mm"}}>{factory.logo&&<img src={factory.logo} style={{width:"14mm",height:"14mm",objectFit:"contain"}}/>}<div style={{fontWeight:900,fontSize:"15px"}}>{factory.fname}</div><div style={{fontSize:"10px"}}>كرت صباغة</div></div><table style={{width:"100%",borderCollapse:"collapse",marginTop:"3mm",fontSize:"11px"}}><tbody>{rows.map(r=><tr key={r[0]}><td style={{border:"0.3mm solid #000",padding:"1.5mm",fontWeight:700,width:"30%"}}>{r[0]}</td><td style={{border:"0.3mm solid #000",padding:"1.5mm"}}>{r[1]||"—"}</td></tr>)}</tbody></table><div style={{marginTop:"3mm",textAlign:"center"}}><svg id="printBC"/></div></div>);})()}
+</div>
+{photoView&&(<div className="modal" onClick={()=>setPhotoView(null)} style={{background:"rgba(0,0,0,0.92)",padding:0,zIndex:9999}}><div onClick={e=>e.stopPropagation()} style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}><img src={photoView} style={{maxWidth:"94vw",maxHeight:"92vh",borderRadius:12,boxShadow:"0 20px 60px rgba(0,0,0,0.5)"}}/><button onClick={()=>setPhotoView(null)} style={{position:"fixed",top:20,right:20,background:"var(--red)",color:"#fff",border:"none",borderRadius:"50%",width:48,height:48,fontSize:22,cursor:"pointer",boxShadow:"0 4px 12px rgba(0,0,0,0.4)",zIndex:10000}}>✕</button></div></div>)}
+{showFlags&&(
+<div className="modal" onClick={()=>setShowFlags(false)}>
+<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:380}}>
+<h3 style={{margin:"0 0 12px"}}>🚩 أعلام الكروت</h3>
+{(factory.flags||[]).length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center"}}>المالك يعرّف الأعلام من الإعدادات ⚙️</p>}
+{(factory.flags||[]).map(f=>{const cs=liveCards.filter(c=>(c.flags||[]).includes(f));const done=cs.filter(c=>(c.flagsDone||[]).includes(f)).length;return(<div key={f} style={{marginBottom:12}}>
+<div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:6}}><b>{f}</b><span style={{color:theme.textDim}}>{done}/{cs.length} خلص</span></div>
+{cs.length===0&&<div style={{fontSize:12,color:theme.textDim}}>مفيش كروت معلمة</div>}
+{cs.map(c=>{const d=(c.flagsDone||[]).includes(f);return(<div key={c.id} onClick={()=>{setShowFlags(false);jumpToCard(c);}} style={{display:"flex",gap:8,alignItems:"center",padding:"6px 10px",marginBottom:4,borderRadius:10,background:theme.panelAlt,cursor:"pointer",fontSize:12,opacity:d?0.55:1}}><span>{d?"✅":"☐"}</span><b>{c.code||"—"}</b><span style={{color:theme.textDim}}>{c.customer}</span><span style={{marginInlineStart:"auto"}}>{c.stage}</span></div>);})}
+</div>);})}
+</div></div>)}
 {showMenu&&(
 <div className="modal" onClick={()=>setShowMenu(false)}>
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:300}}>
@@ -697,10 +806,16 @@ return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noRe
 <MenuBtn onClick={()=>{setShowTopCust(true);setShowMenu(false);}}>🏅 أعلى العملاء</MenuBtn>
 <MenuBtn onClick={()=>{setShowWorkers(true);setShowMenu(false);}}>🏆 {t.workers}</MenuBtn>
 {can&&<MenuBtn onClick={()=>{setAnnounceDraft((announce&&announce.text)||"");setShowAnnounce(true);setShowMenu(false);}}>📢 إعلان للعمال</MenuBtn>}
+{(localStorage.getItem("role")==="worker"||localStorage.getItem("role")==="assistant")&&<MenuBtn onClick={()=>{setShowMyWork(true);setShowMenu(false);}}>👷 شغلي أنا</MenuBtn>}
 <MenuBtn onClick={()=>{exportCSV();setShowMenu(false);}}>💾 {t.backup}</MenuBtn>
 <MenuBtn onClick={()=>{setScreen("archive");setShowMenu(false);}}>🗄️ {t.archive}</MenuBtn>
 <MenuBtn onClick={()=>{setScreen("log");setShowMenu(false);}}>📋 {t.dailyLog}</MenuBtn>
+<MenuBtn onClick={()=>{setShowAsk(true);setShowMenu(false);}}>🤖 اسأل مصنعك</MenuBtn>
+<MenuBtn onClick={()=>{setShowBlack(true);setShowMenu(false);}}>⚫ الصندوق الأسود</MenuBtn>
+<MenuBtn onClick={()=>{setShowBook(true);setShowMenu(false);}}>📚 بوكيمون الألوان</MenuBtn>
+<MenuBtn onClick={()=>{setShowFlags(true);setShowMenu(false);}}>🚩 أعلام الكروت</MenuBtn>
 <MenuBtn onClick={()=>{setNameDraft(ownerName);openSettingsGuard();setShowMenu(false);}}>⚙️ {t.settings}</MenuBtn>
+<MenuBtn onClick={()=>{window.open("https://wa.me/"+SUPPORT_WA+"?text="+encodeURIComponent("🆘 دعم — "+(factory.fname||"")+" | المستخدم: "+(ownerName||"")+" | الشركة: "+(localStorage.getItem("companyID")||"")),"_blank");setShowMenu(false);}}>🆘 دعم واتساب</MenuBtn>
 </div></div>)}
 {showLateList&&(
 <div className="modal" onClick={()=>setShowLateList(false)}>
@@ -929,7 +1044,7 @@ return(<div key={c.id} className="card" onClick={()=>{setStatementFor(null);jump
 <pre style={{whiteSpace:"pre-wrap",background:theme.panelAlt,borderRadius:14,padding:12,fontSize:13,color:theme.text,fontFamily:"inherit"}}>{buildStatement(statementFor)}</pre>
 </div>);})()}
 </div>)}
-<div style={{display:"flex",gap:8,marginTop:12}}><button onClick={()=>{try{navigator.clipboard.writeText(buildStatement(statementFor));showToast("✅");}catch(e){}}} className="btnO">{t.copy}</button><a href={waLink(buildStatement(statementFor||""))} target="_blank" rel="noreferrer" className="btnG" style={{textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>💬 واتساب</a></div>
+<div style={{display:"flex",gap:8,marginTop:12,flexWrap:"wrap"}}><button onClick={()=>repeatOrder(statementFor)} className="btnO" style={{flex:1}}>🔁 تكرار</button><button onClick={()=>printStatement(statementFor)} className="btnO" style={{flex:1}}>🖨️ طباعة</button><button onClick={()=>{try{navigator.clipboard.writeText(buildStatement(statementFor));showToast("✅");}catch(e){}}} className="btnO" style={{flex:1}}>{t.copy}</button><a href={waLink(buildStatement(statementFor||""))} target="_blank" rel="noreferrer" className="btnG" style={{textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center",flex:1}}>💬 واتساب</a></div>
 </div></div>)}
 {showTopCust&&(
 <div className="modal" onClick={()=>setShowTopCust(false)}>
@@ -950,7 +1065,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:340}}>
 <h3 style={{margin:"0 0 12px"}}>🏆 {t.workers}</h3>
 {workerStats().length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center"}}>{t.noResults}</p>}
-{workerStats().map(([n,c],i)=>(<div key={n} className="card" style={{display:"flex",justifyContent:"space-between",padding:"10px 12px",marginBottom:8,animationDelay:(i*70)+"ms"}}><span>{i===0?"🥇":i===1?"🥈":i===2?"🥉":""} {n}</span><b style={{color:"var(--vio2)"}}>{c}</b></div>))}
+{workerStats().map(([n,c],i)=>(<div key={n} className="card" style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 12px",marginBottom:8,animationDelay:(i*70)+"ms"}}><span>{i===0?"🥇":i===1?"🥈":i===2?"🥉":""} {n}</span><span style={{display:"flex",gap:8,alignItems:"center"}}><LastSeen name={n}/><b style={{color:"var(--vio2)"}}>{c}</b></span></div>))}
 </div></div>)}
 {appQr&&(
 <div className="modal" onClick={()=>setAppQr(false)}>
@@ -966,6 +1081,10 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div style={{padding:14,textAlign:"center"}}><button onClick={()=>scanFileRef.current&&scanFileRef.current.click()} className="btnG" style={{width:"auto",padding:"12px 22px"}}>📁 صورة من الجهاز</button></div>
 <input ref={scanFileRef} type="file" accept="image/*" style={{display:"none"}} onChange={scanFromFile}/>
 </div>)}
+{showAsk&&(<div className="modal" onClick={()=>setShowAsk(false)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:420}}><h3 style={{margin:"0 0 12px"}}>🤖 اسأل مصنعك</h3><textarea rows={2} className="inp" placeholder="مثال: إيه أهدأ مرحلة دلوقتي؟ مين أكبر عميل متأخر؟" value={askQ} onChange={e=>setAskQ(e.target.value)}/><button className="btnG" style={{marginTop:8}} onClick={askGemini}>{askBusy?"⏳ بيفكر...":"🤖 اسأل"}</button>{askA&&<div style={{marginTop:10,padding:"10px 12px",borderRadius:12,background:theme.panelAlt,fontSize:13,whiteSpace:"pre-wrap",lineHeight:1.8}}>{askA}</div>}</div></div>)}
+{showBook&&(<div className="modal" onClick={()=>setShowBook(false)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:380}}><h3 style={{margin:"0 0 12px"}}>📚 بوكيمون الألوان</h3>{(factory.colorBook||[]).length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center"}}>لسه مفيش ألوان متسجلة — المالك يضيفها</p>}{(factory.colorBook||[]).map((b,i)=>(<div key={i} style={{padding:"8px 10px",borderRadius:10,background:theme.panelAlt,marginBottom:6,fontSize:13}}><div style={{display:"flex",justifyContent:"space-between"}}><b>🎨 {b.n}</b>{can&&<button onClick={()=>{if(confirm("حذف "+b.n+"؟"))saveFactory({colorBook:(factory.colorBook||[]).filter((x,j)=>j!==i)});}} className="chip">✕</button>}</div>{b.note&&<div style={{fontSize:11,color:theme.textDim,marginTop:2}}>{b.note}</div>}</div>))}{can&&<button className="chip on" onClick={()=>{const n=prompt("اسم اللون:");if(!n||!n.trim())return;const note=prompt("وصفة/ملاحظات اللون (اختياري):","")||"";saveFactory({colorBook:[...(factory.colorBook||[]),{n:n.trim(),note:note.trim()}]});}}>➕ لون جديد</button>}</div></div>)}
+{ownerName&&!showAsk&&(<button onClick={()=>setShowAsk(true)} aria-label="اسأل مصنعك" style={{position:"fixed",bottom:96,right:14,zIndex:400,width:56,height:56,borderRadius:"50%",border:"none",background:"linear-gradient(135deg,var(--vio),var(--blue))",color:"#fff",fontSize:26,cursor:"pointer",boxShadow:"0 8px 24px rgba(124,92,255,.55)",display:"flex",alignItems:"center",justifyContent:"center",animation:"floaty 2.5s infinite"}}>🤖</button>)}
+{showBlack&&(<div className="modal" onClick={()=>setShowBlack(false)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:420}}><h3 style={{margin:"0 0 10px"}}>⚫ الصندوق الأسود</h3><p style={{fontSize:11,color:theme.textDim,marginBottom:8}}>🎬 إعادة تشغيل اليوم حركة بحركة — كل نقله مين عملها وإمتى</p><div style={{display:"flex",gap:6,alignItems:"center",marginBottom:10}}><button className="btnG" style={{flex:1}} onClick={()=>{if(blackPlay){setBlackPlay(0);}else{setBlackIdx(0);setBlackPlay(1);}}}>{blackPlay?"⏸️ إيقاف":"▶️ تشغيل اليوم"}</button><span style={{fontSize:11,color:theme.textDim}}>{Math.min(blackIdx,blackList().length)}/{blackList().length}</span></div><div style={{maxHeight:320,overflow:"auto"}}>{blackList().slice(0,blackIdx).map((h,i)=>(<div key={i} className="anim" style={{padding:"6px 10px",marginBottom:4,borderInlineStart:"2px solid var(--vio)",background:theme.panelAlt,borderRadius:8,fontSize:12,color:theme.textDim}}><b style={{color:theme.text}}>{h.cust||"—"}</b> · 📍 {h.stage} · {h.by} · {fmtTime(h.at,lang)}</div>))}{blackIdx===0&&<p style={{textAlign:"center",color:theme.textDim,fontSize:12,padding:20}}>دوس ▶️ وشوف اليوم بيتفك قدامك</p>}</div></div></div>)}
 {photoView&&(
 <div className="modal" onClick={()=>setPhotoView(null)}>
 <div onClick={e=>e.stopPropagation()} style={{maxWidth:520,width:"100%",textAlign:"center"}}><img src={photoView.photo} style={{width:"100%",borderRadius:16}}/><p style={{color:"#fff",fontSize:13,marginTop:10}}>{photoView.customer} · {photoView.code}</p></div>
@@ -997,7 +1116,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div><div className="lbl">{t.color}</div><input className="inp" value={editingCard.color} onChange={e=>setEditingCard({...editingCard,color:e.target.value})}/></div></div>
 <div className="lbl">{t.colorsLabel}</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{allColors.map(c=><button key={c} onClick={()=>setEditingCard({...editingCard,color:c})} className={"chip"+(editingCard.color===c?" on":"")}>{c}</button>)}</div>
 <div style={grid2}>
-<div><div className="lbl">{t.quantity}</div><div style={{display:"flex",gap:6}}><input className="inp" style={{flex:1}} value={editingCard.quantity} onChange={e=>setEditingCard({...editingCard,quantity:e.target.value})}/><button onClick={()=>{const ex=prompt("🧮 اكتب العملية:",editingCard.quantity||"");if(ex===null)return;const clean=String(ex).replace(/[٠-٩]/g,d=>String("٠١٢٤٥٦٨٩".indexOf(d))).replace(/×/g,"*").replace(/÷/g,"/").replace(/[^0-9+\-*/.() ]/g,"");if(!clean.trim())return;try{const v=Function('"use strict";return ('+clean+")")();if(isFinite(v))setEditingCard({...editingCard,quantity:String(Math.round(v*100)/100)});}catch(e){}}} style={{width:44,height:44,borderRadius:12,border:"1px solid "+theme.border,background:"transparent",fontSize:16}}>🧮</button></div></div>
+<div><div className="lbl">{t.quantity}</div><div style={{display:"flex",gap:6}}><input className="inp" style={{flex:1}} value={editingCard.quantity} onChange={e=>setEditingCard({...editingCard,quantity:e.target.value})}/><button onClick={()=>{const ex=prompt("🧮 اكتب العملية:",editingCard.quantity||"");if(ex===null)return;const clean=String(ex).replace(/[٠-٩]/g,d=>String("٠١٢٣٤٥٦٧٨٩".indexOf(d))).replace(/×/g,"*").replace(/÷/g,"/").replace(/[^0-9+\-*/.() ]/g,"");if(!clean.trim())return;try{const v=Function('"use strict";return ('+clean+")")();if(isFinite(v))setEditingCard({...editingCard,quantity:String(Math.round(v*100)/100)});}catch(e){}}} style={{width:44,height:44,borderRadius:12,border:"1px solid "+theme.border,background:"transparent",fontSize:16}}>🧮</button></div></div>
 <div><div className="lbl">{t.barcode}</div><div style={{display:"flex",gap:6}}><input className="inp" style={{marginBottom:6}} value={editingCard.barcode} onChange={e=>setEditingCard({...editingCard,barcode:e.target.value})}/><button onClick={()=>{scanMode.current="form";setShowScanner(true);}} style={{flex:"0 0 auto",padding:"0 12px",borderRadius:12,border:"none",background:"var(--teal)",color:"#04211a",fontSize:16,fontWeight:800}}>📷</button></div>
 {editingCard.barcode&&<div style={{background:"#fff",borderRadius:8,padding:"6px 4px",marginBottom:8,textAlign:"center"}}><BarcodeView value={editingCard.barcode}/></div>}</div></div>
 <div className="lbl">{t.machine}</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{machines.map(m=><button key={m} onClick={()=>setEditingCard({...editingCard,machine:m})} className={"chip"+(editingCard.machine===m?" on":"")}>{m}</button>)}</div>
@@ -1021,8 +1140,14 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 </>)}
 {editingCard.phone&&(<div style={{display:"flex",gap:8,marginBottom:10}}><a href={"tel:"+editingCard.phone} className="btnO" style={{textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>📞</a><a href={"https://wa.me/"+editingCard.phone.replace(/\D/g,"")} target="_blank" rel="noreferrer" className="btnO" style={{textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>💬</a></div>)}
 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><div className="lbl">{t.notes}</div><button onClick={noteMic} className={"chip"+(micOn?" on":"")}>🎙️</button></div><textarea rows={2} className="inp" value={editingCard.notes} onChange={e=>setEditingCard({...editingCard,notes:e.target.value})}/>
+<div className="lbl">📸 صور الأمر</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{(editingCard.photos||[]).map((p,i)=>(<span key={i} style={{position:"relative",display:"inline-block",cursor:"zoom-in"}} onClick={()=>setPhotoView(p)}><img src={p} style={{width:56,height:56,objectFit:"cover",borderRadius:10,border:"1px solid "+theme.border}}/><button onClick={()=>setEditingCard({...editingCard,photos:(editingCard.photos||[]).filter((x,j)=>j!==i)})} style={{position:"absolute",top:-6,left:-6,background:"var(--red)",color:"#fff",border:"none",borderRadius:"50%",width:18,height:18,fontSize:10,cursor:"pointer"}}>✕</button></span>))}<button className="chip on" onClick={()=>{var inp=document.createElement("input");inp.type="file";inp.accept="image/*";inp.onchange=e=>{var f=e.target.files[0];if(f)compressImg(f,800,function(d){setEditingCard(ec=>({...ec,photos:[...(ec.photos||[]),d]}));});};inp.click();}}>➕ صورة</button></div>
+{cards.some(cc=>cc.id===editingCard.id)&&(<div style={{display:"flex",gap:8,alignItems:"center",marginBottom:12,flexWrap:"wrap"}}>{editingCard.timerStart?(<><span style={{fontSize:12,color:"#2DD4A8",fontWeight:700}}>⏱️ شغال {fmtDur(Date.now()-editingCard.timerStart)}</span><button className="btnG" onClick={()=>{const add=Math.max(1,Math.round((Date.now()-editingCard.timerStart)/60000));db.collection("cards").doc(editingCard.id).update({timerStart:0,workMins:firebase.firestore.FieldValue.increment(add)});setEditingCard({...editingCard,timerStart:0,workMins:(editingCard.workMins||0)+add});}}>⏹️ إيقاف</button></>):(<button className="btnO" onClick={()=>{db.collection("cards").doc(editingCard.id).update({timerStart:Date.now()});setEditingCard({...editingCard,timerStart:Date.now()});}}>⏱️ ابدأ عدّاد الشغل</button>)}{(editingCard.workMins||0)>0&&<span style={{fontSize:11,color:theme.textDim}}>⏳ الإجمالي: {fmtDur(editingCard.workMins*60000)}</span>}</div>)}
 <label style={{display:"flex",alignItems:"center",gap:8,marginBottom:14,fontSize:14}}><input type="checkbox" checked={!!editingCard.urgent} onChange={e=>setEditingCard({...editingCard,urgent:e.target.checked})}/> ⚠️ {t.urgent}</label>
-{Array.isArray(editingCard.history)&&editingCard.history.length>0&&(<div style={{marginBottom:14}}><div className="lbl">📜 {t.history}</div>{editingCard.history.slice().reverse().map((h,i)=>(<div key={i} style={{display:"flex",gap:8,flexWrap:"wrap",fontSize:12,color:theme.textDim,padding:"6px 10px",marginBottom:4,borderInlineStart:"2px solid var(--vio)",background:theme.panelAlt,borderRadius:8}}><span>📍 {h.stage}</span><span>· {h.by}</span><span>· {fmtTime(h.at,lang)}</span></div>))}</div>)}
+<div style={{marginBottom:12}}><div className="lbl">👷 مسند لـ</div><select className="inp" value={editingCard.assignedTo||""} onChange={e=>setEditingCard({...editingCard,assignedTo:e.target.value})}><option value="">— غير مسند —</option>{[ownerName].concat(allUsersLive||[]).filter((v,i,a)=>v&&a.indexOf(v)===i).map(w=><option key={w} value={w}>{w===ownerName?"👑 "+w:"👷 "+w}</option>)}</select></div>
+{(factory.flags||[]).length>0&&(<div style={{marginBottom:12}}><div className="lbl">🚩 أعلام الكرت</div><div style={{display:"flex",gap:6,flexWrap:"wrap"}}>{(factory.flags||[]).map(f=>{const on=(editingCard.flags||[]).includes(f);const done=(editingCard.flagsDone||[]).includes(f);return(<span key={f} style={{display:"inline-flex",gap:4,alignItems:"center"}}><button onClick={()=>{const cur=editingCard.flags||[];setEditingCard({...editingCard,flags:on?cur.filter(x=>x!==f):[...cur,f]});}} className={"chip"+(on?" on":"")}>{f}</button>{on&&<button onClick={()=>{const cur=editingCard.flagsDone||[];setEditingCard({...editingCard,flagsDone:done?cur.filter(x=>x!==f):[...cur,f]});}} className="chip" style={{background:done?"var(--teal)":"transparent"}}>{done?"✅":"☐"}</button>}</span>);})}</div></div>)}
+{(()=>{const qp=queuePos(editingCard);if(!qp||editingCard.delivered)return null;return(<div style={{padding:"8px 12px",marginBottom:10,background:"rgba(45,212,168,.08)",border:"1px solid rgba(45,212,168,.35)",borderRadius:12,fontSize:12,color:theme.textDim}}>📍 ترتيبك في مرحلة <b>{editingCard.stage}</b>: <b style={{color:"var(--teal)"}}>{qp.pos} من {qp.total}</b> — الأقدم بيتشتغل الأول</div>);})()}
+{(()=>{if(!editingCard||editingCard.delivered)return null;const eta=etaOf(editingCard);if(!eta)return null;const d=Math.max(0,Math.round((eta-Date.now())/86400000));return(<div style={{padding:"8px 12px",marginBottom:12,background:"rgba(94,143,214,.10)",border:"1px solid rgba(94,143,214,.35)",borderRadius:12,fontSize:12,color:theme.textDim}}>🗓️ الجاهزية المتوقعة: <b style={{color:"var(--blue)"}}>{new Date(eta).toLocaleDateString(lang==="ar"?"ar-EG":"en-GB",{weekday:"long",day:"numeric",month:"long"})}</b> (بعد ~{d} يوم)</div>);})()}
+{Array.isArray(editingCard.history)&&editingCard.history.length>0&&(<div style={{marginBottom:14}}><div className="lbl">📜 {t.history}</div>{editingCard.history.slice().reverse().map((h,i)=>{const arr=editingCard.history;const idx=arr.indexOf(h);const nxt=arr[idx+1];const ms=(nxt?toMs(nxt.at):Date.now())-toMs(h.at);return(<div key={i} style={{display:"flex",gap:8,flexWrap:"wrap",fontSize:12,color:theme.textDim,padding:"6px 10px",marginBottom:4,borderInlineStart:"2px solid var(--vio)",background:theme.panelAlt,borderRadius:8}}><span>📍 {h.stage}</span><span>· {h.by}</span><span>· {fmtTime(h.at,lang)}</span><span style={{color:"var(--warn)",fontWeight:800}}>⏱️ {fmtDur(ms)}</span></div>);})}</div>)}
 {can&&<div style={{display:"flex",gap:8}}><button onClick={()=>saveCard({...editingCard,__dupWarning:undefined},!!editingCard.__dupWarning)} className="btnG">{editingCard.__dupWarning?t.saveAnyway:t.save}</button><button onClick={()=>setEditingCard(null)} className="btnO">{t.cancel}</button></div>}
 {can&&cards.some(c=>c.id===editingCard.id)&&nextStageOf(editingCard.stage)&&(<button onClick={()=>{const n=nextStageOf(editingCard.stage);const c=editingCard;setEditingCard(null);moveCardTo(c,n);}} className="btnO" style={{marginTop:8}}>⏭️ → {nextStageOf(editingCard.stage)}</button>)}
 </fieldset>
@@ -1044,7 +1169,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 ...(can?[{icon:"📋",label:t.copyCard,fn:()=>{setCopyCard(actionCard);setActionCard(null);}},
 {icon:"🔄",label:t.moveCard,fn:()=>{setMoveCard(actionCard);setActionCard(null);}},
 {icon:"⭐",label:actionCard.pinned?t.unpin:t.pinCard,fn:()=>togglePin(actionCard)}]:[]),
-{icon:"🖨️",label:t.printCard,fn:()=>{printCard(actionCard);setActionCard(null);}},
+{icon:"🖨️",label:t.printCard,fn:()=>{setPrintTarget(actionCard);setActionCard(null);}},
 {icon:"🔳",label:t.showBarcode,fn:()=>{setBcCard(actionCard);setActionCard(null);}},
 {icon:"📱",label:t.showQr,fn:()=>{setQrCard(actionCard);setActionCard(null);}},
 ...(actionCard.photo?[{icon:"🖼️",label:t.viewPhoto,fn:()=>{setPhotoView(actionCard);setActionCard(null);}}]:[]),
@@ -1068,7 +1193,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div className="modal" onClick={()=>setQrCard(null)}>
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:340,textAlign:"center"}}>
 <h3>📱 {t.showQr}</h3>
-<div style={{display:"flex",justifyContent:"center",margin:"10px 0"}}><QrView value={pubUrl(qrCard)} size={200}/></div>
+<div style={{display:"flex",justifyContent:"center",margin:"10px 0"}}><QrView value={pubUrl(qrCard)+(pubUrl(qrCard).indexOf("?")>=0?"&":"?")+"live="+qrCard.id+"&c="+(localStorage.getItem("companyID")||"DEFAULT")} size={200}/></div>
 <p style={{fontSize:13,color:theme.textDim}}>{qrCard.customer} · {qrCard.barcode||qrCard.code}</p>
 </div></div>)}
 {showSearch&&(
@@ -1108,7 +1233,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div className="lbl">🖼️ لوجو الشركة</div>
 <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:10}}>
 {logoSrc&&<img src={logoSrc} style={{width:44,height:44,borderRadius:10,objectFit:"cover"}}/>}
-<label className="chip on" style={{display:"inline-flex",alignItems:"center",gap:6,cursor:"pointer"}}>📤 رفع لوجو<input type="file" accept="image/png,image/jpeg" style={{display:"none"}} onChange={e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const rd=new FileReader();rd.onerror=()=>alert("❌ فشل قراءة الملف");rd.onload=()=>{const img=new Image();img.onerror=()=>alert("❌ نوع الصورة مش مدعوم — اختار JPG أو PNG");img.onload=()=>{const m=Math.max(img.width,img.height);const sc=Math.min(1,256/m);const c=document.createElement("canvas");c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);c.getContext("2d").drawImage(img,0,0,c.width,c.height);saveFactory({logo:c.toDataURL("image/png")});try{localStorage.setItem("logo_local",c.toDataURL("image/png"));}catch(e){}};img.src=rd.result;};rd.readAsDataURL(f);e.target.value="";}}/></label>>
+<label className="chip on" style={{display:"inline-flex",alignItems:"center",gap:6,cursor:"pointer"}}>📤 رفع لوجو<input type="file" accept="image/png,image/jpeg" style={{display:"none"}} onChange={e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const rd=new FileReader();rd.onerror=()=>alert("❌ فشل قراءة الملف");rd.onload=()=>{const img=new Image();img.onerror=()=>alert("❌ نوع الصورة مش مدعوم — اختار JPG أو PNG");img.onload=()=>{const m=Math.max(img.width,img.height);const sc=Math.min(1,256/m);const c=document.createElement("canvas");c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);c.getContext("2d").drawImage(img,0,0,c.width,c.height);saveFactory({logo:c.toDataURL("image/png")});try{localStorage.setItem("logo_local",c.toDataURL("image/png"));}catch(e){}};img.src=rd.result;};rd.readAsDataURL(f);e.target.value="";}}/></label>
 {logoSrc&&<button className="chip" onClick={()=>{saveFactory({logo:""});localStorage.removeItem("logo_local");}}>🗑️</button>}
 </div>
 <div className="lbl">🔒 رقم سري للإعدادات (سيبه فاضي = مفتوح)</div>
@@ -1131,10 +1256,13 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div className="lbl">⏰ {t.lateDays}</div><input className="inp" type="number" min="1" value={lateDraft} onChange={e=>setLateDraft(e.target.value)}/>
 <button onClick={saveFactoryDrafts} className="btnG" style={{marginBottom:10}}>💾 {t.saveFactoryBtn}</button>
 </>}
-<div className="lbl">🎚️ {t.manageStages}</div><div style={{marginBottom:10}}>{stages.map(s=>(<div key={s} style={{display:"flex",gap:6,alignItems:"center",marginBottom:6}}><span style={{flex:1,fontSize:13}}>{s}</span><button onClick={()=>{const n=prompt(t.rename,s);if(n&&n.trim()&&n!==s)renameStage(s,n.trim());}} className="chip">✏️</button><button onClick={()=>{if(confirm(t.delete+" "+s))saveStages(stages.filter(x=>x!==s));}} className="chip">🗑️</button></div>))}
+<div className="lbl">🎚️ {t.manageStages}</div><div style={{marginBottom:10}}>{stages.map(s=>(<div key={s} style={{display:"flex",gap:6,alignItems:"center",marginBottom:6}}><span style={{flex:1,fontSize:13}}>{s}</span><button onClick={()=>{const cur=(factory.stageLocks||{})[s];const nx={...(factory.stageLocks||{})};if(cur)delete nx[s];else nx[s]=1;saveFactory({stageLocks:nx});}} className={"chip"+((factory.stageLocks||{})[s]?" on":"")} title="قفل المرحلة">{(factory.stageLocks||{})[s]?"🔒":"🔓"}</button><button onClick={()=>{const n=prompt(t.rename,s);if(n&&n.trim()&&n!==s)renameStage(s,n.trim());}} className="chip">✏️</button><button onClick={()=>{if(confirm(t.delete+" "+s))saveStages(stages.filter(x=>x!==s));}} className="chip">🗑️</button></div>))}
 <button onClick={()=>{const n=prompt(t.addStage);if(n&&n.trim()&&!stages.includes(n.trim()))saveStages(stages.concat([n.trim()]));}} className="chip" style={{marginTop:4}}>➕</button></div>
 <div className="lbl">🔧 {t.manageMachines}</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{machines.map(m=><button key={m} onClick={()=>{if(confirm(t.delete+" "+m))saveMachines(machines.filter(x=>x!==m));}} className="chip">{m} ✕</button>)}<button onClick={()=>{const n=prompt(t.add);if(n&&n.trim()&&!machines.includes(n.trim()))saveMachines(machines.concat([n.trim()]));}} className="chip on">➕</button></div>
 <div className="lbl">🎨 {t.manageColors}</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{customColors.map(c=><button key={c} onClick={()=>saveColors(customColors.filter(x=>x!==c))} className="chip">{c} ✕</button>)}<button onClick={()=>{const n=prompt(t.add);if(n&&n.trim())saveColors(customColors.concat([n.trim()]));}} className="chip on">➕</button></div>
+<div className="lbl">🚩 أعلام الكروت</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{(factory.flags||[]).map(f=><button key={f} onClick={()=>{if(confirm("حذف العلم: "+f)){setFactory(ff=>({...ff,flags:(ff.flags||[]).filter(x=>x!==f)}));db.collection("config").doc("factory").set({flags:firebase.firestore.FieldValue.arrayRemove(f)},{merge:true});}}} className="chip">{f} ✕</button>)}<button onClick={()=>{const n=prompt("اسم العلم الجديد (مثال: 🖨️ طباعة قماش)");if(n&&n.trim()){setFactory(f=>({...f,flags:[...(f.flags||[]),n.trim()]}));db.collection("config").doc("factory").set({flags:firebase.firestore.FieldValue.arrayUnion(n.trim())},{merge:true});}}} className="chip on">➕</button></div>
+<div className="lbl">🏖️ أجازات المصنع</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>{(factory.holidays||[]).map(h=><button key={h} onClick={()=>{if(confirm("حذف إجازة "+h+"؟"))saveFactory({holidays:(factory.holidays||[]).filter(x=>x!==h)});}} className="chip">{h} ✕</button>)}</div><input type="date" className="inp" style={{marginBottom:8}} onChange={e=>{if(e.target.value&&!((factory.holidays)||[]).includes(e.target.value))saveFactory({holidays:[...(factory.holidays||[]),e.target.value]});e.target.value="";}}/><button onClick={()=>saveFactory({closed:!factory.closed})} className={"chip"+(factory.closed?" on":"")} style={{marginBottom:10}}>{factory.closed?"🔒 المصنع مقفل اليوم":"🔓 المصنع شغال"}</button>
+<button onClick={()=>{if(!("Notification" in window)){alert("المتصفح مش بيدعم التنبيهات");return;}Notification.requestPermission().then(p=>alert(p==="granted"?"✅ تنبيهات التأخر اشتغلت — حتى والتطبيق في الخلفية":"❌ اسمح بالإشعارات من إعدادات المتصفح"));}} className="chip" style={{marginBottom:10}}>🔔 تنبيهات التأخر</button>
 {(localStorage.getItem("role")==="manager"||localStorage.getItem("role")==="assistant"||localStorage.getItem("role")==="master")&&<>
 <div style={{...grid2,marginTop:8}}>
 <button onClick={()=>setAppQr(true)} className="btnO">🔳 {t.appQr}</button>
@@ -1157,15 +1285,15 @@ if(localStorage.getItem("role")==="manager"){db.collection("users").doc(me).get(
 var off=db.collection("users").onSnapshot(function(s){var a=[];s.forEach(function(x){a.push(Object.assign({id:x.id},x.data()));});setWs(a);},function(){});
 return function(){off&&off();};
 },[]);
-const add=()=>{if(!nu.trim()||!np.trim()){alert("املأ الاسم والرمز");return;}db.collection("users").doc(nu.trim()).set({name:nu.trim(),pin:np.trim(),role:"worker",locked:false,createdAt:new Date().toISOString()});setNu("");setNp("");};
+const add=()=>{if(!nu.trim()||!np.trim()){alert("املأ الاسم والرمز");return;}db.collection("users").doc(nu.trim()).set({name:nu.trim(),pin:np.trim(),role:"worker",locked:false,createdAt:new Date().toISOString()});try{db.collection("config").doc("factory").update({team:firebase.firestore.FieldValue.arrayUnion(nu.trim())});}catch(e){}setNu("");setNp("");};
 const tog=(w)=>{db.collection("users").doc(w.id).update({locked:!w.locked});};
-const del=(w)=>{if(!confirm("حذف حساب "+w.id+"؟"))return;db.collection("users").doc(w.id).delete();};
+const del=(w)=>{if(!confirm("حذف حساب "+w.id+"؟"))return;db.collection("users").doc(w.id).delete();try{db.collection("config").doc("factory").update({team:firebase.firestore.FieldValue.arrayRemove(w.name||w.id)});}catch(e){}};
 const edit=(w)=>{var nn=prompt("الاسم:",w.name||w.id);if(nn===null)return;var pp=prompt("الرمز:",w.pin);if(pp===null)return;db.collection("users").doc(w.id).update({name:nn,pin:pp});};
 const pro=(w)=>{var nr=w.role==="assistant"?"worker":"assistant";db.collection("users").doc(w.id).update({role:nr});};
 return <div className="card" style={{padding:14,marginTop:12}}>
 <div className="lbl">👥 إدارة العمال والمساعدين</div>
 {ws.filter(w=>w.role!=="manager").map(w=><div key={w.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:"1px solid #242B47"}}>
-<div><b style={{fontSize:13}}>{w.role==="assistant"?"🎖️":"👷"} {w.name||w.id}</b><div style={{fontSize:11,color:"#8A93B5"}}>رمز: {w.pin}</div></div>
+<div><b style={{fontSize:13}}>{w.role==="assistant"?"🎖️":"👷"} {w.name||w.id}</b><div style={{fontSize:11,color:"#8A93B5"}}>رمز: {w.pin}</div><div style={{marginTop:3}}><LastSeen name={w.id}/></div></div>
 <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
 <button className="chip" onClick={()=>tog(w)} style={{borderColor:w.locked?"#FF5C7A":"#2DD4A8",color:w.locked?"#FF5C7A":"#2DD4A8"}}>{w.locked?"🔒":"✅"}</button>
 <button className="chip" onClick={()=>edit(w)}>✏️</button>
@@ -1177,19 +1305,24 @@ return <div className="card" style={{padding:14,marginTop:12}}>
 <input style={{flex:1,minWidth:0,padding:"10px 12px",borderRadius:10,border:"1px solid #242B47",background:"#1B2036",color:"#EDEFF5",fontSize:13,outline:"none"}} placeholder="اسم العامل" value={nu} onChange={e=>setNu(e.target.value)}/>
 <input style={{flex:1,minWidth:0,padding:"10px 12px",borderRadius:10,border:"1px solid #242B47",background:"#1B2036",color:"#EDEFF5",fontSize:13,outline:"none"}} placeholder="الرمز" value={np} onChange={e=>setNp(e.target.value)}/>
 <button onClick={add} style={{padding:"10px 14px",borderRadius:10,border:"none",background:"linear-gradient(135deg,#7C5CFF,#5E8FD6)",color:"#fff",fontSize:14,fontWeight:800,cursor:"pointer"}}>➕</button>
+<button onClick={()=>{if(!confirm("ربط كل العمال الحاليين بالشركة دي؟"))return;var names=ws.filter(w=>w.role!=="manager").map(w=>w.name||w.id);db.collection("config").doc("factory").set({team:names},{merge:true}).then(()=>alert("✅ تم ربط "+names.length+" عامل بالشركة")).catch(e=>alert("❌ حصل خطأ: "+e.message));}} style={{padding:"10px 14px",borderRadius:10,border:"1px solid #2DD4A8",background:"transparent",color:"#2DD4A8",fontSize:13,fontWeight:800,cursor:"pointer",marginInlineStart:6}}>🔗 اربط الكل</button>
 </div>
 </div>;
 }
 function MyPinPanel(){
 const [p1,setP1]=useState("");
 const [p2,setP2]=useState("");
+const [gk,setGk]=useState(localStorage.getItem("gemini_key")||"");
 const save=()=>{if(!p1||p1!==p2){alert("الرمزين مش متطابقين");return;}var u=localStorage.getItem("username");db.collection("users").doc(u).get().then(function(d){if(!d.exists){alert("اسأل المالك يسجلّك في النظام الأول");return;}db.collection("users").doc(u).update({pin:p1});localStorage.setItem("pin",p1);alert("✅ تم تغيير رمزك");setP1("");setP2("");}).catch(function(){alert("خطأ في الاتصال");});};
-return <div className="card" style={{padding:14,marginTop:12}}>
+return <div>
+{(localStorage.getItem("role")==="master"||localStorage.getItem("role")==="manager")&&(<div className="card" style={{padding:14,marginTop:12}}><div className="lbl">🔑 مفتاح الذكاء الاصطناعي</div><div style={{display:"flex",gap:6}}><input type="password" style={{flex:1,minWidth:0,padding:"10px 12px",borderRadius:10,border:"1px solid #242B47",background:"#1B2036",color:"#EDEFF5",fontSize:13,outline:"none"}} placeholder="Gemini API Key" value={gk} onChange={e=>setGk(e.target.value)}/><button onClick={()=>{var v=gk.trim();if(!v)return;localStorage.setItem("gemini_key",v);try{db.collection("config").doc("factory").set({gkey:v},{merge:true});}catch(e){}alert("✅ المفتاح اتحفظ لكل الشركة");}} style={{padding:"10px 14px",borderRadius:10,border:"none",background:"linear-gradient(135deg,#7C5CFF,#5E8FD6)",color:"#fff",fontSize:14,fontWeight:800,cursor:"pointer"}}>💾</button></div></div>)}
+<div className="card" style={{padding:14,marginTop:12}}>
 <div className="lbl">🔑 تغيير رمزي الشخصي</div>
 <div style={{display:"flex",gap:6}}>
 <input type="password" style={{flex:1,minWidth:0,padding:"10px 12px",borderRadius:10,border:"1px solid #242B47",background:"#1B2036",color:"#EDEFF5",fontSize:13,outline:"none"}} placeholder="الرمز الجديد" value={p1} onChange={e=>setP1(e.target.value)}/>
 <input type="password" style={{flex:1,minWidth:0,padding:"10px 12px",borderRadius:10,border:"1px solid #242B47",background:"#1B2036",color:"#EDEFF5",fontSize:13,outline:"none"}} placeholder="أكده تاني" value={p2} onChange={e=>setP2(e.target.value)}/>
 <button onClick={save} style={{padding:"10px 14px",borderRadius:10,border:"none",background:"linear-gradient(135deg,#7C5CFF,#5E8FD6)",color:"#fff",fontSize:14,fontWeight:800,cursor:"pointer"}}>💾</button>
+</div>
 </div>
 </div>;
 }
@@ -1224,7 +1357,11 @@ document.getElementById("lg_demo").onclick=function(){localStorage.setItem("comp
 }else{
 if(window.isMaster){location.replace("master.html");}else{
 (function(){var r=localStorage.getItem("role");if(r==="worker"||r==="assistant"){var u=localStorage.getItem("username");db.collection("users").doc(u).get().then(function(d){if(!d.exists||d.data().locked){localStorage.removeItem("companyID");localStorage.removeItem("username");localStorage.removeItem("pin");localStorage.removeItem("role");alert("\u0627\u0644\u062D\u0633\u0627\u0628 \u0645\u0648\u0642\u0648\u0641 \u0645\u0646 \u0627\u0644\u0645\u062F\u064A\u0631");location.reload();}}).catch(function(){});}})();
-ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+class EB extends React.Component{constructor(p){super(p);this.state={err:0};}static getDerivedStateFromError(){return{err:1};}render(){if(this.state.err)return(<div dir="rtl" style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:12,background:"#0B0E1A",color:"#EDEFF5",textAlign:"center",padding:20}}><div style={{fontSize:56}}>🛠️</div><h2 style={{margin:0}}>حصلت مشكلة صغيرة</h2><div style={{color:"#8A93B5",fontSize:13}}>متقلقش بياناتك سليمة — دوس إعادة</div><button className="btnG" onClick={()=>location.reload()}>🔄 إعادة التشغيل</button></div>);return this.props.children;}}
+ReactDOM.createRoot(document.getElementById("root")).render(<EB><App/></EB>);
 window.__booted=true;
 }
 }
+</script>
+</body>
+</html>
