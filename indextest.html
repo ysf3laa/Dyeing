@@ -1158,7 +1158,6 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 {icon:"🖨️",label:t.printCard,fn:()=>{setPrintTarget(actionCard);setActionCard(null);}},
 {icon:"🔳",label:t.showBarcode,fn:()=>{setBcCard(actionCard);setActionCard(null);}},
 {icon:"📱",label:t.showQr,fn:()=>{setQrCard(actionCard);setActionCard(null);}},
-{icon:"🖨️",label:"طباعة الكرت",fn:()=>{setPrintCard(actionCard);setActionCard(null);}},
 ...(actionCard.photo?[{icon:"🖼️",label:t.viewPhoto,fn:()=>{setPhotoView(actionCard);setActionCard(null);}}]:[]),
 ...(can?[{icon:"🗄️",label:actionCard.archived?t.unarchive:t.archiveCard,fn:()=>toggleArchive(actionCard)},
 {icon:"🗑️",label:t.delete,fn:()=>undoDelete(actionCard),danger:true}]:[])
