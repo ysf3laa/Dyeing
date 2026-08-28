@@ -276,117 +276,60 @@ const stOrder=(s,dir)=>{const i2=stages.indexOf(s);const j=i2+dir;if(j<0||j>=sta
 const stDel=s=>{const rest=stages.filter(x=>x!==s);const to=prompt("⚠️ كروت "+s+" هتنتقل لمرحلة:\n"+rest.join(" ، "));if(!to||!rest.includes(to.trim()))return;saveStages(rest);cards.filter(c=>c.stage===s).forEach(c=>db.collection("cards").doc(c.id).set({stage:to.trim()},{merge:true}));};
 const [stageQ,setStageQ]=useState("");
 const [announce,setAnnounce]=useState(null);const [showAnnounce,setShowAnnounce]=useState(false);const [announceDraft,setAnnounceDraft]=useState("");const [annDismissed,setAnnDismissed]=useState(localStorage.getItem("ann_dismiss"));
-const [showSettings, setShowSettings] = useState(false);
-const [showSearch, setShowSearch] = useState(false);
-const [showMenu, setShowMenu] = useState(false);
-const [showScanner, setShowScanner] = useState(false);
-const [bcCard, setBcCard] = useState(null);
-const [nameDraft, setNameDraft] = useState("");
-const [editingCard, setEditingCard] = useState(null);
-const [actionCard, setActionCard] = useState(null);
-const [moveCard_, setMoveCard] = useState(null);
-const [copyCard_, setCopyCard] = useState(null);
-const [qrCard, setQrCard] = useState(null);
-const [toast, setToast] = useState(null);
-
-const modalRef = React.useRef(false);
-const screenRef = React.useRef("home");
-
-useEffect(() => {
-  history.pushState({ guard: 1 }, "");
-
-  const onPop = () => {
-    const u = uiRef?.current;
-    if (!u) return;
-
-    if (u.showAsk) setShowAsk(false);
-    else if (u.showBook) setShowBook(false);
-    else if (u.showBlack) setShowBlack(false);
-    else if (u.showFlags) setShowFlags(false);
-    else if (u.showMyWork) setShowMyWork(false);
-    else if (u.showSched) setShowSched(false);
-    else if (u.showStored) setShowStored(false);
-    else if (u.showTopCust) setShowTopCust(false);
-    else if (u.showLateList) setShowLateList(false);
-    else if (u.showDelivered) setShowDelivered(false);
-    else if (u.heroEdit) setHeroEdit(false);
-    else if (u.showDefects) setShowDefects(false);
-    else if (u.defectFor) setDefectFor(null);
-    else if (u.showAnnounce) setShowAnnounce(false);
-    else if (u.linkedFrom) setLinkedFrom(null);
-    else if (u.addLoad) setAddLoad(false);
-    else if (u.loadDetail) setLoadDetail(null);
-    else if (u.showWarehouse) setShowWarehouse(false);
-    else if (u.showMic) setShowMic(false);
-    else if (u.importMenu) setImportMenu(false);
-    else if (u.importDraft) setImportDraft(null);
-    else if (u.reportText) setReportText(null);
-    else if (u.showScanner) setShowScanner(false);
-    else if (u.bcCard) setBcCard(null);
-    else if (u.statementFor) setStatementFor(null);
-    else if (u.showWorkers) setShowWorkers(false);
-    else if (u.photoView) setPhotoView(null);
-    else if (u.appQr) setAppQr(false);
-    else if (u.showMenu) setShowMenu(false);
-    else if (u.editingCard) setEditingCard(null);
-    else if (u.actionCard) setActionCard(null);
-    else if (u.moveCard_) setMoveCard(null);
-    else if (u.copyCard_) setCopyCard(null);
-    else if (u.qrCard) setQrCard(null);
-    else if (u.showSearch) setShowSearch(false);
-    else if (u.showSettings) setShowSettings(false);
-    else if (u.screen === "stage") setScreen("stages");
-    else if (u.screen === "stages") setScreen("home");
-    else if (["log", "archive"].includes(u.screen)) setScreen("home");
-    else if (u.screen !== "home") setScreen("home");
-    else {
-      window.removeEventListener("popstate", onPop);
-      history.back();
-      return;
-    }
-
-    history.pushState({ guard: 1 }, "");
-  };
-
-  window.addEventListener("popstate", onPop);
-
-  return () => {
-    window.removeEventListener("popstate", onPop);
-  };
-}, []);
-
-useEffect(() => {
-  let syncTimer;
-  let idleTimer;
-
-  const onOnline = () => {
-    setIsOnline(true);
-    setSyncStatus("syncing");
-
-    syncTimer = setTimeout(() => {
-      setSyncStatus("synced");
-
-      idleTimer = setTimeout(() => {
-        setSyncStatus("idle");
-      }, 2000);
-    }, 1500);
-  };
-
-  const onOffline = () => {
-    setIsOnline(false);
-    setSyncStatus("idle");
-  };
-
-  window.addEventListener("online", onOnline);
-  window.addEventListener("offline", onOffline);
-
-  return () => {
-    clearTimeout(syncTimer);
-    clearTimeout(idleTimer);
-    window.removeEventListener("online", onOnline);
-    window.removeEventListener("offline", onOffline);
-  };
-}, []);
+const [showSettings,setShowSettings]=useState(false);const [showSearch,setShowSearch]=useState(false);
+const [showMenu,setShowMenu]=useState(false);const [showScanner,setShowScanner]=useState(false);
+const [bcCard,setBcCard]=useState(null);const [nameDraft,setNameDraft]=useState("");
+const [editingCard,setEditingCard]=useState(null);const [actionCard,setActionCard]=useState(null);
+const [moveCard_,setMoveCard]=useState(null);const [copyCard_,setCopyCard]=useState(null);
+const [qrCard,setQrCard]=useState(null);const [toast,setToast]=useState(null);
+const modalRef=React.useRef(false);const screenRef=React.useRef("home");
+useEffect(()=>{
+  screenRef.current=screen;
+  if(window.__navLock&&Date.now()-window.__navLock<650)return;
+  try{
+    history.pushState(
+      {
+        guard:1,
+        screen:screen
+      },
+      ""
+    );
+  }catch(e){}
+},[screen]);
+useEffect(()=>{const m=!!(photoView||showAsk||showBook||editingCard||showMenu||showFlags||showWorkers||showMyWork||qrCard||actionCard||showSettings||showSched||showStored);if(m&&!modalRef.current){try{history.pushState({guard:1},"");}catch(e){}}modalRef.current=m;},[photoView,showAsk,showBook,editingCard,showMenu,showFlags,showWorkers,showMyWork,qrCard,actionCard,showSettings,showSched,showStored]);
+const [micOn,setMicOn]=useState(false);const [micText,setMicText]=useState("");const [showMic,setShowMic]=useState(false);const [micLang,setMicLang]=useState("ar-EG");
+const recRef=useRef(null);
+const photoInputRef=useRef(null);const photoGalRef=useRef(null);const scanFileRef=useRef(null);
+const importCamRef=useRef(null);const importGalRef=useRef(null);
+const scannerRef=useRef(null);const restoreRef=useRef(null);const scanMode=useRef("form");
+const gotoDone=useRef(false);
+const uiRef=useRef({});
+uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,showTopCust,photoView,appQr,importMenu,importDraft,showMic,showWarehouse,addLoad,loadDetail,showLateList,showDelivered,heroEdit,showDefects,defectFor,showAnnounce,linkedFrom,showAsk,showBook,showBlack,showFlags,showMyWork,showSched,showStored};
+const t=DICT[lang];const dir=lang==="ar"?"rtl":"ltr";
+const can=true;unlocked;
+const [themeMode,setThemeMode]=useState(localStorage.getItem("themeMode")||"dark");
+const [prefVib,setPrefVib]=useState(localStorage.getItem("prefVib")!=="0");
+const [prefSnd,setPrefSnd]=useState(localStorage.getItem("prefSnd")!=="0");
+const fx=(kind)=>{if(prefVib&&navigator.vibrate)navigator.vibrate(kind==="danger"?[60,40,60]:30);if(prefSnd){try{const AC=window.AudioContext||window.webkitAudioContext;const ac=new AC();const o=ac.createOscillator();const g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=kind==="danger"?320:880;g.gain.value=.06;o.start();o.stop(ac.currentTime+.12);}catch(e){}}};
+const logoSrc=factory.logo||localStorage.getItem("logo_local")||"";
+const theme=themeMode==="light"?{bg:"#F3F4FA",panel:"#FFFFFF",panelAlt:"#EEF0F8",border:"#D8DCEB",text:"#1A1E30",textDim:"#66708F",accent:"#7C5CFF",accent2:"#2DD4A8",danger:"#FF5C7A",warn:"#FFB65C",input:"#EEF0F8"}:{bg:"#0B0E1A",panel:"#141829",panelAlt:"#1B2036",border:"#242B47",text:"#EDEFF5",textDim:"#8A93B5",accent:"#7C5CFF",accent2:"#2DD4A8",danger:"#FF5C7A",warn:"#FFB65C",input:"#1B2036"};
+const hdrBtn={width:42,height:42,borderRadius:14,border:"1px solid "+theme.border,background:theme.panel,color:theme.text,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:17};
+const LD=+factory.lateDays||2;
+const allColors=PRESET_COLORS.concat(customColors);
+useEffect(()=>{setFnameDraft(factory.fname);setWaDraft(factory.wa);setLateDraft(factory.lateDays);setHeroTDraft(factory.heroT||"");setHeroSDraft(factory.heroS||"");},[factory.fname,factory.wa,factory.lateDays,factory.heroT,factory.heroS]);
+useEffect(()=>{history.pushState({guard:1},"");const iv=setInterval(()=>{try{if(!history.state||!history.state.guard)history.pushState({guard:1},"");}catch(e){}},800);const onPop=()=>{const u=uiRef.current;window.__navLock=Date.now();
+if(u.showAsk)setShowAsk(false);else if(u.showBook)setShowBook(false);else if(u.showBlack)setShowBlack(false);else if(u.showFlags)setShowFlags(false);else if(u.showMyWork)setShowMyWork(false);else if(u.showSched)setShowSched(false);else if(u.showStored)setShowStored(false);else if(u.showTopCust)setShowTopCust(false);else if(u.showLateList)setShowLateList(false);else if(u.showDelivered)setShowDelivered(false);else if(u.heroEdit)setHeroEdit(false);else if(u.showDefects)setShowDefects(false);else if(u.defectFor)setDefectFor(null);else if(u.showAnnounce)setShowAnnounce(false);else if(u.linkedFrom)setLinkedFrom(null);else if(u.addLoad)setAddLoad(false);else if(u.loadDetail)setLoadDetail(null);else if(u.showWarehouse)setShowWarehouse(false);else if(u.showMic)setShowMic(false);else if(u.importMenu)setImportMenu(false);else if(u.importDraft)setImportDraft(null);
+else if(u.reportText)setReportText(null);else if(u.showScanner)setShowScanner(false);else if(u.bcCard)setBcCard(null);
+else if(u.statementFor)setStatementFor(null);else if(u.showWorkers)setShowWorkers(false);
+else if(u.photoView)setPhotoView(null);else if(u.appQr)setAppQr(false);else if(u.showMenu)setShowMenu(false);
+else if(u.editingCard)setEditingCard(null);else if(u.actionCard)setActionCard(null);
+else if(u.moveCard_)setMoveCard(null);else if(u.copyCard_)setCopyCard(null);else if(u.qrCard)setQrCard(null);
+else if(u.showSearch)setShowSearch(false);else if(u.showSettings)setShowSettings(false);
+else if(u.screen==="stage")setScreen("stages");else if(u.screen==="stages")setScreen("home");else if(u.screen==="log")setScreen("home");
+else if(u.screen==="archive")setScreen("home");else if(u.screen!=="home"){setScreen("home");}else{const n=Date.now();if(window.__lastExit&&n-window.__lastExit<900)return;window.__lastExit=n;history.back();return;}};
+window.addEventListener("popstate",onPop);return()=>{clearInterval(iv);window.removeEventListener("popstate",onPop);};},[]);
+useEffect(()=>{const h=()=>{if(window.__navLock&&Date.now()-window.__navLock<650)return;const s=screenRef.current;if(s==="stage")setScreen("stages");else if(s==="stages"||s==="log"||s==="archive")setScreen("home");};window.addEventListener("hashchange",h);return()=>window.removeEventListener("hashchange",h);},[]);
+useEffect(()=>{const on=()=>{setIsOnline(true);setSyncStatus("syncing");setTimeout(()=>{setSyncStatus("synced");setTimeout(()=>setSyncStatus("idle"),2000);},1500);};const off=()=>{setIsOnline(false);setSyncStatus("idle");};window.addEventListener("online",on);window.addEventListener("offline",off);return()=>{window.removeEventListener("online",on);window.removeEventListener("offline",off);};},[]);
 useEffect(()=>{const b=document.getElementById("syncBar");if(b)b.classList.toggle("active",syncStatus==="syncing");},[syncStatus]);
 useEffect(()=>{if(!fbReady||!auth||!db)return;const un=auth.onAuthStateChanged(async user=>{if(user){setUserId(user.uid);const s=localStorage.getItem("owner_name_"+(localStorage.getItem("username")||user.uid));if(s)setOwnerName(s);else{const o=localStorage.getItem("owner_name_"+user.uid);if(o)setOwnerName(o);}
 db.collection("cards").onSnapshot(sn=>{setCards(sn.docs.map(d=>({id:d.id,...d.data()})));},e=>console.error(e));
@@ -1290,7 +1233,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div className="lbl">🖼️ لوجو الشركة</div>
 <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:10}}>
 {logoSrc&&<img src={logoSrc} style={{width:44,height:44,borderRadius:10,objectFit:"cover"}}/>}
-<label className="chip on" style={{display:"inline-flex",alignItems:"center",gap:6,cursor:"pointer"}}>📤 رفع لوجو<input type="file" accept="image/png,image/jpeg" style={{display:"none"}} onChange={e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const rd=new FileReader();rd.onerror=()=>alert("❌ فشل قراءة الملف");rd.onload=()=>{const img=new Image();img.onerror=()=>alert("❌ نوع الصورة مش مدعوم — اختار JPG أو PNG");img.onload=()=>{const m=Math.max(img.width,img.height);const sc=Math.min(1,256/m);const c=document.createElement("canvas");c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);c.getContext("2d").drawImage(img,0,0,c.width,c.height);saveFactory({logo:c.toDataURL("image/png")});try{localStorage.setItem("logo_local",c.toDataURL("image/png"));}catch(e){}};img.src=rd.result;};rd.readAsDataURL(f);e.target.value="";}}/></label>>
+<label className="chip on" style={{display:"inline-flex",alignItems:"center",gap:6,cursor:"pointer"}}>📤 رفع لوجو<input type="file" accept="image/png,image/jpeg" style={{display:"none"}} onChange={e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const rd=new FileReader();rd.onerror=()=>alert("❌ فشل قراءة الملف");rd.onload=()=>{const img=new Image();img.onerror=()=>alert("❌ نوع الصورة مش مدعوم — اختار JPG أو PNG");img.onload=()=>{const m=Math.max(img.width,img.height);const sc=Math.min(1,256/m);const c=document.createElement("canvas");c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);c.getContext("2d").drawImage(img,0,0,c.width,c.height);saveFactory({logo:c.toDataURL("image/png")});try{localStorage.setItem("logo_local",c.toDataURL("image/png"));}catch(e){}};img.src=rd.result;};rd.readAsDataURL(f);e.target.value="";}}/></label>
 {logoSrc&&<button className="chip" onClick={()=>{saveFactory({logo:""});localStorage.removeItem("logo_local");}}>🗑️</button>}
 </div>
 <div className="lbl">🔒 رقم سري للإعدادات (سيبه فاضي = مفتوح)</div>
@@ -1419,3 +1362,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(<EB><App/></EB>);
 window.__booted=true;
 }
 }
+</script>
+</body>
+</html>
