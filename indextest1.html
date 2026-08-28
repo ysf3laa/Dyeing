@@ -24,7 +24,6 @@ fieldset{border:none;margin:0;padding:0;min-width:0}
 @keyframes growH{from{height:0}}
 @keyframes ping{0%{transform:scale(1);opacity:.7}100%{transform:scale(2.4);opacity:0}}
 @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
-@keyframes confFall{to{top:110%;transform:rotate(720deg)}}
 .anim{animation:fadeUp .55s both}
 .card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:20px;padding:16px;animation:fadeUp .55s both}
 .card:active{transform:scale(.985)}
@@ -57,16 +56,17 @@ fieldset{border:none;margin:0;padding:0;min-width:0}
 #bc-reader video{border-radius:12px}
 .modal{position:fixed;inset:0;background:rgba(5,7,14,.7);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:400;padding:16px;animation:pop .25s both}
 .mbox{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:24px;padding:20px;width:100%;max-width:460px;max-height:88vh;overflow-y:auto;animation:fadeUp .35s both}
-@media print{body *{visibility:hidden;}#printSheet,#printSheet *{visibility:visible;}#printSheet{display:block!important;position:absolute;top:0;left:0;right:0;}}
 </style>
 </head>
 <body>
 <div id="syncBar" class="syncing-bar"></div>
+<style>@keyframes confFall{to{top:110%;transform:rotate(720deg)}}</style>
+<style>@media print{body *{visibility:hidden;}#printSheet,#printSheet *{visibility:visible;}#printSheet{display:block!important;position:absolute;top:0;left:0;right:0;}}</style>
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:16px"><div style="font-size:64px">🏭</div><div style="color:#8A93B5;font-size:14px">🕌 استغل الانتظار في الاستغفار</div></div></div>
 <script>
-window.onerror=function(m,u,l){if(m&&m!=="Script error."&&!window.__booted){var r=document.getElementById("root");if(r)r.innerHTML='<div style="padding:16px;color:#FF5C7A;font-size:12px;word-break:break-all;text-align:center">خطأ: '+m+'<br>سطر: '+l+'<br> الملف: '+u+'</div>';}};
+window.onerror=function(m,u,l){if(m&&m!=="Script error."&&!window.__booted){var r=document.getElementById("root");if(r)r.innerHTML='<div style="padding:16px;color:#FF5C7A;font-size:12px;word-break:break-all;text-align:center">خطأ: '+m+'<br>سطر: '+l+'<br>📄 الملف: '+u+'</div>';}};
 window.addEventListener("unhandledrejection",function(e){e.preventDefault();console.warn(e.reason);});
-setTimeout(function(){if(!window.__booted){var r=document.getElementById("root");if(r&&r.innerHTML.indexOf("خطأ")===-1){var d=document.createElement("div");d.style.cssText="position:fixed;bottom:10px;left:10px;right:10px;background:#1B2036;color:#FF5C7A;border:1px solid #FF5C7A;border-radius:14px;padding:12px;font-size:12px;text-align:center;z-index:99999";d.innerHTML="️ المكتبات لسه بتتحمل — دوس إعادة أو غيّر الشبكة<br><button onclick='location.reload()' style='margin-top:8px;background:#7C5CFF;color:#fff;border:none;border-radius:10px;padding:9px 22px;font-size:13px;font-weight:700'>🔄 إعادة المحاولة</button>";r.appendChild(d);}}},45000);
+setTimeout(function(){if(!window.__booted){var r=document.getElementById("root");if(r&&r.innerHTML.indexOf("خطأ")===-1){var d=document.createElement("div");d.style.cssText="position:fixed;bottom:10px;left:10px;right:10px;background:#1B2036;color:#FF5C7A;border:1px solid #FF5C7A;border-radius:14px;padding:12px;font-size:12px;text-align:center;z-index:99999";d.innerHTML="⚠️ المكتبات لسه بتتحمل — دوس إعادة أو غيّر الشبكة<br><button onclick='location.reload()' style='margin-top:8px;background:#7C5CFF;color:#fff;border:none;border-radius:10px;padding:9px 22px;font-size:13px;font-weight:700'>🔄 إعادة المحاولة</button>";r.appendChild(d);}}},45000);
 </script>
 <script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script>
 <script src="lib/react.js"></script>
@@ -91,15 +91,20 @@ if(window.isDemo){setInterval(()=>{localStorage.clear();location.reload();},3600
 const {useState,useEffect,useRef}=React;
 function useCountUp(v,dur){const [n,setN]=useState(0);useEffect(()=>{let s=null;let raf;const step=t=>{if(s===null)s=t;const p=Math.min(1,(t-s)/(dur||900));setN(Math.round(v*(1-Math.pow(1-p,3))));if(p<1)raf=requestAnimationFrame(step);};raf=requestAnimationFrame(step);return()=>cancelAnimationFrame(raf);},[v]);return n;}
 const firebaseConfig={apiKey:"AIzaSyBEplMzCUPbZ33vpctAegDvCLFLB2d_Psc",authDomain:"dyeing-tracker-cc789.firebaseapp.com",projectId:"dyeing-tracker-cc789",storageBucket:"dyeing-tracker-cc789.firebasestorage.app",messagingSenderId:"407184511418",appId:"1:407184511418:web:16512177012e5a6ded0d83",measurementId:"G-V3ST7W6VVN"};
+// UNLOCK_CODE removed - login system handles access
 let db=null,auth=null,fbReady=false;
-try{firebase.initializeApp(firebaseConfig);auth=firebase.auth();db=firebase.firestore();(function(){const oc=db.collection.bind(db);const LEGACY="NEWTEX";db.collection=function(n){if(String(n).indexOf("companies/")===0)return oc(n);if(companyID==="DEFAULT"||companyID===LEGACY)return oc(n);return oc("companies/"+companyID+"/"+n);};})();db.enablePersistence({synchronizeTabs:true}).catch(e=>console.warn(e.code));fbReady=true;}catch(e){console.error(e);}
+try{firebase.initializeApp(firebaseConfig);auth=firebase.auth();db=firebase.firestore();(function(){const oc=db.collection.bind(db);db._raw=oc;const LEGACY="NEWTEX";db.collection=function(n){if(String(n).indexOf("companies/")===0)return oc(n);if(companyID==="DEFAULT"||companyID===LEGACY)return oc(n);return oc("companies/"+companyID+"/"+n);};})();db.enablePersistence({synchronizeTabs:true}).catch(e=>console.warn(e.code));fbReady=true;}catch(e){console.error(e);}
 window.__masterGem="";try{db._raw("master").doc("gemini").get().then(function(d){if(d.exists&&d.data().key){window.__masterGem=d.data().key;}}).catch(function(){});}catch(e){}
 const DEFAULT_STAGES=["جيتات","صباغة","تجهيز","لف","الصالة"];
 const DEFAULT_MACHINES=["1","2","3","4","5","6","7","8","9","10"];
 const STAGE_COLORS=["#7C5CFF","#5E8FD6","#2DD4A8","#FFB65C","#FF5C7A","#B98FD6","#6FBF73","#D6A24F"];
+const STAGE_ICONS=["🚛","🧪","🏭","","📦","","✅","️"];
 const PRESET_COLORS=["أبيض","أسود","أحمر","أزرق","أخضر","أصفر","بيج","كحلي","رمادي","بني","بنفسجي","برتقالي","تركواز","كشمير","ذهبي","فضي"];
 const APP_URL="https://ysf3laa.github.io/Dyeing/";
-const DICT={ar:{appName:"متابعة المراحل",search:"بحث في كل الكروت...",settings:"الإعدادات",dailyLog:"السجل اليومي",addStage:"إضافة مرحلة",add:"إضافة",cardsPlural:"كروت",lastActivity:"آخر نشاط",distribution:"توزيع الشغل",lateOnly:"المتأخر فقط",all:"الكل",newCard:"كرت جديد",code:"كود",customer:"عميل",message:"رسالة",category:"صنف",color:"لون",quantity:"كمية",barcode:"باركود",machine:"ماكينة",prepare:"تجهيز",dye:"صباغة",time:"تاريخ",notes:"ملاحظة",phone:"تليفون العميل",address:"عنوان العميل",urgent:"مستعجل",save:"حفظ",cancel:"إلغاء",duplicateWarning:"يوجد كرت بنفس البيانات بالكامل. تحفظ برضه؟",saveAnyway:"حفظ برضه",edit:"تعديل",copyCard:"نسخ الكرت",moveCard:"نقل الكرت",showQr:"عرض QR",delete:"حذف",openWhatsapp:"واتساب",call:"اتصال",pinCard:"تثبيت",unpin:"إلغاء التثبيت",yourName:"اسمك",enterNameHint:"هيتسجل مرة واحدة على الجهاز",confirmName:"تأكيد",language:"اللغة",darkMode:"الوضع الداكن",noResults:"لا توجد نتائج",machineOptional:"اختياري",linkedCards:"كروت مرتبطة",aged1:"متأخر يوم",aged2:"متأخر",noCardsHere:"لا يوجد كروت هنا",online:" متصل",offline:"🔴 أوفلاين - محفوظ محلياً",syncing:"⏳ مزامنة...",synced:"✅ اتزامن",allCards:"كل الكروت - اضغط تروح له",home:"الرئيسية",stagesLabel:"المراحل",history:"تاريخ الحركة",nextStage:"المرحلة الجاية",report:"تقرير اليوم",copy:"نسخ",onlineNow:"متصلين دلوقتي",backup:"نسخة Excel",qtyTotal:"الكمية",scanBarcode:"مسح باركود",showBarcode:"عرض الباركود",cameraErr:"مش قادر أفتح الكاميرا",photo:"صورة الأمر",viewPhoto:"عرض الصورة",shareCard:"مشاركة واتساب",statement:"كشف حساب عميل",due:"موعد التسليم",overdue:"عدّى الميعاد",dueSoon:"قرب الميعاد",archive:"الأرشيف",archiveCard:"أرشفة",unarchive:"رجوع",printCard:"طباعة",workers:"لوحة العمال",notFound:"مش موجود",foundIn:"موجود في",colorsLabel:"ألوان سريعة",factoryName:"اسم المصنع",waNumber:"رقم واتساب المصنع",unit:"وحدة الوزن",lateDays:"يعتبر متأخر بعد (يوم)",printSize:"مقاس الطباعة",manageStages:"إدارة المراحل",manageMachines:"إدارة الماكينات",manageColors:"ألوان إضافية",appQr:"QR التطبيق",backupFull:"نسخة كاملة JSON",restore:"استعادة نسخة",wipe:"تصفير البيانات",wipeSure:"متأكد؟ كل البيانات هتتمسح!",rename:"تعديل",yourNameEdit:"تعديل اسمك",scanAny:"امسح باركود أو QR",unlockTitle:"كود التفعيل",unlockHint:"الكود بتستلمه من المدير مرة واحدة — وبعدها الجهاز يشتغل بالتعديل دايماً",viewOnly:"🔒 اطلاع فقط — اطلب كود التفعيل للتعديل",unlockedMsg:"تم تفعيل الجهاز ✅",lockedNote:"🔒 اطلاع فقط",importImage:"استيراد من صورة",reading:"جاري قراءة الصورة",extracted:"راجع البيانات المستخرجة وظبط الغلط",chooseImport:"اختار مصدر صورة الأمر",camera:"تصوير",gallery:"من الجهاز",saveFactoryBtn:"حفظ بيانات المصنع"},en:{appName:"Dyeing Tracker",search:"Search...",settings:"Settings",dailyLog:"Daily Log",addStage:"Add Stage",add:"Add",cardsPlural:"cards",lastActivity:"Last Activity",distribution:"Distribution",lateOnly:"Late",all:"All",newCard:"New Card",code:"Code",customer:"Customer",message:"Batch",category:"Category",color:"Color",quantity:"Qty",barcode:"Barcode",machine:"Machine",prepare:"Prepare",dye:"Dye",time:"Date",notes:"Notes",phone:"Phone",address:"Address",urgent:"Urgent",save:"Save",cancel:"Cancel",duplicateWarning:"Fully duplicate. Save?",saveAnyway:"Save",edit:"Edit",copyCard:"Copy",moveCard:"Move",showQr:"QR",delete:"Delete",openWhatsapp:"WhatsApp",call:"Call",pinCard:"Pin",unpin:"Unpin",yourName:"Name",enterNameHint:"Saved once",confirmName:"OK",language:"Lang",darkMode:"Dark",noResults:"None",machineOptional:"opt",linkedCards:"Linked",aged1:"1d",aged2:"Late",noCardsHere:"Empty",online:"",offline:"🔴",syncing:"⏳",synced:"✅",allCards:"All cards",home:"Home",stagesLabel:"Stages",history:"History",nextStage:"Next",report:"Report",copy:"Copy",onlineNow:"Online",backup:"CSV",qtyTotal:"Qty",scanBarcode:"Scan",showBarcode:"Barcode",cameraErr:"Camera error",photo:"Photo",viewPhoto:"View",shareCard:"Share",statement:"Statement",due:"Due",overdue:"Overdue",dueSoon:"Soon",archive:"Archive",archiveCard:"Archive",unarchive:"Restore",printCard:"Print",workers:"Workers",notFound:"Not found",foundIn:"In",colorsLabel:"Colors",factoryName:"Factory name",waNumber:"Factory WhatsApp",unit:"Unit",lateDays:"Late after (days)",printSize:"Print size",manageStages:"Stages",manageMachines:"Machines",manageColors:"Colors",appQr:"App QR",backupFull:"JSON backup",restore:"Restore",wipe:"Wipe",wipeSure:"Sure?!",rename:"Rename",yourNameEdit:"Edit name",scanAny:"Scan",unlockTitle:"Activation code",unlockHint:"From manager - once per device",viewOnly:"🔒 View only",unlockedMsg:"Activated ✅",lockedNote:"🔒 View only",importImage:"Import from image",reading:"Reading",extracted:"Review data",chooseImport:"Source",camera:"Camera",gallery:"Gallery",saveFactoryBtn:"Save"}};
+const DICT={
+ar:{appName:"متابعة المراحل",search:"بحث في كل الكروت...",settings:"الإعدادات",dailyLog:"السجل اليومي",addStage:"إضافة مرحلة",add:"إضافة",cardsPlural:"كروت",lastActivity:"آخر نشاط",distribution:"توزيع الشغل",lateOnly:"المتأخر فقط",all:"الكل",newCard:"كرت جديد",code:"كود",customer:"عميل",message:"رسالة",category:"صنف",color:"لون",quantity:"كمية",barcode:"باركود",machine:"ماكينة",prepare:"تجهيز",dye:"صباغة",time:"تاريخ",notes:"ملاحظة",phone:"تليفون العميل",address:"عنوان العميل",urgent:"مستعجل",save:"حفظ",cancel:"إلغاء",duplicateWarning:"يوجد كرت بنفس البيانات بالكامل. تحفظ برضه؟",saveAnyway:"حفظ برضه",edit:"تعديل",copyCard:"نسخ الكرت",moveCard:"نقل الكرت",showQr:"عرض QR",delete:"حذف",openWhatsapp:"واتساب",call:"اتصال",pinCard:"تثبيت",unpin:"إلغاء التثبيت",yourName:"اسمك",enterNameHint:"هيتسجل مرة واحدة على الجهاز",confirmName:"تأكيد",language:"اللغة",darkMode:"الوضع الداكن",noResults:"لا توجد نتائج",machineOptional:"اختياري",linkedCards:"كروت مرتبطة",aged1:"متأخر يوم",aged2:"متأخر",noCardsHere:"لا يوجد كروت هنا",online:"🟢 متصل",offline:"🔴 أوفلاين - محفوظ محلياً",syncing:"⏳ مزامنة...",synced:"✅ اتزامن",allCards:"كل الكروت - اضغط تروح له",home:"الرئيسية",stagesLabel:"المراحل",history:"تاريخ الحركة",nextStage:"المرحلة الجاية",report:"تقرير اليوم",copy:"نسخ",onlineNow:"متصلين دلوقتي",backup:"نسخة Excel",qtyTotal:"الكمية",scanBarcode:"مسح باركود",showBarcode:"عرض الباركود",cameraErr:"مش قادر أفتح الكاميرا",photo:"صورة الأمر",viewPhoto:"عرض الصورة",shareCard:"مشاركة واتساب",statement:"كشف حساب عميل",due:"موعد التسليم",overdue:"عدّى الميعاد",dueSoon:"قرب الميعاد",archive:"الأرشيف",archiveCard:"أرشفة",unarchive:"رجوع",printCard:"طباعة",workers:"لوحة العمال",notFound:"مش موجود",foundIn:"موجود في",colorsLabel:"ألوان سريعة",factoryName:"اسم المصنع",waNumber:"رقم واتساب المصنع",unit:"وحدة الوزن",lateDays:"يعتبر متأخر بعد (يوم)",printSize:"مقاس الطباعة",manageStages:"إدارة المراحل",manageMachines:"إدارة الماكينات",manageColors:"ألوان إضافية",appQr:"QR التطبيق",backupFull:"نسخة كاملة JSON",restore:"استعادة نسخة",wipe:"تصفير البيانات",wipeSure:"متأكد؟ كل البيانات هتتمسح!",rename:"تعديل",yourNameEdit:"تعديل اسمك",scanAny:"امسح باركود أو QR",unlockTitle:"كود التفعيل",unlockHint:"الكود بتستلمه من المدير مرة واحدة — وبعدها الجهاز يشتغل بالتعديل دايماً",viewOnly:"🔒 اطلاع فقط — اطلب كود التفعيل للتعديل",unlockedMsg:"تم تفعيل الجهاز ✅",lockedNote:"🔒 اطلاع فقط",importImage:"استيراد من صورة",reading:"جاري قراءة الصورة",extracted:"راجع البيانات المستخرجة وظبط الغلط",chooseImport:"اختار مصدر صورة الأمر",camera:"تصوير",gallery:"من الجهاز",saveFactoryBtn:"حفظ بيانات المصنع"},
+en:{appName:"Dyeing Tracker",search:"Search...",settings:"Settings",dailyLog:"Daily Log",addStage:"Add Stage",add:"Add",cardsPlural:"cards",lastActivity:"Last Activity",distribution:"Distribution",lateOnly:"Late",all:"All",newCard:"New Card",code:"Code",customer:"Customer",message:"Batch",category:"Category",color:"Color",quantity:"Qty",barcode:"Barcode",machine:"Machine",prepare:"Prepare",dye:"Dye",time:"Date",notes:"Notes",phone:"Phone",address:"Address",urgent:"Urgent",save:"Save",cancel:"Cancel",duplicateWarning:"Fully duplicate. Save?",saveAnyway:"Save",edit:"Edit",copyCard:"Copy",moveCard:"Move",showQr:"QR",delete:"Delete",openWhatsapp:"WhatsApp",call:"Call",pinCard:"Pin",unpin:"Unpin",yourName:"Name",enterNameHint:"Saved once",confirmName:"OK",language:"Lang",darkMode:"Dark",noResults:"None",machineOptional:"opt",linkedCards:"Linked",aged1:"1d",aged2:"Late",noCardsHere:"Empty",online:"🟢",offline:"🔴",syncing:"⏳",synced:"✅",allCards:"All cards",home:"Home",stagesLabel:"Stages",history:"History",nextStage:"Next",report:"Report",copy:"Copy",onlineNow:"Online",backup:"CSV",qtyTotal:"Qty",scanBarcode:"Scan",showBarcode:"Barcode",cameraErr:"Camera error",photo:"Photo",viewPhoto:"View",shareCard:"Share",statement:"Statement",due:"Due",overdue:"Overdue",dueSoon:"Soon",archive:"Archive",archiveCard:"Archive",unarchive:"Restore",printCard:"Print",workers:"Workers",notFound:"Not found",foundIn:"In",colorsLabel:"Colors",factoryName:"Factory name",waNumber:"Factory WhatsApp",unit:"Unit",lateDays:"Late after (days)",printSize:"Print size",manageStages:"Stages",manageMachines:"Machines",manageColors:"Colors",appQr:"App QR",backupFull:"JSON backup",restore:"Restore",wipe:"Wipe",wipeSure:"Sure?!",rename:"Rename",yourNameEdit:"Edit name",scanAny:"Scan",unlockTitle:"Activation code",unlockHint:"From manager - once per device",viewOnly:"🔒 View only",unlockedMsg:"Activated ✅",lockedNote:"🔒 View only",importImage:"Import from image",reading:"Reading",extracted:"Review data",chooseImport:"Source",camera:"Camera",gallery:"Gallery",saveFactoryBtn:"Save"}
+};
 const FIELD_KEYS=["code","customer","message","category","color","quantity","barcode","machine","prepare","dye","time","notes","phone","address"];
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
 function nowISO(){return new Date().toISOString();}
@@ -113,6 +118,24 @@ function LastSeen(props){var _s=React.useState(0),ls=_s[0],setLs=_s[1];React.use
 function fmtDur(ms){const m=Math.max(0,Math.floor(ms/60000));if(m<60)return m+"د";const h=Math.floor(m/60);if(h<24)return (m%60)?h+"س "+(m%60)+"د":h+"س";const d=Math.floor(h/24);return (h%24)?d+"ي "+(h%24)+"س":d+"ي";}
 function daysSince(v){const m=toMs(v);if(!m)return 0;return(Date.now()-m)/86400000;}
 function localDate(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function printStatement(name){
+const cs=cards.filter(c=>c.customer===name);
+const lds=loads.filter(l=>l.customer===name);
+const inf=knownCustomers.find(k=>k.name===name)||{}
+const q=qtySum(cs);
+const delQ=cs.reduce((a,c)=>a+(c.delivered?(parseFloat(c.quantity)||0):(parseFloat(c.deliveredQty)||0)),0);
+const rows=cs.slice().sort((a,b)=>toMs(b.updatedAt)-toMs(a.updatedAt)).map(c=>{const si=stages.indexOf(c.stage);const sc=STAGE_COLORS[(si>=0?si:0)%8];return "<tr><td style='padding:8px;font-size:12px'>"+(c.code||"—")+"</td><td style='padding:8px;font-size:12px;color:"+sc+";font-weight:700'>"+(c.stage||"—")+"</td><td style='padding:8px;font-size:12px'>"+(c.color||"—")+"</td><td style='padding:8px;font-size:12px;text-align:center'>"+(c.quantity||"—")+"</td><td style='padding:8px;font-size:12px;text-align:center'>"+(c.delivered?"✅":"")+"</td><td style='padding:8px;font-size:12px'>"+fmtTime(c.updatedAt||c.createdAt,lang)+"</td></tr>";}).join("");
+const logoHtml=logoSrc?"<img src='"+logoSrc+"' style='width:52px;height:52px;border-radius:12px;object-fit:cover'/>":"";
+const waHtml=factory.wa?"<div style='font-size:11px;color:#66708F;margin-top:2px'>📞 "+factory.wa+"</div>":"";
+const phHtml=inf.phone?"<div><div style='color:#66708F;font-size:11px;margin-bottom:2px'>التليفون</div><div style='font-weight:800;font-size:15px'>📞 "+inf.phone+"</div></div>":"";
+const addrHtml=inf.address?"<div><div style='color:#66708F;font-size:11px;margin-bottom:2px'>العنوان</div><div style='font-weight:800;font-size:15px'>📍 "+inf.address+"</div></div>":"";
+const w=window.open("","_blank","width=800,height=900");
+if(!w)return;
+const html="<!DOCTYPE html><html dir='rtl' lang='ar'><head><meta charset='utf-8'><title>كشف حساب - "+name+"</title><style>body{font-family:'Tajawal','Segoe UI',sans-serif;padding:24px;color:#1A1E30;background:#fff;margin:0}.hd{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #7C5CFF;padding-bottom:14px;margin-bottom:20px}.hd .lg{display:flex;align-items:center;gap:12px}.hd h1{font-size:22px;margin:0;color:#1A1E30}.hd .rt{text-align:left;font-size:11px;color:#66708F}.hd .rt b{color:#1A1E30;display:block;font-size:13px;margin-bottom:2px}.box{background:#F9FAFB;border:1px solid #E5E7EB;border-radius:12px;padding:14px;margin-bottom:16px}.box .row{display:flex;flex-wrap:wrap;gap:12px;font-size:13px}.box .row > div{flex:1;min-width:140px}table{width:100%;border-collapse:collapse;background:#fff;border:1px solid #E5E7EB;border-radius:10px;overflow:hidden}th{background:#7C5CFF;color:#fff;font-size:12px;padding:10px;text-align:start;font-weight:700}.ft{margin-top:24px;padding-top:14px;border-top:1px solid #E5E7EB;text-align:center;color:#66708F;font-size:11px}.totals{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}.totals > div{background:linear-gradient(135deg,#7C5CFF,#5E8FD6);color:#fff;padding:12px;border-radius:10px;text-align:center}.totals .n{font-size:18px;font-weight:900}.totals .l{font-size:10px;opacity:.9;margin-top:2px}@media print{body{padding:12px}}</style></head><body><div class='hd'><div class='lg'>"+logoHtml+"<div><h1>"+(factory.fname||"متابعة المراحل")+"</h1>"+waHtml+"</div></div><div class='rt'><b>كشف حساب عميل</b>"+new Date().toLocaleDateString("ar-EG",{year:"numeric",month:"long",day:"numeric"})+"</div></div><div class='box'><div class='row'><div><div style='color:#66708F;font-size:11px;margin-bottom:2px'>اسم العميل</div><div style='font-weight:800;font-size:15px'>"+name+"</div></div>"+phHtml+addrHtml+"<div><div style='color:#66708F;font-size:11px;margin-bottom:2px'>إجمالي كروت</div><div style='font-weight:800;font-size:15px'>"+cs.length+"</div></div></div></div><div class='totals'><div><div class='n'>"+q+" "+factory.unit+"</div><div class='l'>إجمالي الكميات</div></div><div><div class='n'>"+delQ+" "+factory.unit+"</div><div class='l'>تم التسليم</div></div><div><div class='n'>"+(q-delQ)+" "+factory.unit+"</div><div class='l'>قيد العمل</div></div><div><div class='n'>"+lds.length+"</div><div class='l'>حمولات</div></div></div><h3 style='margin:14px 0 8px;font-size:14px;color:#1A1E30'>📋 تفاصيل الكروت</h3><table><thead><tr><th>الكود</th><th>المرحلة</th><th>اللون</th><th style='text-align:center'>الكمية</th><th style='text-align:center'>التسليم</th><th>آخر حركة</th></tr></thead><tbody>"+rows+"</tbody></table><div class='ft'>طُبع من نظام متابعة المراحل — "+new Date().toLocaleString("ar-EG")+"</div></body></html>";
+w.document.write(html);
+w.document.close();
+setTimeout(()=>{w.focus();w.print();},400);
+}
 function b64e(s){return btoa(unescape(encodeURIComponent(s))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");}
 function b64d(s){s=String(s).replace(/-/g,"+").replace(/_/g,"/");while(s.length%4)s+="=";return JSON.parse(decodeURIComponent(escape(atob(s))));}
 function pubUrl(c){try{const v=c.barcode||c.code||c.id;return APP_URL+"?d="+b64e(JSON.stringify({n:c.customer||"",c:v,col:c.color||"",cat:c.category||"",q:c.quantity||""}));}catch(e){return APP_URL;}}
@@ -121,8 +144,63 @@ function MenuBtn({children,onClick,active}){return <button onClick={onClick} sty
 function BarcodeView({value,h}){const r=useRef(null);useEffect(()=>{if(r.current&&value&&window.JsBarcode){try{JsBarcode(r.current,value,{format:"CODE128",background:"transparent",lineColor:"#000",width:2,height:h||50,displayValue:true,fontSize:14,font:"monospace",margin:0});}catch(e){}}},[value,h]);if(!value)return null;return <svg ref={r} style={{maxWidth:"100%"}}/>;}
 function QrView({value,size}){const r=useRef(null);useEffect(()=>{if(r.current&&value&&window.QRCode){r.current.innerHTML="";try{new QRCode(r.current,{text:String(value),width:size||200,height:size||200,correctLevel:QRCode.CorrectLevel.M});}catch(e){}}},[value,size]);if(!window.QRCode)return <div style={{fontSize:12,padding:8}}>{value}</div>;return <div ref={r} style={{display:"inline-block",background:"#fff",borderRadius:12,padding:8}}/>;}
 function Ring({pct,size,color,children}){return <div className="ring" style={{width:size,height:size,background:"conic-gradient("+color+" "+(pct*3.6)+"deg,var(--line) 0)"}}><div style={{width:size-14,height:size-14,borderRadius:"50%",background:"var(--panel)",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column"}}>{children}</div></div>;}
-function parseVoice(txt){const d={customer:"",message:"",code:"",machine:"",category:"",color:"",quantity:"",barcode:"",prepare:"",dye:"",time:"",notes:""};let t2=(txt||"").replace(/[-٩]/g,function(dd){return String("٠١٢٣٤٦٧٨٩".indexOf(dd));});t2=t2.split(/\s+/).filter(function(w,i,a){return w&&w!==a[i-1];}).join(" ");const KW={customer:/عميل|العميل|customer|client/,code:/كود|code/,message:/رسالة|message|batch/,machine:/ماكينة|machine/,category:/صنف|خامة|category|fabric/,color:/لون|اللون|color/,quantity:/كمية|وزن|quantity|qty|weight/,barcode:/باركود|barcode/,time:/تاريخ|date/,notes:/ملاحظ|طلبات|note/};const STRIP=/^(عميل|العميل|customer|client|كود|code|رسالة|message|batch|ماكينة|machine|صنف|خامة|category|fabric|لون|اللون|color|كمية|وزن|quantity|qty|weight|باركود|barcode|تاريخ|date|ملاحظ|ملاحظات|طلبات|notes?)$/i;const pos=[];Object.keys(KW).forEach(function(k){const re=KW[k];re.lastIndex=0;const m=re.exec(t2);if(m)pos.push([m.index,m[0].length,k]);});pos.sort(function(a,b){return a[0]-b[0];});for(let i=0;i<pos.length;i++){const s=pos[i][0]+pos[i][1];const e2=i+1<pos.length?pos[i+1][0]:t2.length;const words=t2.slice(s,e2).split(/\s+/).filter(function(w){return w&&!STRIP.test(w);});d[pos[i][2]]=words.join(" ").replace(/^[\s:\-،]+/,"").trim();}["code","message","machine","quantity","barcode"].forEach(function(f){const m=(d[f]||"").match(/\d+(?:[.,]\d+)?/);if(m)d[f]=m[0];});if(!d.customer&&!d.code&&!d.quantity){const toks=t2.split(/\s+/).filter(function(w){return w&&!STRIP.test(w);});const items=toks.map(function(tk){return {tk:tk,isNum:/^\d+(?:[.,]\d+)?$/.test(tk),isAr:/[\u0600-\u06FF]/.test(tk)};});const phrases=[];let cur=null;items.forEach(function(it){const ty=it.isNum?"num":(it.isAr?"ar":"x");if(!cur||cur.type!==ty){cur={type:ty,words:[]};phrases.push(cur);}cur.words.push(it.tk);});const ars=phrases.filter(function(p){return p.type==="ar";}).map(function(p){return p.words.join(" ");});const nums=phrases.filter(function(p){return p.type==="num";}).map(function(p){return p.words.join(" ");});if(ars[0])d.customer=ars[0];if(ars[1])d.category=ars[1];if(ars[2])d.color=ars[2];if(ars[3])d.notes=ars.slice(3).join(" ");nums.forEach(function(v){if(/^26\d{5}$/.test(v))d.barcode=v;});const small=nums.filter(function(v){return !/^26\d{5}$/.test(v);});if(small[0])d.code=small[0];if(small[1])d.message=small[1];if(small[2])d.quantity=small[2];if(small[3])d.machine=small[3];if(!d.customer&&!d.barcode)d.notes=t2.trim();}return d;}
-function parseOrderText(txt){const d={customer:"",message:"",code:"",color:"",category:"",quantity:"",machine:"",barcode:"",prepare:"",dye:"",time:"",notes:""};const flat=(txt||"").replace(/\r/g,"").replace(/\n/g," ").replace(/[٠-٩]/g,function(dd){return String("٠١٢٣٤٥٦٧٨٩".indexOf(dd));}).replace(/\s+/g," ");const after=(re,len)=>{re.lastIndex=0;const m=re.exec(flat);if(!m)return"";const s=m.index+m[0].length;return flat.slice(s,s+(len||40));};const cut=w=>{const labs=["رقم","الحافظة","الحافظه","وزن","الخامة","الخامه","الماكينة","الماكينه","تاريخ","كود","اسم","العرض","الاثواب","ملاحظات","ملاحظه","طلبات","جودة","جوده"];let m=w.length;for(let k=0;k<labs.length;k++){const i=w.indexOf(labs[k]);if(i>0&&i<m)m=i;}return w.slice(0,m);};const num=w=>{const m=(w||"").match(/\d+(?:[.,]\d+)?/);return m?m[0]:"";};const arw=w=>(w||"").replace(/[^\u0600-\u06FF\s]/g," ").replace(/\s+/g," ").trim();const arwStar=w=>(w||"").replace(/[^\u0600-\u06FF\s\*]/g," ").replace(/\s+/g," ").trim();const cw=cut(after(/العميل/,50));d.customer=arwStar(cw);d.code=num(cw);d.message=num(after(/رقم\s*الرسال[ةه]/,15));d.machine=num(after(/الماكين[ةه]/,10));d.color=arw(cut(after(/اسم\s*اللون/,30)));d.category=arw(cut(after(/الخام[ةه]/,30)));d.quantity=num(after(/الوزن/,15));const tm=after(/تاريخ/,15).match(/\d{4}\/\d{1,2}\/\d{1,2}/);if(tm)d.time=tm[0];const nums=flat.match(/\b26\d{5}\b/g)||[];const shn=(after(/شترك/,14).match(/\b26\d{5}\b/)||[null])[0];d.barcode=(nums.find(n=>n!==shn)||nums[0]||"");const n1=arw(cut(after(/ملاحظ[ةه]/,150)));const n2=arw(cut(after(/طلبات\s*العميل/,150)));d.notes=(n1+" "+n2).replace(/\s+/g," ").trim();return d;}
+function parseVoice(txt){
+const d={customer:"",message:"",code:"",machine:"",category:"",color:"",quantity:"",barcode:"",prepare:"",dye:"",time:"",notes:""};
+let t2=(txt||"").replace(/[٠-٩]/g,function(dd){return String("٠١٢٣٤٥٦٧٨٩".indexOf(dd));});
+t2=t2.split(/\s+/).filter(function(w,i,a){return w&&w!==a[i-1];}).join(" ");
+const KW={customer:/عميل|العميل|customer|client/,code:/كود|code/,message:/رسالة|message|batch/,machine:/ماكينة|machine/,category:/صنف|خامة|category|fabric/,color:/لون|اللون|color/,quantity:/كمية|وزن|quantity|qty|weight/,barcode:/باركود|barcode/,time:/تاريخ|date/,notes:/ملاحظ|طلبات|note/};
+const STRIP=/^(عميل|العميل|customer|client|كود|code|رسالة|message|batch|ماكينة|machine|صنف|خامة|category|fabric|لون|اللون|color|كمية|وزن|quantity|qty|weight|باركود|barcode|تاريخ|date|ملاحظ|ملاحظات|طلبات|notes?)$/i;
+const pos=[];
+Object.keys(KW).forEach(function(k){const re=KW[k];re.lastIndex=0;const m=re.exec(t2);if(m)pos.push([m.index,m[0].length,k]);});
+pos.sort(function(a,b){return a[0]-b[0];});
+for(let i=0;i<pos.length;i++){const s=pos[i][0]+pos[i][1];const e2=i+1<pos.length?pos[i+1][0]:t2.length;
+const words=t2.slice(s,e2).split(/\s+/).filter(function(w){return w&&!STRIP.test(w);});
+d[pos[i][2]]=words.join(" ").replace(/^[\s:\-،]+/,"").trim();}
+["code","message","machine","quantity","barcode"].forEach(function(f){const m=(d[f]||"").match(/\d+(?:[.,]\d+)?/);if(m)d[f]=m[0];});
+if(!d.customer&&!d.code&&!d.quantity){
+const toks=t2.split(/\s+/).filter(function(w){return w&&!STRIP.test(w);});
+const items=toks.map(function(tk){return {tk:tk,isNum:/^\d+(?:[.,]\d+)?$/.test(tk),isAr:/[\u0600-\u06FF]/.test(tk)};});
+const phrases=[];let cur=null;
+items.forEach(function(it){const ty=it.isNum?"num":(it.isAr?"ar":"x");if(!cur||cur.type!==ty){cur={type:ty,words:[]};phrases.push(cur);}cur.words.push(it.tk);});
+const ars=phrases.filter(function(p){return p.type==="ar";}).map(function(p){return p.words.join(" ");});
+const nums=phrases.filter(function(p){return p.type==="num";}).map(function(p){return p.words.join(" ");});
+if(ars[0])d.customer=ars[0];
+if(ars[1])d.category=ars[1];
+if(ars[2])d.color=ars[2];
+if(ars[3])d.notes=ars.slice(3).join(" ");
+nums.forEach(function(v){if(/^26\d{5}$/.test(v))d.barcode=v;});
+const small=nums.filter(function(v){return !/^26\d{5}$/.test(v);});
+if(small[0])d.code=small[0];
+if(small[1])d.message=small[1];
+if(small[2])d.quantity=small[2];
+if(small[3])d.machine=small[3];
+if(!d.customer&&!d.barcode)d.notes=t2.trim();
+}
+return d;}
+function parseOrderText(txt){
+const d={customer:"",message:"",code:"",color:"",category:"",quantity:"",machine:"",barcode:"",prepare:"",dye:"",time:"",notes:""};
+const flat=(txt||"").replace(/\r/g,"").replace(/\n/g," ").replace(/[٠-٩]/g,function(dd){return String("٠١٢٣٤٥٦٧٨٩".indexOf(dd));}).replace(/\s+/g," ");
+const after=(re,len)=>{re.lastIndex=0;const m=re.exec(flat);if(!m)return"";const s=m.index+m[0].length;return flat.slice(s,s+(len||40));};
+const cut=w=>{const labs=["رقم","الحافظة","الحافظه","وزن","الخامة","الخامه","الماكينة","الماكينه","تاريخ","كود","اسم","العرض","الاثواب","ملاحظات","ملاحظه","طلبات","جودة","جوده"];let m=w.length;for(let k=0;k<labs.length;k++){const i=w.indexOf(labs[k]);if(i>0&&i<m)m=i;}return w.slice(0,m);};
+const num=w=>{const m=(w||"").match(/\d+(?:[.,]\d+)?/);return m?m[0]:"";};
+const arw=w=>(w||"").replace(/[^\u0600-\u06FF\s]/g," ").replace(/\s+/g," ").trim();
+const arwStar=w=>(w||"").replace(/[^\u0600-\u06FF\s\*]/g," ").replace(/\s+/g," ").trim();
+const cw=cut(after(/العميل/,50));
+d.customer=arwStar(cw);
+d.code=num(cw);
+d.message=num(after(/رقم\s*الرسال[ةه]/,15));
+d.machine=num(after(/الماكين[ةه]/,10));
+d.color=arw(cut(after(/اسم\s*اللون/,30)));
+d.category=arw(cut(after(/الخام[ةه]/,30)));
+d.quantity=num(after(/الوزن/,15));
+const tm=after(/تاريخ/,15).match(/\d{4}\/\d{1,2}\/\d{1,2}/);if(tm)d.time=tm[0];
+const nums=flat.match(/\b26\d{5}\b/g)||[];
+const shn=(after(/شترك/,14).match(/\b26\d{5}\b/)||[null])[0];
+d.barcode=(nums.find(n=>n!==shn)||nums[0]||"");
+const n1=arw(cut(after(/ملاحظ[ةه]/,150)));
+const n2=arw(cut(after(/طلبات\s*العميل/,150)));
+d.notes=(n1+" "+n2).replace(/\s+/g," ").trim();
+return d;}
 function App(){
 const [ready,setReady]=useState(false);const [firebaseOk,setFirebaseOk]=useState(false);
 const [ownerName,setOwnerName]=useState(null);const [nameInput,setNameInput]=useState("");
@@ -150,11 +228,12 @@ useEffect(()=>{const L=blackList().length;if(blackIdx>L)setBlackIdx(L);if(blackP
 const askGemini=async()=>{const q=askQ.trim();if(!q||askBusy)return;setAskBusy(1);setAskA("");const key=String(factory.gkey||localStorage.getItem("gemini_key")||window.__masterGem||"").trim();if(!key){setAskA("❌ مفيش مفتاح Gemini");setAskBusy(0);return;}
 const cardsDump=liveCards.slice(0,300).map(c=>[c.customer,c.code,c.color,c.category,c.quantity,c.stage,c.delivered?"مسلّم":""].filter(Boolean).join("|")).join("\n");
 const loadsDump=(loads||[]).map(l=>{const s=loadStats(l);return [l.name||l.category||l.title||"خامة","كلي:"+(l.total||0),"باقي:"+Math.max(0,Math.round(s.rem))].join("|");}).join("\n");
-const ctx="انت مساعد ذكي داخل تطبيق مصنع صباغة اسمه "+(factory.fname||"")+". عندك كل بيانات الموقع لحظياً — جاوب أي سؤال منها بالعامية المصرية وبأرقام حقيقية:\n🃏 كروت الشغل (عميل|كود|لون|خامة|وزن|مرحلة|حالة):\n"+cardsDump+"\n🧵 المخزن الرئيسي (خامة|إجمالي|باقي):\n"+loadsDump+"\n📊 ملخص: كروت حية="+liveCards.length+" · متأخرة="+lateCount+"\n🟢 المتصلين دلوقتي: "+(onlineUsers||[]).map(u=>u.name).join("، ")+"\n❓ سؤال صاحب المصنع: "+q;
+const ctx="انت مساعد ذكي داخل تطبيق مصنع صباغة اسمه "+(factory.fname||"")+". عندك كل بيانات الموقع لحظياً — جاوب أي سؤال منها بالعامية المصرية وبأرقام حقيقية:\n\n🃏 كروت الشغل (عميل|كود|لون|خامة|وزن|مرحلة|حالة):\n"+cardsDump+"\n\n🧵 المخزن الرئيسي (خامة|إجمالي|باقي):\n"+loadsDump+"\n\n📊 ملخص: كروت حية="+liveCards.length+" · متأخرة="+lateCount+"\n🟢 المتصلين دلوقتي: "+(onlineUsers||[]).map(u=>u.name).join("، ")+"\n\n❓ سؤال صاحب المصنع: "+q;
 try{let models=["gemini-2.5-flash","gemini-2.0-flash"];try{const mj=await(await fetch("https://generativelanguage.googleapis.com/v1beta/models?key="+key)).json();if(mj&&mj.models){let av=mj.models.map(m=>String(m.name).replace("models/","")).filter(n=>/flash/.test(n)&&!/image|tts|embed|imagen|video/i.test(n));const nl=av.filter(n=>!n.includes("lite"));if(nl.length)av=nl;if(av.length)models=av.slice(0,3);}}catch(e){}let lastErr="";for(const md of models){try{const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+md+":generateContent?key="+key,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{parts:[{text:ctx}]}]})});const j=await r.json();if(j.error){lastErr=j.error.message||"err";continue;}const txt=j.candidates&&j.candidates[0]&&j.candidates[0].content.parts[0]&&j.candidates[0].content.parts[0].text;if(txt){setAskA(txt);setAskBusy(0);return;}}catch(e){}}setAskA("❌ معرفتش أوصل للنموذج"+(lastErr?" — "+lastErr:""));}catch(e){setAskA("❌ "+e.message);}setAskBusy(0);};
 const [companyMembers,setCompanyMembers]=useState([]);
 const [allUsersLive,setAllUsersLive]=useState([]);
 useEffect(()=>{if(!db)return 0;return db.collection("users").onSnapshot(s=>{const a=[];s.forEach(d=>a.push(d.data().name||d.id));a.sort();setAllUsersLive(a);});},[]);
+{[ownerName].concat(allUsersLive||[]).filter((v,i,a)=>v&&a.indexOf(v)===i).map(w=><option key={w} value={w}>{w===ownerName?"👑 "+w:"👷 "+w}</option>)}
 const [factory,setFactory]=useState({fname:"متابعة المراحل",wa:"",unit:"كيلو",lateDays:2,printSize:"A5",heroT:"",heroS:""});
 const [fnameDraft,setFnameDraft]=useState("متابعة المراحل");const [waDraft,setWaDraft]=useState("");const [lateDraft,setLateDraft]=useState(2);
 const [heroTDraft,setHeroTDraft]=useState("");const [heroSDraft,setHeroSDraft]=useState("");
@@ -194,7 +273,7 @@ const stDelTo=(s,to)=>{saveStages(stages.filter(x=>x!==s));cards.filter(c=>c.sta
 const bulkPrint=()=>{const list=cards.filter(c=>selected.includes(c.id));const rows=list.map(c=>"<tr><td>"+(c.customer||"")+"</td><td>"+(c.code||"")+"</td><td>"+(c.color||"")+"</td><td>"+(c.quantity||"")+"</td><td>"+(c.stage||"")+"</td><td>"+(c.machine||"")+"</td></tr>").join("");const w=window.open("","_blank");if(!w)return;w.document.write('<html dir="rtl"><head><meta charset="utf-8"><style>table{width:100%;border-collapse:collapse}td,th{border:1px solid #000;padding:6px;font-size:12px}</style></head><body><h2>🏭 '+(factory.fname||"")+'</h2><table><tr><th>عميل</th><th>كود</th><th>لون</th><th>كمية</th><th>مرحلة</th><th>ماكينة</th></tr>'+rows+'</table><scr'+'ipt>window.onload=function(){window.print()}<\/scr'+'ipt></body></html>');w.document.close();};
 const stRename=s=>{const n=prompt("اسم جديد للمرحلة:",s);if(!n||!n.trim()||n===s)return;if(stages.includes(n.trim())){alert("الاسم ده موجود بالفعل!");return;}const l=stages.map(x=>x===s?n.trim():x);setStages(l);saveStages(l);cards.filter(c=>c.stage===s).forEach(c=>db.collection("cards").doc(c.id).set({stage:n.trim()},{merge:true}));};
 const stOrder=(s,dir)=>{const i2=stages.indexOf(s);const j=i2+dir;if(j<0||j>=stages.length)return;const l=[...stages];l[i2]=l[j];l[j]=s;setStages(l);saveStages(l);};
-const stDel=s=>{const rest=stages.filter(x=>x!==s);const to=prompt("️ كروت "+s+" هتنتقل لمرحلة:\n"+rest.join(" ، "));if(!to||!rest.includes(to.trim()))return;saveStages(rest);cards.filter(c=>c.stage===s).forEach(c=>db.collection("cards").doc(c.id).set({stage:to.trim()},{merge:true}));};
+const stDel=s=>{const rest=stages.filter(x=>x!==s);const to=prompt("⚠️ كروت "+s+" هتنتقل لمرحلة:\n"+rest.join(" ، "));if(!to||!rest.includes(to.trim()))return;saveStages(rest);cards.filter(c=>c.stage===s).forEach(c=>db.collection("cards").doc(c.id).set({stage:to.trim()},{merge:true}));};
 const [stageQ,setStageQ]=useState("");
 const [announce,setAnnounce]=useState(null);const [showAnnounce,setShowAnnounce]=useState(false);const [announceDraft,setAnnounceDraft]=useState("");const [annDismissed,setAnnDismissed]=useState(localStorage.getItem("ann_dismiss"));
 const [showSettings,setShowSettings]=useState(false);const [showSearch,setShowSearch]=useState(false);
@@ -204,13 +283,20 @@ const [editingCard,setEditingCard]=useState(null);const [actionCard,setActionCar
 const [moveCard_,setMoveCard]=useState(null);const [copyCard_,setCopyCard]=useState(null);
 const [qrCard,setQrCard]=useState(null);const [toast,setToast]=useState(null);
 const modalRef=React.useRef(false);const screenRef=React.useRef("home");
-
-/* ===== إصلاح الرجوع: تسجيل خطوة عند كل تغيير شاشة ===== */
-useEffect(()=>{screenRef.current=screen;try{history.pushState({guard:1,screen:screen},"");}catch(e){}},[screen]);
-
-/* ===== تسجيل خطوة عند فتح أي مودال ===== */
+useEffect(()=>{
+  screenRef.current=screen;
+  if(window.__navLock&&Date.now()-window.__navLock<650)return;
+  try{
+    history.pushState(
+      {
+        guard:1,
+        screen:screen
+      },
+      ""
+    );
+  }catch(e){}
+},[screen]);
 useEffect(()=>{const m=!!(photoView||showAsk||showBook||editingCard||showMenu||showFlags||showWorkers||showMyWork||qrCard||actionCard||showSettings||showSched||showStored);if(m&&!modalRef.current){try{history.pushState({guard:1},"");}catch(e){}}modalRef.current=m;},[photoView,showAsk,showBook,editingCard,showMenu,showFlags,showWorkers,showMyWork,qrCard,actionCard,showSettings,showSched,showStored]);
-
 const [micOn,setMicOn]=useState(false);const [micText,setMicText]=useState("");const [showMic,setShowMic]=useState(false);const [micLang,setMicLang]=useState("ar-EG");
 const recRef=useRef(null);
 const photoInputRef=useRef(null);const photoGalRef=useRef(null);const scanFileRef=useRef(null);
@@ -231,9 +317,7 @@ const hdrBtn={width:42,height:42,borderRadius:14,border:"1px solid "+theme.borde
 const LD=+factory.lateDays||2;
 const allColors=PRESET_COLORS.concat(customColors);
 useEffect(()=>{setFnameDraft(factory.fname);setWaDraft(factory.wa);setLateDraft(factory.lateDays);setHeroTDraft(factory.heroT||"");setHeroSDraft(factory.heroS||"");},[factory.fname,factory.wa,factory.lateDays,factory.heroT,factory.heroS]);
-
-/* ===== الحارس: يتعامل مع الرجوع بدون تسجيل خطوة في آخره ===== */
-useEffect(()=>{history.pushState({guard:1},"");const onPop=()=>{const u=uiRef.current;window.__navLock=Date.now();
+useEffect(()=>{history.pushState({guard:1},"");const iv=setInterval(()=>{try{if(!history.state||!history.state.guard)history.pushState({guard:1},"");}catch(e){}},800);const onPop=()=>{const u=uiRef.current;window.__navLock=Date.now();
 if(u.showAsk)setShowAsk(false);else if(u.showBook)setShowBook(false);else if(u.showBlack)setShowBlack(false);else if(u.showFlags)setShowFlags(false);else if(u.showMyWork)setShowMyWork(false);else if(u.showSched)setShowSched(false);else if(u.showStored)setShowStored(false);else if(u.showTopCust)setShowTopCust(false);else if(u.showLateList)setShowLateList(false);else if(u.showDelivered)setShowDelivered(false);else if(u.heroEdit)setHeroEdit(false);else if(u.showDefects)setShowDefects(false);else if(u.defectFor)setDefectFor(null);else if(u.showAnnounce)setShowAnnounce(false);else if(u.linkedFrom)setLinkedFrom(null);else if(u.addLoad)setAddLoad(false);else if(u.loadDetail)setLoadDetail(null);else if(u.showWarehouse)setShowWarehouse(false);else if(u.showMic)setShowMic(false);else if(u.importMenu)setImportMenu(false);else if(u.importDraft)setImportDraft(null);
 else if(u.reportText)setReportText(null);else if(u.showScanner)setShowScanner(false);else if(u.bcCard)setBcCard(null);
 else if(u.statementFor)setStatementFor(null);else if(u.showWorkers)setShowWorkers(false);
@@ -243,8 +327,8 @@ else if(u.moveCard_)setMoveCard(null);else if(u.copyCard_)setCopyCard(null);else
 else if(u.showSearch)setShowSearch(false);else if(u.showSettings)setShowSettings(false);
 else if(u.screen==="stage")setScreen("stages");else if(u.screen==="stages")setScreen("home");else if(u.screen==="log")setScreen("home");
 else if(u.screen==="archive")setScreen("home");else if(u.screen!=="home"){setScreen("home");}else{const n=Date.now();if(window.__lastExit&&n-window.__lastExit<900)return;window.__lastExit=n;history.back();return;}};
-window.addEventListener("popstate",onPop);return()=>window.removeEventListener("popstate",onPop);},[]);
-
+window.addEventListener("popstate",onPop);return()=>{clearInterval(iv);window.removeEventListener("popstate",onPop);};},[]);
+useEffect(()=>{const h=()=>{if(window.__navLock&&Date.now()-window.__navLock<650)return;const s=screenRef.current;if(s==="stage")setScreen("stages");else if(s==="stages"||s==="log"||s==="archive")setScreen("home");};window.addEventListener("hashchange",h);return()=>window.removeEventListener("hashchange",h);},[]);
 useEffect(()=>{const on=()=>{setIsOnline(true);setSyncStatus("syncing");setTimeout(()=>{setSyncStatus("synced");setTimeout(()=>setSyncStatus("idle"),2000);},1500);};const off=()=>{setIsOnline(false);setSyncStatus("idle");};window.addEventListener("online",on);window.addEventListener("offline",off);return()=>{window.removeEventListener("online",on);window.removeEventListener("offline",off);};},[]);
 useEffect(()=>{const b=document.getElementById("syncBar");if(b)b.classList.toggle("active",syncStatus==="syncing");},[syncStatus]);
 useEffect(()=>{if(!fbReady||!auth||!db)return;const un=auth.onAuthStateChanged(async user=>{if(user){setUserId(user.uid);const s=localStorage.getItem("owner_name_"+(localStorage.getItem("username")||user.uid));if(s)setOwnerName(s);else{const o=localStorage.getItem("owner_name_"+user.uid);if(o)setOwnerName(o);}
@@ -283,7 +367,7 @@ else{const f=cards.find(c=>(c.barcode&&c.barcode===p.code)||c.code===p.code);
 if(f){jumpToCard(f);showToast("✅ "+t.foundIn+": "+f.stage);}
 else if(can){showToast("❌ "+t.notFound,"danger");setEditingCard({id:uid(),stage:activeStage||stages[0]||"",code:p.code,customer:p.data?p.data.n||"":"",message:"",category:p.data?p.data.cat||"":"",color:p.data?p.data.col||"":"",quantity:p.data?p.data.q||"":"",barcode:p.code,machine:"",prepare:"",dye:"",time:"",notes:"",phone:"",address:"",urgent:false,pinned:false,due:"",photo:"",archived:false,loadId:"",delivered:false,deliveredQty:0});}
 else showToast("❌ "+t.notFound,"danger");}};
-const scanFromFile=e=>{const f=e.target.files?.[0];if(!f||!scannerRef.current)return;scannerRef.current.scanFileV2(f,true).then(r=>{if(r&&r.decodedText){setShowScanner(false);handleScan(String(r.decodedText).trim());}}).catch(()=>showToast("","danger"));e.target.value="";};
+const scanFromFile=e=>{const f=e.target.files?.[0];if(!f||!scannerRef.current)return;scannerRef.current.scanFileV2(f,true).then(r=>{if(r&&r.decodedText){setShowScanner(false);handleScan(String(r.decodedText).trim());}}).catch(()=>showToast("❌","danger"));e.target.value="";};
 const startMic=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){showToast("المتصفح مش داعم الإملاء","danger");return;}
 try{const rec=new SR();rec.lang=micLang;rec.interimResults=true;rec.continuous=true;
 const base=micText?micText+" ":"";const seen={};
@@ -306,13 +390,13 @@ const toggleStored=async c=>{if(!can||!db)return;await db.collection("cards").do
 const partialDeliver=async(c,q)=>{if(!can||!db)return;const v=Math.min(parseFloat(q)||0,parseFloat(c.quantity)||0);await db.collection("cards").doc(c.id).set({deliveredQty:v,delivered:v>=(parseFloat(c.quantity)||0)},{merge:true});await addLog("تسليم جزئي",c,String(v));setActionCard(null);};
 const saveHero=()=>{if(!can||!db)return;saveFactory({heroT:heroTDraft.trim(),heroS:heroSDraft.trim()});setHeroEdit(false);showToast("🎨 ✅");};
 const saveAnnounce=()=>{if(!can||!db)return;const el=document.getElementById("annBox");const txt=el?el.value:"";db.collection("config").doc("announce").set({text:txt.trim(),by:ownerName||"",time:Date.now()});setShowAnnounce(false);showToast("📢 اتنشر");};
-const saveDefect=async()=>{if(!can||!db||!defectFor)return;await db.collection("defects").doc(uid()).set({cardId:defectFor.id,customer:defectFor.customer||"",code:defectFor.code||"",stage:defectFor.stage||"",reason:defectDraft.reason||"",qty:defectDraft.qty||"",notes:defectDraft.notes||"",by:ownerName||"",time:Date.now(),date:localDate(new Date())});setDefectFor(null);setDefectDraft({reason:"",qty:"",notes:""});showToast("⚠️ تم التسجيل");};
+ const saveDefect=async()=>{if(!can||!db||!defectFor)return;await db.collection("defects").doc(uid()).set({cardId:defectFor.id,customer:defectFor.customer||"",code:defectFor.code||"",stage:defectFor.stage||"",reason:defectDraft.reason||"",qty:defectDraft.qty||"",notes:defectDraft.notes||"",by:ownerName||"",time:Date.now(),date:localDate(new Date())});setDefectFor(null);setDefectDraft({reason:"",qty:"",notes:""});showToast("⚠️ تم التسجيل");};
 const saveFactory=patch=>{
 if(!db){showToast("❌ مفيش اتصال");return;}
 if(!can){alert("المالك فقط يقدر يعدّل الإعدادات");return;}
 const next={...factory,...patch};
 setFactory(next);
-db.collection("config").doc("factory").set(patch,{merge:true}).then(()=>showToast("✅ اتحفظ")).catch(e=>{console.error(e);showToast(" خطأ في الحفظ");});
+db.collection("config").doc("factory").set(patch,{merge:true}).then(()=>showToast("✅ اتحفظ")).catch(e=>{console.error(e);showToast("❌ خطأ في الحفظ");});
 };
 const saveFactoryDrafts=()=>{saveFactory({fname:fnameDraft.trim()||"متابعة المراحل",wa:waDraft.trim(),lateDays:+lateDraft||2,heroT:heroTDraft.trim(),heroS:heroSDraft.trim()});showToast("✅");};
 const saveStages=l=>{if(!can||!db)return;db.collection("config").doc("stages").set({list:l});};
@@ -373,11 +457,11 @@ const ex=cards.find(c=>String(c.customer||"")===String(d.customer||"")&&String(c
 if(ex){setImportDraft(null);jumpToCard(ex);showToast("✅ "+t.foundIn+": "+ex.stage);}
 else{await saveCard({...d,id:uid(),urgent:false,pinned:false,photo:"",archived:false,phone:d.phone||"",address:d.address||"",loadId:"",delivered:false,deliveredQty:0});setImportDraft(null);}};
 const buildReport=()=>{const today=localDate(new Date());const live=cards.filter(c=>!c.archived);
-let s="📊 "+t.report+" — "+today+"\n🏭 "+factory.fname+"\n🃏 "+live.length+"\n➕ "+live.filter(c=>localDate(new Date(toMs(c.createdAt)))===today).length+"\n "+log.filter(e=>localDate(new Date(toMs(e.time||e.timeLocal)))===today).length+"\n⚠️ "+live.filter(c=>daysSince(c.updatedAt||c.createdAt)>=LD).length+"\n";
+let s="📊 "+t.report+" — "+today+"\n🏭 "+factory.fname+"\n\n🃏 "+live.length+"\n➕ "+live.filter(c=>localDate(new Date(toMs(c.createdAt)))===today).length+"\n🔄 "+log.filter(e=>localDate(new Date(toMs(e.time||e.timeLocal)))===today).length+"\n⚠️ "+live.filter(c=>daysSince(c.updatedAt||c.createdAt)>=LD).length+"\n\n";
 stages.forEach(st=>{const cs=live.filter(c=>c.stage===st);const q=qtySum(cs);s+="• "+st+": "+cs.length+(q?" ("+q+" "+factory.unit+")":"")+"\n";});return s;};
-const buildStatement=n=>{const cs=cards.filter(c=>c.customer===n);let s="👥 "+t.statement+" — "+n+"\n";cs.forEach(c=>{s+="• "+(c.code||"—")+" | "+(c.color||"—")+" | "+(c.quantity||"—")+" | "+(c.stage||"—")+(c.delivered?" | ✅":"")+"\n";});s+="\n⚖️ "+qtySum(cs)+" "+factory.unit;return s;};
+const buildStatement=n=>{const cs=cards.filter(c=>c.customer===n);let s="👥 "+t.statement+" — "+n+"\n\n";cs.forEach(c=>{s+="• "+(c.code||"—")+" | "+(c.color||"—")+" | "+(c.quantity||"—")+" | "+(c.stage||"—")+(c.delivered?" | ✅":"")+"\n";});s+="\n⚖️ "+qtySum(cs)+" "+factory.unit;return s;};
 const workerStats=()=>{const today=localDate(new Date());const m={};log.forEach(e=>{if(localDate(new Date(toMs(e.time||e.timeLocal)))===today)m[e.person]=(m[e.person]||0)+1;});return Object.entries(m).sort((a,b)=>b[1]-a[1]);};
-const shareCardText=c=>{let s=" "+factory.fname+"\n👤 "+(c.customer||"—")+"\n🔢 "+(c.code||"—")+"\n🎨 "+(c.color||"—")+"\n⚖️ "+(c.quantity||"—")+" "+factory.unit+"\n📍 "+(c.stage||"—")+"\n";if(c.due)s+="📅 "+c.due+"\n";if(c.barcode)s+="🔳 "+c.barcode+"\n";return s;};
+const shareCardText=c=>{let s="🏭 "+factory.fname+"\n👤 "+(c.customer||"—")+"\n🔢 "+(c.code||"—")+"\n🎨 "+(c.color||"—")+"\n⚖️ "+(c.quantity||"—")+" "+factory.unit+"\n📍 "+(c.stage||"—")+"\n";if(c.due)s+="📅 "+c.due+"\n";if(c.barcode)s+="🔳 "+c.barcode+"\n";return s;};
 const exportSheet=(list,fname)=>{const h=["المرحلة","اسم العميل","الكود","الرسالة","اللون","الصنف","الكمية","الباركود","تجهيز","الملاحظات"];const rows=list.map(c=>[c.stage||"",c.customer||"",c.code||"",c.message||"",c.color||"",c.category||"",c.quantity||"",c.barcode||"",c.prepare||"",c.notes||(c.stage==="موقوف"?"موقوف":"")]);const csv="\uFEFF"+[h].concat(rows).map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(",")).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download=(fname||"sheet")+".csv";a.click();showToast("💾 ✅");};
 const exportCSV=()=>{const h=["code","customer","message","category","color","quantity","barcode","machine","prepare","dye","time","notes","phone","address","stage","due"];const r=cards.map(c=>h.map(x=>'"'+String(c[x]??"" ).replace(/"/g,'""')+'"').join(","));const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\uFEFF"+h.join(",")+"\n"+r.join("\n")],{type:"text/csv"}));a.download="dyeing.csv";a.click();showToast("💾 ✅");};
 const backupJSON=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify({cards,logs:log,loads})],{type:"application/json"}));a.download="dyeing-backup.json";a.click();showToast("💾 ✅");};
@@ -397,8 +481,6 @@ try{if(ex){await db.collection("cards").doc(card.id).set({...card,updatedAt:fire
 else{const id=card.id||uid();await db.collection("cards").doc(id).set({...card,id,createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp(),createdBy:ownerName,history:[{stage:card.stage,by:ownerName,at:nowISO()}]});await addLog("إضافة",card);}
 setEditingCard(null);showToast(isOnline?"✅":"📱");}catch(e){showToast("خطأ: "+(e.code||e.message),"danger");}};
 const deleteCard=async c=>{if(!can||!db)return;try{await db.collection("cards").doc(c.id).delete();await addLog("حذف",c);setActionCard(null);showToast("🗑️","danger");}catch(e){}};
-
-/* ===== إصلاح الأمان: صاحب الصلاحية = المالك أو الماستر فقط ===== */
 const moveCardTo=async(c,d)=>{if(!db)return;const role=localStorage.getItem("role")||"";const isOwner=(role==="manager"||role==="master");const isAssist=role==="assistant";if(factory.closed&&!isOwner){alert("🔒 المصنع مقفل اليوم — مفيش نقل");return;}const locks=factory.stageLocks||{};if(locks[d]&&!isOwner&&!isAssist){alert("🔒 مرحلة "+d+" مقفولة — للمساعد أو المالك فقط");return;}if(locks[c.stage]&&!isOwner&&!isAssist){alert("🔒 مرحلة "+c.stage+" مقفولة للخروج — للمساعد أو المالك فقط");return;}d=d||(stages[0]||"");try{await db.collection("cards").doc(c.id).set({stage:d,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),history:firebase.firestore.FieldValue.arrayUnion({stage:d,by:ownerName,at:nowISO()})},{merge:true});await addLog("نقل",c,"→ "+d);setMoveCard(null);setActionCard(null);showToast("→ "+d);}catch(e){}};
 const copyCardTo=async(c,d)=>{if(!can||!db)return;try{const id=uid();await db.collection("cards").doc(id).set({...c,id,stage:d,pinned:false,createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp(),createdBy:ownerName,history:[{stage:d,by:ownerName,at:nowISO()}]});await addLog("نسخ",c);setCopyCard(null);setActionCard(null);showToast("📋 ✅");}catch(e){}};
 const togglePin=async c=>{if(!can||!db)return;try{await db.collection("cards").doc(c.id).set({pinned:!c.pinned},{merge:true});setActionCard(null);}catch(e){}};
@@ -418,6 +500,7 @@ const statusMsg=syncStatus==="syncing"?t.syncing:syncStatus==="synced"?t.synced:
 const statusColor=syncStatus==="syncing"?theme.warn:syncStatus==="synced"?theme.accent2:(isOnline?theme.accent2:theme.danger);
 const onlineNames=[...new Set(onlineUsers.map(u=>u.name))];
 const lateCount=liveCards.filter(c=>adjDays(c)>=LD).length;
+useEffect(()=>{const iv=setInterval(()=>{try{if(!("Notification" in window)||Notification.permission!=="granted")return;const late=liveCards.filter(c=>!c.delivered&&adjDays(c)>=LD);const done=(localStorage.getItem("notifiedLate")||"").split(",").filter(Boolean);const fresh=late.filter(c=>!done.includes(c.id));if(!fresh.length)return;fresh.slice(0,3).forEach(c=>{try{new Notification("⏰ كرت متأخر — "+(c.stage||""),{body:(c.customer||"")+" · "+(c.code||"")+" · "+(c.color||"")});}catch(e){}});localStorage.setItem("notifiedLate",[...done,...fresh.map(c=>c.id)].join(","));fx("danger");}catch(e){}},60000);return()=>clearInterval(iv);},[cards]);
 const lateAll=liveCards.filter(c=>adjDays(c)>=LD);
 const delAll=liveCards.filter(c=>c.delivered||(parseFloat(c.deliveredQty)||0)>0);
 const todayLogCount=log.filter(e=>localDate(new Date(toMs(e.time||e.timeLocal)))===localDate(new Date())).length;
@@ -428,7 +511,7 @@ const totalQty=qtySum(liveCards);
 const donePct=totalQty>0?Math.min(100,Math.round((wh.del/totalQty)*100)):0;
 const nCards=useCountUp(liveCards.length);const nLate=useCountUp(lateCount);const nRem=useCountUp(Math.round(wh.rem));const nDel=useCountUp(Math.round(wh.del));
 const grid2={display:"grid",gridTemplateColumns:"1fr 1fr",gap:10};
-const S_ICONS=["🚛","","⚙️","🧵","","🏭","✅","🎯"];
+const S_ICONS=["🚛","🧪","⚙️","🧵","","🏭","✅","🎯"];
 const annVisible=!!(announce&&announce.text)&&annDismissed!==String(announce.time);
 const badge=(c,x)=><span className="badge" style={{background:c}}>{x}</span>;
 const rawD=(()=>{try{return new URLSearchParams(window.location.search).get("d");}catch(e){return null;}})();
@@ -438,10 +521,6 @@ const liveCID=(()=>{try{return new URLSearchParams(window.location.search).get("
 const [liveCard,setLiveCard]=useState(null);
 const [liveErr,setLiveErr]=useState("");
 useEffect(()=>{if(!liveID||!db)return 0;const base=(liveCID&&liveCID!=="DEFAULT")?"companies/"+liveCID+"/cards":"cards";try{return db._raw(base).doc(liveID).onSnapshot(d=>{if(d.exists)setLiveCard(d.data());else setLiveErr("nf");},()=>setLiveErr("er"));}catch(e){setLiveErr("er");}return 0;},[liveID,liveCID]);
-
-/* ===== تنبيهات التأخر ===== */
-useEffect(()=>{const iv2=setInterval(()=>{try{if(!("Notification" in window)||Notification.permission!=="granted")return;const late=liveCards.filter(c=>!c.delivered&&adjDays(c)>=LD);const done=(localStorage.getItem("notifiedLate")||"").split(",").filter(Boolean);const fresh=late.filter(c=>!done.includes(c.id));if(!fresh.length)return;fresh.slice(0,3).forEach(c=>{try{new Notification("⏰ كرت متأخر — "+(c.stage||""),{body:(c.customer||"")+" · "+(c.code||"")+" · "+(c.color||"")});}catch(e){}});localStorage.setItem("notifiedLate",[...done,...fresh.map(c=>c.id)].join(","));fx("danger");}catch(e){}},60000);return()=>clearInterval(iv2);},[cards]);
-
 if(pubData&&!new URLSearchParams(window.location.search).get("goto")&&!liveID)return(<div dir="rtl" style={{minHeight:"100vh",background:"#fff",color:"#232016",display:"flex",alignItems:"center",justifyContent:"center",padding:20,fontFamily:"system-ui,sans-serif"}}>
 <div style={{width:"100%",maxWidth:380,border:"4px solid #7C5CFF",borderRadius:20,padding:24}}>
 <div style={{fontSize:22,fontWeight:900,textAlign:"center",marginBottom:4}}>🏭 متابعة الصباغة</div>
@@ -450,18 +529,18 @@ if(pubData&&!new URLSearchParams(window.location.search).get("goto")&&!liveID)re
 </div></div>);
 if(liveID)return(<div dir="rtl" style={{minHeight:"100vh",background:"#fff",color:"#232016",display:"flex",alignItems:"center",justifyContent:"center",padding:20,fontFamily:"system-ui,sans-serif"}}>
 <div style={{width:"100%",maxWidth:400,border:"4px solid #7C5CFF",borderRadius:20,padding:24}}>
-<div style={{fontSize:22,fontWeight:900,textAlign:"center",marginBottom:4}}> {factory.fname||"متابعة الصباغة"}</div>
+<div style={{fontSize:22,fontWeight:900,textAlign:"center",marginBottom:4}}>🏭 {factory.fname||"متابعة الصباغة"}</div>
 <div style={{fontSize:12,color:"#77705F",textAlign:"center",marginBottom:18}}>📡 حالة الطلب لحظة بلحظة</div>
 {!liveCard&&!liveErr&&<div style={{textAlign:"center",padding:30,fontSize:14,color:"#77705F"}}>⏳ تحميل...</div>}
 {liveErr&&<div style={{textAlign:"center",padding:30,fontSize:14,color:"#c0392b"}}>❌ الكرت مش موجود</div>}
 {liveCard&&(<div>
-{[["👤 العميل",liveCard.customer],[" الكود",liveCard.code],["🎨 اللون",liveCard.color],["⚖️ الكمية",liveCard.quantity],["📍 المرحلة الحالية",liveCard.stage]].map(r=>r[1]?<div key={r[0]} style={{display:"flex",justifyContent:"space-between",borderBottom:"1px solid #DFD9CB",padding:"10px 4px",fontSize:15}}><b>{r[0]}</b><span>{r[1]}</span></div>:null)}
+{[["👤 العميل",liveCard.customer],["🔢 الكود",liveCard.code],["🎨 اللون",liveCard.color],["⚖️ الكمية",liveCard.quantity],["📍 المرحلة الحالية",liveCard.stage]].map(r=>r[1]?<div key={r[0]} style={{display:"flex",justifyContent:"space-between",borderBottom:"1px solid #DFD9CB",padding:"10px 4px",fontSize:15}}><b>{r[0]}</b><span>{r[1]}</span></div>:null)}
 {liveCard.delivered&&<div style={{marginTop:14,background:"#E8F8F2",border:"1px solid #2DD4A8",borderRadius:12,padding:10,textAlign:"center",fontWeight:800,color:"#0B7A5E"}}>✅ تم التسليم</div>}
 {(liveCard.photos||[]).length>0&&<img src={liveCard.photos[0]} style={{width:"100%",borderRadius:12,marginTop:12}}/>}
 {factory.wa&&<a href={"https://wa.me/"+String(factory.wa).replace(/\D/g,"")} target="_blank" rel="noreferrer" style={{display:"block",marginTop:16,background:"#25D366",color:"#fff",borderRadius:12,padding:"12px",textDecoration:"none",fontWeight:700,textAlign:"center"}}>💬 كلم المصنع</a>}
 </div>)}
 </div></div>);
-if(!ready)return(<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:theme.bg,color:theme.text,flexDirection:"column",gap:16}}><div style={{fontSize:48,animation:"floaty 2s infinite"}}></div><div className="spin" style={{fontSize:24}}>⚙️</div><div style={{fontSize:14,color:theme.textDim,marginTop:4}}>🕌 صلي على النبي</div></div>);
+if(!ready)return(<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:theme.bg,color:theme.text,flexDirection:"column",gap:16}}><div style={{fontSize:48,animation:"floaty 2s infinite"}}>🏭</div><div className="spin" style={{fontSize:24}}>⚙️</div><div style={{fontSize:14,color:theme.textDim,marginTop:4}}>🕌 صلي على النبي</div></div>);
 if(!ownerName)return(<div dir={dir} style={{minHeight:"100vh",background:theme.bg,color:theme.text,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}><div className="card" style={{padding:32,width:"100%",maxWidth:380,textAlign:"center"}}><div style={{width:60,height:60,borderRadius:18,background:"linear-gradient(135deg,var(--vio),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px",fontSize:28,animation:"floaty 2.5s infinite",boxShadow:"0 10px 30px rgba(124,92,255,.4)"}}>🏭</div><h2 style={{margin:"0 0 6px",fontSize:20}}>{factory.fname}</h2><p style={{color:theme.textDim,fontSize:13,marginBottom:18}}>{t.yourName} — {t.enterNameHint}</p><input autoFocus value={nameInput} onChange={e=>setNameInput(e.target.value)} placeholder={t.yourName} className="inp" style={{textAlign:"center"}} onKeyDown={e=>e.key==="Enter"&&confirmName()}/><button onClick={confirmName} className="btnG">{t.confirmName}</button></div></div>);
 return(
 <div dir={dir} style={{minHeight:"100vh",background:theme.bg,color:theme.text,paddingBottom:90}}>
@@ -482,7 +561,7 @@ return(
 <div style={{flex:1}}><div style={{fontSize:12,color:theme.textDim}}>👋 مرحباً يا {ownerName}</div><div style={{fontSize:20,fontWeight:900}}>{factory.fname}</div></div>
 <button onClick={()=>setShowSearch(true)} style={hdrBtn}>🔍</button>
 <button onClick={()=>setShowLateList(true)} style={{...hdrBtn,position:"relative"}}>🔔{(()=>{const n=liveCards.filter(c=>!c.delivered&&(c.urgent||adjDays(c)>=(factory.lateDays||2))).length;return n>0?<span style={{position:"absolute",top:4,left:4,background:"var(--red)",color:"#fff",borderRadius:10,fontSize:9,fontWeight:800,padding:"1px 5px",minWidth:16,textAlign:"center"}}>{n}</span>:null;})()}</button>
-<button onClick={()=>setShowMenu(true)} style={hdrBtn}></button>
+<button onClick={()=>setShowMenu(true)} style={hdrBtn}>⋯</button>
 </div>
 <div className="card grad anim" style={{animationDelay:"80ms",marginBottom:12,position:"relative",overflow:"hidden"}}>
 <div style={{position:"absolute",top:14,insetInlineEnd:14,fontSize:40,animation:"floaty 3s infinite"}}>{logoSrc?<img src={logoSrc} style={{width:56,height:56,borderRadius:16,objectFit:"cover",boxShadow:"0 4px 14px rgba(0,0,0,.35)"}}/>:"🏭"}</div>
@@ -497,7 +576,7 @@ return(
 <div className="card anim" onClick={()=>setShowWarehouse(true)} style={{animationDelay:"260ms",cursor:"pointer"}}><div className="lbl">📦 متبقي المخزن</div><div style={{fontSize:26,fontWeight:900,color:"var(--blue)"}}>{nRem} <span style={{fontSize:11,color:theme.textDim}}>{factory.unit}</span></div></div>
 <div className="card anim" onClick={()=>setShowDelivered(true)} style={{animationDelay:"320ms",cursor:"pointer"}}><div className="lbl">✅ اتسلم</div><div style={{fontSize:26,fontWeight:900,color:"var(--teal)"}}>{nDel}</div></div>
 </div>
-<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",margin:"10px 0",fontSize:12,color:theme.textDim}}><span style={{display:"flex",alignItems:"center",gap:6}}>{logoSrc&&<img src={logoSrc} style={{width:26,height:26,borderRadius:8,objectFit:"cover"}}/>}🕌 {(()=>{try{return new Intl.DateTimeFormat("ar-SA-u-ca-islamic",{day:"numeric",month:"long",year:"numeric"}).format(new Date());}catch(e){return "";}})()}</span><span>{(()=>{const h=new Date().getHours();return h>=5&&h<12?"☀️ صباح الخير":h>=12&&h<17?"️ مساء الخير":"🌙 مساء الخير";})()} · {ownerName}</span></div>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",margin:"10px 0",fontSize:12,color:theme.textDim}}><span style={{display:"flex",alignItems:"center",gap:6}}>{logoSrc&&<img src={logoSrc} style={{width:26,height:26,borderRadius:8,objectFit:"cover"}}/>}🕌 {(()=>{try{return new Intl.DateTimeFormat("ar-SA-u-ca-islamic",{day:"numeric",month:"long",year:"numeric"}).format(new Date());}catch(e){return "";}})()}</span><span>{(()=>{const h=new Date().getHours();return h>=5&&h<12?"☀️ صباح الخير":h>=12&&h<17?"🌤️ مساء الخير":"🌙 مساء الخير";})()} · {ownerName}</span></div>
 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,width:"100%",alignItems:"center"}}>
 <div onClick={()=>setShowSched(true)} style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer"}}>
 <div style={{width:44,height:44,borderRadius:14,background:"linear-gradient(135deg,var(--teal),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,boxShadow:"0 6px 18px rgba(45,212,168,.35)"}}>📅</div>
@@ -520,7 +599,7 @@ return(<div>
 <div style={{fontSize:10,color:theme.textDim}}>عامل الأسبوع · {best?best[1]:0} حركة</div>
 </div>
 <div style={{flex:1,background:"linear-gradient(135deg,rgba(124,92,255,.15),rgba(94,143,214,.10))",border:"1px solid rgba(124,92,255,.35)",borderRadius:14,padding:10,textAlign:"center"}}>
-<div style={{fontSize:22}}></div>
+<div style={{fontSize:22}}>⚡</div>
 <div style={{fontSize:12,fontWeight:800,marginTop:2}}>{wk.length}</div>
 <div style={{fontSize:10,color:theme.textDim}}>حركة آخر 7 أيام</div>
 </div>
@@ -549,12 +628,12 @@ return(<div style={{marginBottom:12}}>
 {stages.map((s,i)=>{const n=liveCards.filter(c=>c.stage===s).length;const p=liveCards.length?Math.round(n/liveCards.length*100):0;const col=STAGE_COLORS[i%8];
 return(<div key={s} style={{marginBottom:8}}><div style={{display:"flex",justifyContent:"space-between",fontSize:11,color:theme.textDim,marginBottom:3}}><span>{s}</span><span>{n}</span></div><div className="bar"><i style={{width:p+"%",background:col}}/></div></div>);})}
 </div></div>
-{lateAll.length>0&&(<div className="card anim" style={{animationDelay:"440ms",marginBottom:12}}><div className="lbl">️ تنبيهات سريعة</div>
+{lateAll.length>0&&(<div className="card anim" style={{animationDelay:"440ms",marginBottom:12}}><div className="lbl">⚠️ تنبيهات سريعة</div>
 {lateAll.slice(0,4).map((c,i)=>(<div key={c.id} onClick={()=>jumpToCard(c)} style={{cursor:"pointer",display:"flex",alignItems:"center",gap:10,padding:"10px 0",borderTop:"1px solid "+theme.border,animation:"fadeUp .5s both",animationDelay:(i*80)+"ms"}}>
 <div style={{width:36,height:36,borderRadius:12,background:"rgba(255,92,122,.15)",display:"flex",alignItems:"center",justifyContent:"center"}}>⚠️</div>
 <div style={{flex:1}}><b style={{fontSize:13}}>{c.customer} · {c.code}</b><div style={{fontSize:11,color:theme.textDim}}>متأخر في {c.stage}</div></div>
 </div>))}</div>)}
-{recent3.length>0&&(<div className="anim" style={{animationDelay:"500ms"}}><div className="lbl"> آخر الكروت المعدّلة</div>
+{recent3.length>0&&(<div className="anim" style={{animationDelay:"500ms"}}><div className="lbl">🕐 آخر الكروت المعدّلة</div>
 {recent3.map((c,i)=>{const si=stages.indexOf(c.stage);const sc=STAGE_COLORS[(si>=0?si:0)%8];
 return(<div key={c.id} className="card" onClick={()=>jumpToCard(c)} style={{cursor:"pointer",marginBottom:8,borderInlineStart:"4px solid "+sc,animationDelay:(i*90)+"ms"}}>
 <div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:14}}>{c.customer||"—"} · {c.code||"—"}</b><span className="badge" style={{background:sc}}>{c.stage}</span></div>
@@ -567,10 +646,10 @@ return(<div key={c.id} className="card" onClick={()=>jumpToCard(c)} style={{curs
 <button onClick={()=>setScreen("home")} style={hdrBtn}>→</button>
 <div style={{flex:1}}><div style={{fontSize:19,fontWeight:900}}>مراحل العمل</div><div style={{fontSize:11,color:theme.textDim}}>تابع جميع مراحل الإنتاج</div></div>
 <button onClick={()=>setShowSearch(true)} style={hdrBtn}>🔍</button>
-{can&&<button onClick={()=>setShowStageMgr(true)} style={hdrBtn}>️</button>}
+{can&&<button onClick={()=>setShowStageMgr(true)} style={hdrBtn}>⚙️</button>}
 <button onClick={()=>setShowSched(true)} style={hdrBtn}>📅</button>
 </div>
-{(()=>{const orph=liveCards.filter(c=>!stages.includes(c.stage));return orph.length>0?(<div onClick={()=>setEditingCard(orph[0])} className="card" style={{marginBottom:14,borderColor:"var(--red)",cursor:"pointer"}}>️ عندك {orph.length} كرت في مرحلة مش موجودة — دوس تصلّح</div>):null;})()}
+{(()=>{const orph=liveCards.filter(c=>!stages.includes(c.stage));return orph.length>0?(<div onClick={()=>setEditingCard(orph[0])} className="card" style={{marginBottom:14,borderColor:"var(--red)",cursor:"pointer"}}>⚠️ عندك {orph.length} كرت في مرحلة مش موجودة — دوس تصلّح</div>):null;})()}
 {stages.map((s,i)=>{const l=liveCards.filter(c=>c.stage===s);const late=l.filter(c=>daysSince(c.updatedAt||c.createdAt)>=LD).length;const q=qtySum(l);const col=STAGE_COLORS[i%8];
 return(<div key={s} className="anim" style={{display:"flex",gap:12,marginBottom:4,animationDelay:(i*100)+"ms"}}>
 <div style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
@@ -601,12 +680,12 @@ return(<div key={s} className="anim" style={{display:"flex",gap:12,marginBottom:
 <div style={{position:"fixed",bottom:86,insetInlineEnd:14,display:"flex",flexDirection:"column",gap:10,zIndex:250}}>
 {can&&<button onClick={()=>{setMicText("");setShowMic(true);}} style={{width:50,height:50,borderRadius:25,border:"none",color:"#fff",fontSize:20,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 8px 20px rgba(0,0,0,.4)",background:"var(--vio)"}}>🎙️</button>}
 {can&&<button onClick={()=>setImportMenu(true)} style={{width:50,height:50,borderRadius:25,border:"none",color:"#fff",fontSize:20,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 8px 20px rgba(0,0,0,.4)",background:"var(--teal)"}}>📄</button>}
-<button onClick={()=>{scanMode.current="quick";setShowScanner(true);}} style={{width:50,height:50,borderRadius:25,border:"none",color:"#fff",fontSize:20,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 8px 20px rgba(0,0,0,.4)",background:"var(--warn)"}}></button>
+<button onClick={()=>{scanMode.current="quick";setShowScanner(true);}} style={{width:50,height:50,borderRadius:25,border:"none",color:"#fff",fontSize:20,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 8px 20px rgba(0,0,0,.4)",background:"var(--warn)"}}>📷</button>
 </div>
 {cardsToShow.length===0&&<p style={{textAlign:"center",padding:"50px 10px",color:theme.textDim}}>{t.noCardsHere}</p>}
 {cardsToShow.map((c,i)=>{const d=daysSince(c.updatedAt||c.createdAt);const l1=d>=1&&d<LD;const l2=d>=LD;const lk=liveCards.filter(x=>x.message&&x.message===c.message&&x.id!==c.id).length;const di=dueInfo(c);const bc=c.urgent?"var(--red)":l2?"var(--red)":l1?"var(--warn)":di?di.col:STAGE_COLORS[(stages.indexOf(c.stage)>=0?stages.indexOf(c.stage):0)%8];
 return(<div key={c.id} className="card" onClick={()=>selectMode?toggleSelect(c.id):setEditingCard(c)} onContextMenu={e=>{e.preventDefault();setActionCard(c);}} style={{userSelect:"none",cursor:"pointer",marginBottom:10,borderInlineStart:"4px solid "+(selected.includes(c.id)?"var(--teal)":bc),boxShadow:selected.includes(c.id)?"0 0 0 2px var(--teal)":"none",animationDelay:(i*70)+"ms"}}>
-<div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:15}}>{selectMode&&(selected.includes(c.id)?"☑️ ":" ")}{c.customer||"—"} {c.pinned&&""}</b><span style={{display:"flex",alignItems:"center",gap:6}}>{((c.photos||[]).length>0)?<span onClick={(e)=>{e.stopPropagation();setPhotoView(c.photos[0]);}} style={{display:"inline-flex",gap:2,alignItems:"center",cursor:"zoom-in"}}><img src={c.photos[0]} style={{width:34,height:34,borderRadius:8,objectFit:"cover"}}/><span style={{fontSize:11,color:"var(--teal)",fontWeight:800}}>📸{c.photos.length}</span></span>:((c.photo||c.img)?<img src={c.photo||c.img} onClick={(e)=>{e.stopPropagation();setPhotoView(c.photo||c.img);}} style={{width:34,height:34,borderRadius:8,objectFit:"cover",cursor:"zoom-in"}}/>:null)}<span style={{fontSize:11,color:theme.textDim}}>{c.time||fmtTime(c.updatedAt,lang)}</span></span></div>
+<div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:15}}>{selectMode&&(selected.includes(c.id)?"☑️ ":" ")}{c.customer||"—"} {c.pinned&&"📌"}</b><span style={{display:"flex",alignItems:"center",gap:6}}>{((c.photos||[]).length>0)?<span onClick={(e)=>{e.stopPropagation();setPhotoView(c.photos[0]);}} style={{display:"inline-flex",gap:2,alignItems:"center",cursor:"zoom-in"}}><img src={c.photos[0]} style={{width:34,height:34,borderRadius:8,objectFit:"cover"}}/><span style={{fontSize:11,color:"var(--teal)",fontWeight:800}}>📸{c.photos.length}</span></span>:((c.photo||c.img)?<img src={c.photo||c.img} onClick={(e)=>{e.stopPropagation();setPhotoView(c.photo||c.img);}} style={{width:34,height:34,borderRadius:8,objectFit:"cover",cursor:"zoom-in"}}/>:null)}<span style={{fontSize:11,color:theme.textDim}}>{c.time||fmtTime(c.updatedAt,lang)}</span></span></div>
 <div style={{display:"flex",flexWrap:"wrap",gap:"4px 12px",fontSize:12.5,color:theme.textDim,marginTop:5}}>
 <span>{t.code}: <b style={{color:theme.text}}>{c.code||"—"}</b></span>
 <span>{t.color}: <b style={{color:theme.text}}>{c.color||"—"}</b></span>
@@ -638,7 +717,7 @@ return(<div key={c.id} className="card" onClick={()=>selectMode?toggleSelect(c.i
 <span style={{flex:1,fontSize:14}}>{S_ICONS[i%8]} {s}</span>
 <button className="chip" onClick={()=>stOrder(s,-1)}>⬆️</button>
 <button className="chip" onClick={()=>stOrder(s,1)}>⬇️</button>
-<button className="chip" onClick={()=>stRename(s)}>️</button>
+<button className="chip" onClick={()=>stRename(s)}>✏️</button>
 <button className="chip" style={{borderColor:"var(--red)",color:"var(--red)"}} onClick={()=>setDelStagePick(s)}>🗑️</button>
 </div>)}
 <button className="btnG" onClick={()=>{const n=prompt(t.addStage);if(n&&n.trim()&&!stages.includes(n.trim()))saveStages(stages.concat([n.trim()]));}}>➕ {t.addStage}</button>
@@ -671,7 +750,7 @@ return(<div key={c.id} className="card" onClick={()=>selectMode?toggleSelect(c.i
 <div className="anim" style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}><button onClick={()=>setScreen("home")} style={hdrBtn}>→</button><div style={{fontSize:19,fontWeight:900,flex:1}}>{t.dailyLog}</div></div>
 {(()=>{const g={};log.forEach(e=>{(g[e.date]=g[e.date]||[]).push(e)});const ds=Object.keys(g).sort((a,b)=>b.localeCompare(a));
 return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noResults}</p>:ds.map((d,i)=>(<div key={d} className="anim" style={{marginBottom:18,animationDelay:(i*80)+"ms"}}><div style={{fontSize:13,fontWeight:800,color:"var(--vio2)",marginBottom:8}}>{d}</div>
-{g[d].map(e=>(<div key={e.id} className="card" style={{marginBottom:6,padding:"10px 12px"}}><div style={{display:"flex",justifyContent:"space-between"}}><b>{e.action}</b><span style={{color:theme.textDim,fontSize:11}}>{fmtTime(e.time||e.timeLocal,lang)}</span></div><div style={{color:theme.textDim,fontSize:12}}> {e.person} {e.cardCode?" · "+e.cardCode:""}</div></div>))}</div>));})()}
+{g[d].map(e=>(<div key={e.id} className="card" style={{marginBottom:6,padding:"10px 12px"}}><div style={{display:"flex",justifyContent:"space-between"}}><b>{e.action}</b><span style={{color:theme.textDim,fontSize:11}}>{fmtTime(e.time||e.timeLocal,lang)}</span></div><div style={{color:theme.textDim,fontSize:12}}>👤 {e.person} {e.cardCode?" · "+e.cardCode:""}</div></div>))}</div>));})()}
 </div>)}
 {screen==="archive"&&(
 <div style={{maxWidth:640,margin:"0 auto",padding:"40px 16px 20px"}}>
@@ -683,8 +762,8 @@ return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noRe
 </div>)}
 <div className="navbar">
 <button className={"navi"+(screen==="home"?" on":"")} onClick={()=>setScreen("home")}><span>🏠</span>{t.home}</button>
-<button className={"navi"+(screen==="stages"||screen==="stage"?" on":"")} onClick={()=>setScreen("stages")}><span></span>{t.stagesLabel}</button>
-{can?<button className="navplus" onClick={()=>setEditingCard({id:uid(),stage:activeStage||stages[0]||"",code:"",customer:"",message:"",category:"",color:"",quantity:"",barcode:"",machine:"",prepare:"",dye:"",time:"",notes:"",phone:"",address:"",urgent:false,pinned:false,due:"",photo:"",archived:false,loadId:"",delivered:false,deliveredQty:0})}>＋</button>:<button className="navi" onClick={()=>{scanMode.current="quick";setShowScanner(true);}}><span></span>مسح</button>}
+<button className={"navi"+(screen==="stages"||screen==="stage"?" on":"")} onClick={()=>setScreen("stages")}><span>🏭</span>{t.stagesLabel}</button>
+{can?<button className="navplus" onClick={()=>setEditingCard({id:uid(),stage:activeStage||stages[0]||"",code:"",customer:"",message:"",category:"",color:"",quantity:"",barcode:"",machine:"",prepare:"",dye:"",time:"",notes:"",phone:"",address:"",urgent:false,pinned:false,due:"",photo:"",archived:false,loadId:"",delivered:false,deliveredQty:0})}>＋</button>:<button className="navi" onClick={()=>{scanMode.current="quick";setShowScanner(true);}}><span>📷</span>مسح</button>}
 <button className="navi" onClick={()=>setShowWarehouse(true)}><span>📦</span>المخزن</button>
 <button className="navi" onClick={()=>setShowMenu(true)}><span>⋯</span>المزيد</button>
 </div>
@@ -693,16 +772,16 @@ return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noRe
 <input ref={importCamRef} type="file" accept="image/*" capture="environment" style={{display:"none"}} onChange={handleImportFile}/>
 <input ref={importGalRef} type="file" accept="image/*" style={{display:"none"}} onChange={handleImportFile}/>
 <input ref={restoreRef} type="file" accept="application/json" style={{display:"none"}} onChange={restoreJSON}/>
-{showMyWork&&(<div className="modal" onClick={()=>setShowMyWork(false)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:420}}><h3 style={{margin:"0 0 12px"}}> شغلي أنا — {ownerName||"العامل"}</h3>{(()=>{const my=liveCards.filter(c=>c.assignedTo===ownerName&&!c.delivered).sort((a,b)=>toMs(a.updatedAt||a.createdAt)-toMs(b.updatedAt||b.createdAt));if(my.length===0)return(<p style={{color:theme.textDim,fontSize:13,textAlign:"center",padding:20}}>🎉 مفيش شغل عليك دلوقتي</p>);return my.map((c,i)=>(<div key={c.id} onClick={()=>{setShowMyWork(false);jumpToCard(c);}} style={{display:"flex",gap:10,alignItems:"center",padding:"10px 12px",marginBottom:8,borderRadius:12,background:theme.panelAlt,cursor:"pointer",borderInlineStart:"3px solid var(--vio)"}}><span style={{fontSize:18,color:theme.textDim}}>{i+1}</span><div style={{flex:1}}><div style={{fontWeight:700,fontSize:13}}>{c.code||"—"} · {c.customer}</div><div style={{fontSize:11,color:theme.textDim,marginTop:2}}>{c.stage} · {c.color||""} · {c.quantity||""}</div></div><span style={{fontSize:20}}>→</span></div>));})()}</div></div>)}
+{showMyWork&&(<div className="modal" onClick={()=>setShowMyWork(false)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:420}}><h3 style={{margin:"0 0 12px"}}>👷 شغلي أنا — {ownerName||"العامل"}</h3>{(()=>{const my=liveCards.filter(c=>c.assignedTo===ownerName&&!c.delivered).sort((a,b)=>toMs(a.updatedAt||a.createdAt)-toMs(b.updatedAt||b.createdAt));if(my.length===0)return(<p style={{color:theme.textDim,fontSize:13,textAlign:"center",padding:20}}>🎉 مفيش شغل عليك دلوقتي</p>);return my.map((c,i)=>(<div key={c.id} onClick={()=>{setShowMyWork(false);jumpToCard(c);}} style={{display:"flex",gap:10,alignItems:"center",padding:"10px 12px",marginBottom:8,borderRadius:12,background:theme.panelAlt,cursor:"pointer",borderInlineStart:"3px solid var(--vio)"}}><span style={{fontSize:18,color:theme.textDim}}>{i+1}</span><div style={{flex:1}}><div style={{fontWeight:700,fontSize:13}}>{c.code||"—"} · {c.customer}</div><div style={{fontSize:11,color:theme.textDim,marginTop:2}}>{c.stage} · {c.color||""} · {c.quantity||""}</div></div><span style={{fontSize:20}}>→</span></div>));})()}</div></div>)}
 {printTarget&&(<div className="modal" onClick={()=>setPrintTarget(null)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:400}}><h3 style={{margin:"0 0 10px"}}>🖨️ اختار شكل الورقة</h3><div style={{display:"flex",gap:6,marginBottom:8,flexWrap:"wrap"}}>{["1","2","3"].map(d=><button key={d} onClick={()=>{setPrintDesign(d);localStorage.setItem("printDesign",d);}} className={"chip"+(printDesign===d?" on":"")}>{d==="1"?"📋 كلاسيكي":d==="2"?"🎨 مودرن":"⚡ مختصر"}</button>)}</div>
-<div style={{display:"flex",gap:6,marginBottom:12}}>{["A5","A4"].map(s=><button key={s} onClick={()=>{setPrintSize(s);localStorage.setItem("printSize",s);}} className={"chip"+(printSize===s?" on":"")}>📄 {s}</button>)}</div><p style={{fontSize:11,color:theme.textDim,marginBottom:10}}>📋 جدول رسمي ·  رأس بنفسجي وكروت · ⚡ اسم العميل كبير بس</p><button className="btnG" onClick={()=>{setTimeout(()=>{try{if(window.JsBarcode&&(printTarget.barcode||printTarget.code))JsBarcode("#printBC",printTarget.barcode||printTarget.code,{displayValue:false,margin:0});}catch(e){}window.print();},200);}}>🖨️ اطبع</button></div></div>)}
+<div style={{display:"flex",gap:6,marginBottom:12}}>{["A5","A4"].map(s=><button key={s} onClick={()=>{setPrintSize(s);localStorage.setItem("printSize",s);}} className={"chip"+(printSize===s?" on":"")}>📄 {s}</button>)}</div><p style={{fontSize:11,color:theme.textDim,marginBottom:10}}>📋 جدول رسمي · 🎨 رأس بنفسجي وكروت · ⚡ اسم العميل كبير بس</p><button className="btnG" onClick={()=>{setTimeout(()=>{try{if(window.JsBarcode&&(printTarget.barcode||printTarget.code))JsBarcode("#printBC",printTarget.barcode||printTarget.code,{displayValue:false,margin:0});}catch(e){}window.print();},200);}}>🖨️ اطبع</button></div></div>)}
 <div id="printSheet" style={{display:"none",width:printSize==="A4"?"210mm":"148mm"}}>
 {printTarget&&(()=>{const c=printTarget;const rows=[["العميل",c.customer],["الكود",c.code],["اللون",c.color],["الخامة",c.category],["الوزن",c.quantity],["الماكينة",c.machine],["التاريخ",c.time]];
-if(printDesign==="2")return(<div style={{padding:"8mm",fontFamily:"Arial",color:"#1A1E30",direction:"rtl"}}><div style={{background:"#7C5CFF",color:"#fff",borderRadius:"4mm",padding:"4mm",display:"flex",justifyContent:"space-between",alignItems:"center"}}><div style={{fontWeight:900,fontSize:"16px"}}>{factory.fname}</div><div style={{fontSize:"10px"}}> كرت شغل صباغة</div></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"2mm",marginTop:"4mm"}}>{rows.map(r=><div key={r[0]} style={{border:"0.4mm solid #D8DCEB",borderRadius:"2mm",padding:"2mm"}}><div style={{fontSize:"9px",color:"#66708F"}}>{r[0]}</div><div style={{fontSize:"12px",fontWeight:800}}>{r[1]||"—"}</div></div>)}</div><div style={{marginTop:"4mm",textAlign:"center"}}><svg id="printBC"/></div></div>);
+if(printDesign==="2")return(<div style={{padding:"8mm",fontFamily:"Arial",color:"#1A1E30",direction:"rtl"}}><div style={{background:"#7C5CFF",color:"#fff",borderRadius:"4mm",padding:"4mm",display:"flex",justifyContent:"space-between",alignItems:"center"}}><div style={{fontWeight:900,fontSize:"16px"}}>{factory.fname}</div><div style={{fontSize:"10px"}}>🏭 كرت شغل صباغة</div></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"2mm",marginTop:"4mm"}}>{rows.map(r=><div key={r[0]} style={{border:"0.4mm solid #D8DCEB",borderRadius:"2mm",padding:"2mm"}}><div style={{fontSize:"9px",color:"#66708F"}}>{r[0]}</div><div style={{fontSize:"12px",fontWeight:800}}>{r[1]||"—"}</div></div>)}</div><div style={{marginTop:"4mm",textAlign:"center"}}><svg id="printBC"/></div></div>);
 if(printDesign==="3")return(<div style={{padding:"8mm",fontFamily:"Arial",color:"#000",direction:"rtl",textAlign:"center"}}><div style={{fontWeight:900,fontSize:"18px"}}>{c.customer||"—"}</div><div style={{fontSize:"13px",marginTop:"2mm"}}>{c.color} · {c.quantity}</div><div style={{fontSize:"11px",marginTop:"1mm"}}>{factory.fname}</div><div style={{marginTop:"4mm"}}><svg id="printBC"/></div></div>);
 return(<div style={{padding:"8mm",fontFamily:"Arial",color:"#000",direction:"rtl"}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:"0.6mm solid #000",paddingBottom:"2mm"}}>{factory.logo&&<img src={factory.logo} style={{width:"14mm",height:"14mm",objectFit:"contain"}}/>}<div style={{fontWeight:900,fontSize:"15px"}}>{factory.fname}</div><div style={{fontSize:"10px"}}>كرت صباغة</div></div><table style={{width:"100%",borderCollapse:"collapse",marginTop:"3mm",fontSize:"11px"}}><tbody>{rows.map(r=><tr key={r[0]}><td style={{border:"0.3mm solid #000",padding:"1.5mm",fontWeight:700,width:"30%"}}>{r[0]}</td><td style={{border:"0.3mm solid #000",padding:"1.5mm"}}>{r[1]||"—"}</td></tr>)}</tbody></table><div style={{marginTop:"3mm",textAlign:"center"}}><svg id="printBC"/></div></div>);})()}
 </div>
-{photoView&&(<div className="modal" onClick={()=>setPhotoView(null)} style={{background:"rgba(0,0,0,0.92)",padding:0,zIndex:9999}}><div onClick={e=>e.stopPropagation()} style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}><img src={photoView} style={{maxWidth:"94vw",maxHeight:"92vh",borderRadius:12,boxShadow:"0 20px 60px rgba(0,0,0,0.5)"}}/><button onClick={()=>setPhotoView(null)} style={{position:"fixed",top:20,right:20,background:"var(--red)",color:"#fff",border:"none",borderRadius:"50%",width:48,height:48,fontSize:22,cursor:"pointer",boxShadow:"0 4px 12px rgba(0,0,0,0.4)",zIndex:10000}}></button></div></div>)}
+{photoView&&(<div className="modal" onClick={()=>setPhotoView(null)} style={{background:"rgba(0,0,0,0.92)",padding:0,zIndex:9999}}><div onClick={e=>e.stopPropagation()} style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}><img src={photoView} style={{maxWidth:"94vw",maxHeight:"92vh",borderRadius:12,boxShadow:"0 20px 60px rgba(0,0,0,0.5)"}}/><button onClick={()=>setPhotoView(null)} style={{position:"fixed",top:20,right:20,background:"var(--red)",color:"#fff",border:"none",borderRadius:"50%",width:48,height:48,fontSize:22,cursor:"pointer",boxShadow:"0 4px 12px rgba(0,0,0,0.4)",zIndex:10000}}>✕</button></div></div>)}
 {showFlags&&(
 <div className="modal" onClick={()=>setShowFlags(false)}>
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:380}}>
@@ -722,21 +801,21 @@ return(<div style={{padding:"8mm",fontFamily:"Arial",color:"#000",direction:"rtl
 <MenuBtn onClick={()=>{setScreen("stages");setShowMenu(false);}} active={screen==="stages"}>🏭 {t.stagesLabel}</MenuBtn>
 <MenuBtn onClick={()=>{setShowWarehouse(true);setShowMenu(false);}}>📦 المخزن الرئيسي</MenuBtn>
 <div style={{height:1,background:theme.border,margin:"8px 0"}}/>
-<MenuBtn onClick={()=>{setReportText(buildReport());setShowMenu(false);}}> {t.report}</MenuBtn>
+<MenuBtn onClick={()=>{setReportText(buildReport());setShowMenu(false);}}>📊 {t.report}</MenuBtn>
 <MenuBtn onClick={()=>{setStatementFor(knownCustomers[0]?knownCustomers[0].name:"");setShowMenu(false);}}>👥 {t.statement}</MenuBtn>
 <MenuBtn onClick={()=>{setShowTopCust(true);setShowMenu(false);}}>🏅 أعلى العملاء</MenuBtn>
 <MenuBtn onClick={()=>{setShowWorkers(true);setShowMenu(false);}}>🏆 {t.workers}</MenuBtn>
 {can&&<MenuBtn onClick={()=>{setAnnounceDraft((announce&&announce.text)||"");setShowAnnounce(true);setShowMenu(false);}}>📢 إعلان للعمال</MenuBtn>}
 {(localStorage.getItem("role")==="worker"||localStorage.getItem("role")==="assistant")&&<MenuBtn onClick={()=>{setShowMyWork(true);setShowMenu(false);}}>👷 شغلي أنا</MenuBtn>}
 <MenuBtn onClick={()=>{exportCSV();setShowMenu(false);}}>💾 {t.backup}</MenuBtn>
-<MenuBtn onClick={()=>{setScreen("archive");setShowMenu(false);}}>️ {t.archive}</MenuBtn>
+<MenuBtn onClick={()=>{setScreen("archive");setShowMenu(false);}}>🗄️ {t.archive}</MenuBtn>
 <MenuBtn onClick={()=>{setScreen("log");setShowMenu(false);}}>📋 {t.dailyLog}</MenuBtn>
 <MenuBtn onClick={()=>{setShowAsk(true);setShowMenu(false);}}>🤖 اسأل مصنعك</MenuBtn>
-<MenuBtn onClick={()=>{setShowBlack(true);setShowMenu(false);}}> الصندوق الأسود</MenuBtn>
+<MenuBtn onClick={()=>{setShowBlack(true);setShowMenu(false);}}>⚫ الصندوق الأسود</MenuBtn>
 <MenuBtn onClick={()=>{setShowBook(true);setShowMenu(false);}}>📚 بوكيمون الألوان</MenuBtn>
 <MenuBtn onClick={()=>{setShowFlags(true);setShowMenu(false);}}>🚩 أعلام الكروت</MenuBtn>
 <MenuBtn onClick={()=>{setNameDraft(ownerName);openSettingsGuard();setShowMenu(false);}}>⚙️ {t.settings}</MenuBtn>
-<MenuBtn onClick={()=>{window.open("https://wa.me/"+SUPPORT_WA+"?text="+encodeURIComponent("🆘 دعم — "+(factory.fname||"")+" | المستخدم: "+(ownerName||"")+" | الشركة: "+(localStorage.getItem("companyID")||"")),"_blank");setShowMenu(false);}}> دعم واتساب</MenuBtn>
+<MenuBtn onClick={()=>{window.open("https://wa.me/"+SUPPORT_WA+"?text="+encodeURIComponent("🆘 دعم — "+(factory.fname||"")+" | المستخدم: "+(ownerName||"")+" | الشركة: "+(localStorage.getItem("companyID")||"")),"_blank");setShowMenu(false);}}>🆘 دعم واتساب</MenuBtn>
 </div></div>)}
 {showLateList&&(
 <div className="modal" onClick={()=>setShowLateList(false)}>
@@ -775,7 +854,7 @@ return(<div key={c.id} className="card anim" onClick={()=>{setShowDelivered(fals
 <div style={{width:64,height:64,borderRadius:20,background:"rgba(255,255,255,.18)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:30,margin:"0 auto 10px",animation:"floaty 3s infinite"}}>📦</div>
 <div style={{fontSize:18,fontWeight:900}}>المخزن الرئيسي</div>
 <div style={{fontSize:12,color:"#E4DCFF",margin:"4px 0 10px"}}>استلام وفحص وتسجيل الحمولات</div>
-{can&&<button onClick={()=>setAddLoad(!addLoad)} className="btnG" style={{background:"rgba(255,255,255,.2)",boxShadow:"none"}}> إضافة حمولة</button>}
+{can&&<button onClick={()=>setAddLoad(!addLoad)} className="btnG" style={{background:"rgba(255,255,255,.2)",boxShadow:"none"}}>➕ إضافة حمولة</button>}
 </div>
 {addLoad&&(
 <div className="card anim" style={{marginBottom:12,borderColor:"var(--vio)"}}>
@@ -816,7 +895,7 @@ return(<div key={ld.id} className="card" onClick={()=>setLoadDetail(ld.id)} styl
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:400}}>
 {(()=>{const ld=loads.find(l=>l.id===loadDetail);if(!ld)return null;const s=loadStats(ld);const linked=cards.filter(c=>c.loadId===ld.id);
 return(<div><h3 style={{margin:"0 0 8px"}}>🚛 {ld.customer} — {ld.total} {factory.unit}</h3>
-<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{badge("var(--blue)","📦 "+s.rem)}{badge("var(--warn)"," "+s.inF)}{badge("var(--teal)","✅ "+s.del)}</div>
+<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{badge("var(--blue)","📦 "+s.rem)}{badge("var(--warn)","🏭 "+s.inF)}{badge("var(--teal)","✅ "+s.del)}</div>
 {linked.length===0&&<p style={{color:theme.textDim,fontSize:13}}>لا توجد كروت مرتبطة</p>}
 {linked.map(c=>(<div key={c.id} className="card" onClick={()=>{setLoadDetail(null);jumpToCard(c);}} style={{cursor:"pointer",padding:"10px 12px",marginBottom:6}}>
 <div style={{display:"flex",justifyContent:"space-between",fontSize:13}}><b>{c.code||"—"}</b><span>{c.quantity} {factory.unit}</span></div>
@@ -832,7 +911,7 @@ return(<div><h3 style={{margin:"0 0 8px"}}>🚛 {ld.customer} — {ld.total} {fa
 <textarea id="annBox" rows={3} className="inp" defaultValue={(announce&&announce.text)||""} placeholder="اكتب الإعلان... هيظهر فوق عند كل الأجهزة فوراً"/>
 <div style={{display:"flex",gap:8}}>
 <button onClick={saveAnnounce} className="btnG">📢 نشر</button>
-<button onClick={()=>{if(!can||!db)return;db.collection("config").doc("announce").set({text:"",by:"",time:Date.now()});setShowAnnounce(false);showToast("️");}} className="btnO">🗑️ مسح الإعلان</button>
+<button onClick={()=>{if(!can||!db)return;db.collection("config").doc("announce").set({text:"",by:"",time:Date.now()});setShowAnnounce(false);showToast("🗑️");}} className="btnO">🗑️ مسح الإعلان</button>
 </div></div></div>)}
 {linkedFrom&&(()=>{const lk=liveCards.filter(x=>x.message&&x.message===linkedFrom.message&&x.id!==linkedFrom.id);return(
 <div className="modal" onClick={()=>setLinkedFrom(null)}>
@@ -852,7 +931,7 @@ return(<div key={c.id} className="card anim" onClick={()=>{setLinkedFrom(null);j
 {defectFor&&(
 <div className="modal" onClick={()=>setDefectFor(null)}>
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:380}}>
-<h3 style={{margin:"0 0 10px"}}>️ عيب / مرتجع — {defectFor.customer}</h3>
+<h3 style={{margin:"0 0 10px"}}>⚠️ عيب / مرتجع — {defectFor.customer}</h3>
 <div className="lbl">سبب العيب</div>
 <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{["بقعة","تثبيت ضعيف","كسرة","لون مختلف","شد خيط","عيوب نسيج","أخرى"].map(r=><button key={r} onClick={()=>setDefectDraft({...defectDraft,reason:r})} className={"chip"+(defectDraft.reason===r?" on":"")}>{r}</button>)}</div>
 <div style={grid2}>
@@ -895,7 +974,7 @@ return top?(<div className="card grad" style={{padding:12,marginBottom:12,textAl
 </div></div>)}
 {importBusy!==null&&(
 <div style={{position:"fixed",inset:0,background:"rgba(5,7,14,.85)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:12}}>
-<div className="spin" style={{fontSize:30}}></div>
+<div className="spin" style={{fontSize:30}}>⏳</div>
 <div style={{color:"#fff",fontSize:14}}>{t.reading} {importBusy}%</div>
 </div>)}
 {importDraft&&(
@@ -927,7 +1006,7 @@ return top?(<div className="card grad" style={{padding:12,marginBottom:12,textAl
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:420}}>
 <h3 style={{margin:"0 0 12px"}}>📊 {t.report}</h3>
 <pre style={{whiteSpace:"pre-wrap",background:theme.panelAlt,borderRadius:14,padding:12,fontSize:13,maxHeight:"50vh",overflowY:"auto",color:theme.text,fontFamily:"inherit"}}>{reportText}</pre>
-<div style={{display:"flex",gap:8,marginTop:12}}><button onClick={()=>{try{navigator.clipboard.writeText(reportText);showToast("✅");}catch(e){}}} className="btnO">{t.copy}</button><a href={waLink(reportText)} target="_blank" rel="noreferrer" className="btnG" style={{textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center"}}> واتساب</a></div>
+<div style={{display:"flex",gap:8,marginTop:12}}><button onClick={()=>{try{navigator.clipboard.writeText(reportText);showToast("✅");}catch(e){}}} className="btnO">{t.copy}</button><a href={waLink(reportText)} target="_blank" rel="noreferrer" className="btnG" style={{textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>💬 واتساب</a></div>
 <button onClick={()=>exportSheet(liveCards,"تقرير-اليوم")} className="btnO" style={{marginTop:8}}>💾 تصدير شيت Excel</button>
 </div></div>)}
 {statementFor!==null&&(
@@ -970,14 +1049,14 @@ return(<div key={c.id} className="card" onClick={()=>{setStatementFor(null);jump
 {showTopCust&&(
 <div className="modal" onClick={()=>setShowTopCust(false)}>
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:360}}>
-<h3 style={{margin:"0 0 12px"}}> أعلى العملاء هذا الشهر</h3>
+<h3 style={{margin:"0 0 12px"}}>🏅 أعلى العملاء هذا الشهر</h3>
 {(()=>{const now=new Date();const mk=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0");
 const m={};cards.forEach(c=>{if(c.customer&&localDate(new Date(toMs(c.createdAt||c.updatedAt))).slice(0,7)===mk){m[c.customer]=(m[c.customer]||0)+(parseFloat(c.quantity)||0);}});
 const arr=Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,10);
 if(!arr.length)return <p style={{color:theme.textDim,fontSize:13,textAlign:"center"}}>{t.noResults}</p>;
 const mx=arr[0][1]||1;
 return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10,cursor:"pointer",animationDelay:(i*70)+"ms"}} onClick={()=>{setShowTopCust(false);setStatementFor(n);}}>
-<div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:4}}><span>{i===0?"🥇":i===1?"":i===2?"🥉":(i+1)+"."} {n}</span><b style={{color:"var(--vio2)"}}>{q} {factory.unit}</b></div>
+<div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:4}}><span>{i===0?"🥇":i===1?"🥈":i===2?"🥉":(i+1)+"."} {n}</span><b style={{color:"var(--vio2)"}}>{q} {factory.unit}</b></div>
 <div className="bar"><i style={{width:(q/mx)*100+"%",background:STAGE_COLORS[i%8]}}/></div>
 </div>));})()}
 </div></div>)}
@@ -986,18 +1065,18 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:340}}>
 <h3 style={{margin:"0 0 12px"}}>🏆 {t.workers}</h3>
 {workerStats().length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center"}}>{t.noResults}</p>}
-{workerStats().map(([n,c],i)=>(<div key={n} className="card" style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 12px",marginBottom:8,animationDelay:(i*70)+"ms"}}><span>{i===0?"":i===1?"🥈":i===2?"🥉":""} {n}</span><span style={{display:"flex",gap:8,alignItems:"center"}}><LastSeen name={n}/><b style={{color:"var(--vio2)"}}>{c}</b></span></div>))}
+{workerStats().map(([n,c],i)=>(<div key={n} className="card" style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 12px",marginBottom:8,animationDelay:(i*70)+"ms"}}><span>{i===0?"🥇":i===1?"🥈":i===2?"🥉":""} {n}</span><span style={{display:"flex",gap:8,alignItems:"center"}}><LastSeen name={n}/><b style={{color:"var(--vio2)"}}>{c}</b></span></div>))}
 </div></div>)}
 {appQr&&(
 <div className="modal" onClick={()=>setAppQr(false)}>
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:340,textAlign:"center"}}>
-<h3> {t.appQr}</h3>
+<h3>🔳 {t.appQr}</h3>
 <div style={{display:"flex",justifyContent:"center",margin:"10px 0"}}><QrView value={APP_URL} size={220}/></div>
 <p style={{fontSize:12,color:theme.textDim}}>اطبعه وعلّقه — أي عامل يصوره يفتح التطبيق</p>
 </div></div>)}
 {showScanner&&(
 <div style={{position:"fixed",inset:0,background:"#000",zIndex:400,display:"flex",flexDirection:"column"}}>
-<div style={{padding:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}><b style={{color:"#fff"}}>📷 {t.scanAny}</b><button onClick={()=>setShowScanner(false)} style={{background:"none",border:"none",color:"#fff",fontSize:22}}></button></div>
+<div style={{padding:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}><b style={{color:"#fff"}}>📷 {t.scanAny}</b><button onClick={()=>setShowScanner(false)} style={{background:"none",border:"none",color:"#fff",fontSize:22}}>✕</button></div>
 <div id="bc-reader" style={{width:"100%",flex:1,overflow:"hidden"}}></div>
 <div style={{padding:14,textAlign:"center"}}><button onClick={()=>scanFileRef.current&&scanFileRef.current.click()} className="btnG" style={{width:"auto",padding:"12px 22px"}}>📁 صورة من الجهاز</button></div>
 <input ref={scanFileRef} type="file" accept="image/*" style={{display:"none"}} onChange={scanFromFile}/>
@@ -1005,11 +1084,15 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 {showAsk&&(<div className="modal" onClick={()=>setShowAsk(false)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:420}}><h3 style={{margin:"0 0 12px"}}>🤖 اسأل مصنعك</h3><textarea rows={2} className="inp" placeholder="مثال: إيه أهدأ مرحلة دلوقتي؟ مين أكبر عميل متأخر؟" value={askQ} onChange={e=>setAskQ(e.target.value)}/><button className="btnG" style={{marginTop:8}} onClick={askGemini}>{askBusy?"⏳ بيفكر...":"🤖 اسأل"}</button>{askA&&<div style={{marginTop:10,padding:"10px 12px",borderRadius:12,background:theme.panelAlt,fontSize:13,whiteSpace:"pre-wrap",lineHeight:1.8}}>{askA}</div>}</div></div>)}
 {showBook&&(<div className="modal" onClick={()=>setShowBook(false)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:380}}><h3 style={{margin:"0 0 12px"}}>📚 بوكيمون الألوان</h3>{(factory.colorBook||[]).length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center"}}>لسه مفيش ألوان متسجلة — المالك يضيفها</p>}{(factory.colorBook||[]).map((b,i)=>(<div key={i} style={{padding:"8px 10px",borderRadius:10,background:theme.panelAlt,marginBottom:6,fontSize:13}}><div style={{display:"flex",justifyContent:"space-between"}}><b>🎨 {b.n}</b>{can&&<button onClick={()=>{if(confirm("حذف "+b.n+"؟"))saveFactory({colorBook:(factory.colorBook||[]).filter((x,j)=>j!==i)});}} className="chip">✕</button>}</div>{b.note&&<div style={{fontSize:11,color:theme.textDim,marginTop:2}}>{b.note}</div>}</div>))}{can&&<button className="chip on" onClick={()=>{const n=prompt("اسم اللون:");if(!n||!n.trim())return;const note=prompt("وصفة/ملاحظات اللون (اختياري):","")||"";saveFactory({colorBook:[...(factory.colorBook||[]),{n:n.trim(),note:note.trim()}]});}}>➕ لون جديد</button>}</div></div>)}
 {ownerName&&!showAsk&&(<button onClick={()=>setShowAsk(true)} aria-label="اسأل مصنعك" style={{position:"fixed",bottom:96,right:14,zIndex:400,width:56,height:56,borderRadius:"50%",border:"none",background:"linear-gradient(135deg,var(--vio),var(--blue))",color:"#fff",fontSize:26,cursor:"pointer",boxShadow:"0 8px 24px rgba(124,92,255,.55)",display:"flex",alignItems:"center",justifyContent:"center",animation:"floaty 2.5s infinite"}}>🤖</button>)}
-{showBlack&&(<div className="modal" onClick={()=>setShowBlack(false)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:420}}><h3 style={{margin:"0 0 10px"}}> الصندوق الأسود</h3><p style={{fontSize:11,color:theme.textDim,marginBottom:8}}>🎬 إعادة تشغيل اليوم حركة بحركة — كل نقله مين عملها وإمتى</p><div style={{display:"flex",gap:6,alignItems:"center",marginBottom:10}}><button className="btnG" style={{flex:1}} onClick={()=>{if(blackPlay){setBlackPlay(0);}else{setBlackIdx(0);setBlackPlay(1);}}}>{blackPlay?"⏸️ إيقاف":"▶️ تشغيل اليوم"}</button><span style={{fontSize:11,color:theme.textDim}}>{Math.min(blackIdx,blackList().length)}/{blackList().length}</span></div><div style={{maxHeight:320,overflow:"auto"}}>{blackList().slice(0,blackIdx).map((h,i)=>(<div key={i} className="anim" style={{padding:"6px 10px",marginBottom:4,borderInlineStart:"2px solid var(--vio)",background:theme.panelAlt,borderRadius:8,fontSize:12,color:theme.textDim}}><b style={{color:theme.text}}>{h.cust||"—"}</b> · 📍 {h.stage} · {h.by} · {fmtTime(h.at,lang)}</div>))}{blackIdx===0&&<p style={{textAlign:"center",color:theme.textDim,fontSize:12,padding:20}}>دوس ▶️ وشوف اليوم بيتفك قدامك</p>}</div></div></div>)}
+{showBlack&&(<div className="modal" onClick={()=>setShowBlack(false)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:420}}><h3 style={{margin:"0 0 10px"}}>⚫ الصندوق الأسود</h3><p style={{fontSize:11,color:theme.textDim,marginBottom:8}}>🎬 إعادة تشغيل اليوم حركة بحركة — كل نقله مين عملها وإمتى</p><div style={{display:"flex",gap:6,alignItems:"center",marginBottom:10}}><button className="btnG" style={{flex:1}} onClick={()=>{if(blackPlay){setBlackPlay(0);}else{setBlackIdx(0);setBlackPlay(1);}}}>{blackPlay?"⏸️ إيقاف":"▶️ تشغيل اليوم"}</button><span style={{fontSize:11,color:theme.textDim}}>{Math.min(blackIdx,blackList().length)}/{blackList().length}</span></div><div style={{maxHeight:320,overflow:"auto"}}>{blackList().slice(0,blackIdx).map((h,i)=>(<div key={i} className="anim" style={{padding:"6px 10px",marginBottom:4,borderInlineStart:"2px solid var(--vio)",background:theme.panelAlt,borderRadius:8,fontSize:12,color:theme.textDim}}><b style={{color:theme.text}}>{h.cust||"—"}</b> · 📍 {h.stage} · {h.by} · {fmtTime(h.at,lang)}</div>))}{blackIdx===0&&<p style={{textAlign:"center",color:theme.textDim,fontSize:12,padding:20}}>دوس ▶️ وشوف اليوم بيتفك قدامك</p>}</div></div></div>)}
+{photoView&&(
+<div className="modal" onClick={()=>setPhotoView(null)}>
+<div onClick={e=>e.stopPropagation()} style={{maxWidth:520,width:"100%",textAlign:"center"}}><img src={photoView.photo} style={{width:"100%",borderRadius:16}}/><p style={{color:"#fff",fontSize:13,marginTop:10}}>{photoView.customer} · {photoView.code}</p></div>
+</div>)}
 {bcCard&&(
 <div className="modal" onClick={()=>setBcCard(null)}>
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:340,textAlign:"center"}}>
-<h3> {t.showBarcode}</h3>
+<h3>🔳 {t.showBarcode}</h3>
 {bcCard.barcode?<div style={{background:"#fff",borderRadius:12,padding:10,margin:"10px 0"}}><BarcodeView value={bcCard.barcode} h={80}/></div>:<p style={{color:theme.textDim}}>—</p>}
 <p style={{fontSize:13,color:theme.textDim}}>{bcCard.customer} · {bcCard.code}</p>
 </div></div>)}
@@ -1048,7 +1131,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div><div className="lbl">{t.phone}</div><input className="inp" value={editingCard.phone} onChange={e=>setEditingCard({...editingCard,phone:e.target.value})}/></div>
 <div><div className="lbl">{t.address}</div><input className="inp" value={editingCard.address||""} onChange={e=>setEditingCard({...editingCard,address:e.target.value})}/></div></div>
 {can&&(<>
-<div className="lbl"> الحمولة</div><select className="inp" value={editingCard.loadId||""} onChange={e=>setEditingCard({...editingCard,loadId:e.target.value})}><option value="">بدون حمولة</option>{loads.filter(l=>!editingCard.customer||l.customer===editingCard.customer).map(l=>{const s=loadStats(l);return <option key={l.id} value={l.id}>{l.customer} — متبقي {s.rem}</option>;})}</select>
+<div className="lbl">🚛 الحمولة</div><select className="inp" value={editingCard.loadId||""} onChange={e=>setEditingCard({...editingCard,loadId:e.target.value})}><option value="">بدون حمولة</option>{loads.filter(l=>!editingCard.customer||l.customer===editingCard.customer).map(l=>{const s=loadStats(l);return <option key={l.id} value={l.id}>{l.customer} — متبقي {s.rem}</option>;})}</select>
 <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:10}}>
 <input className="inp" style={{marginBottom:0,flex:1}} type="number" placeholder="كمية مسلّمة (جزئي)" value={editingCard.deliveredQty||""} onChange={e=>setEditingCard({...editingCard,deliveredQty:e.target.value})}/>
 <button onClick={()=>setEditingCard({...editingCard,delivered:!editingCard.delivered,deliveredQty:!editingCard.delivered?(editingCard.quantity||""):""})} className={"chip"+(editingCard.delivered?" on":"")}>✅ تسليم كلي</button>
@@ -1056,8 +1139,8 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 </div>
 </>)}
 {editingCard.phone&&(<div style={{display:"flex",gap:8,marginBottom:10}}><a href={"tel:"+editingCard.phone} className="btnO" style={{textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>📞</a><a href={"https://wa.me/"+editingCard.phone.replace(/\D/g,"")} target="_blank" rel="noreferrer" className="btnO" style={{textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>💬</a></div>)}
-<div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><div className="lbl">{t.notes}</div><button onClick={noteMic} className={"chip"+(micOn?" on":"")}>️</button></div><textarea rows={2} className="inp" value={editingCard.notes} onChange={e=>setEditingCard({...editingCard,notes:e.target.value})}/>
-<div className="lbl"> صور الأمر</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{(editingCard.photos||[]).map((p,i)=>(<span key={i} style={{position:"relative",display:"inline-block",cursor:"zoom-in"}} onClick={()=>setPhotoView(p)}><img src={p} style={{width:56,height:56,objectFit:"cover",borderRadius:10,border:"1px solid "+theme.border}}/><button onClick={()=>setEditingCard({...editingCard,photos:(editingCard.photos||[]).filter((x,j)=>j!==i)})} style={{position:"absolute",top:-6,left:-6,background:"var(--red)",color:"#fff",border:"none",borderRadius:"50%",width:18,height:18,fontSize:10,cursor:"pointer"}}>✕</button></span>))}<button className="chip on" onClick={()=>{var inp=document.createElement("input");inp.type="file";inp.accept="image/*";inp.onchange=e=>{var f=e.target.files[0];if(f)compressImg(f,800,function(d){setEditingCard(ec=>({...ec,photos:[...(ec.photos||[]),d]}));});};inp.click();}}>➕ صورة</button></div>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><div className="lbl">{t.notes}</div><button onClick={noteMic} className={"chip"+(micOn?" on":"")}>🎙️</button></div><textarea rows={2} className="inp" value={editingCard.notes} onChange={e=>setEditingCard({...editingCard,notes:e.target.value})}/>
+<div className="lbl">📸 صور الأمر</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{(editingCard.photos||[]).map((p,i)=>(<span key={i} style={{position:"relative",display:"inline-block",cursor:"zoom-in"}} onClick={()=>setPhotoView(p)}><img src={p} style={{width:56,height:56,objectFit:"cover",borderRadius:10,border:"1px solid "+theme.border}}/><button onClick={()=>setEditingCard({...editingCard,photos:(editingCard.photos||[]).filter((x,j)=>j!==i)})} style={{position:"absolute",top:-6,left:-6,background:"var(--red)",color:"#fff",border:"none",borderRadius:"50%",width:18,height:18,fontSize:10,cursor:"pointer"}}>✕</button></span>))}<button className="chip on" onClick={()=>{var inp=document.createElement("input");inp.type="file";inp.accept="image/*";inp.onchange=e=>{var f=e.target.files[0];if(f)compressImg(f,800,function(d){setEditingCard(ec=>({...ec,photos:[...(ec.photos||[]),d]}));});};inp.click();}}>➕ صورة</button></div>
 {cards.some(cc=>cc.id===editingCard.id)&&(<div style={{display:"flex",gap:8,alignItems:"center",marginBottom:12,flexWrap:"wrap"}}>{editingCard.timerStart?(<><span style={{fontSize:12,color:"#2DD4A8",fontWeight:700}}>⏱️ شغال {fmtDur(Date.now()-editingCard.timerStart)}</span><button className="btnG" onClick={()=>{const add=Math.max(1,Math.round((Date.now()-editingCard.timerStart)/60000));db.collection("cards").doc(editingCard.id).update({timerStart:0,workMins:firebase.firestore.FieldValue.increment(add)});setEditingCard({...editingCard,timerStart:0,workMins:(editingCard.workMins||0)+add});}}>⏹️ إيقاف</button></>):(<button className="btnO" onClick={()=>{db.collection("cards").doc(editingCard.id).update({timerStart:Date.now()});setEditingCard({...editingCard,timerStart:Date.now()});}}>⏱️ ابدأ عدّاد الشغل</button>)}{(editingCard.workMins||0)>0&&<span style={{fontSize:11,color:theme.textDim}}>⏳ الإجمالي: {fmtDur(editingCard.workMins*60000)}</span>}</div>)}
 <label style={{display:"flex",alignItems:"center",gap:8,marginBottom:14,fontSize:14}}><input type="checkbox" checked={!!editingCard.urgent} onChange={e=>setEditingCard({...editingCard,urgent:e.target.checked})}/> ⚠️ {t.urgent}</label>
 <div style={{marginBottom:12}}><div className="lbl">👷 مسند لـ</div><select className="inp" value={editingCard.assignedTo||""} onChange={e=>setEditingCard({...editingCard,assignedTo:e.target.value})}><option value="">— غير مسند —</option>{[ownerName].concat(allUsersLive||[]).filter((v,i,a)=>v&&a.indexOf(v)===i).map(w=><option key={w} value={w}>{w===ownerName?"👑 "+w:"👷 "+w}</option>)}</select></div>
@@ -1076,7 +1159,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 {[
 ...(can?[{icon:"✏️",label:t.edit,fn:()=>{setEditingCard(actionCard);setActionCard(null);}}]:[]),
 ...(can&&nextStageOf(actionCard.stage)?[{icon:"⏭️",label:t.nextStage,fn:()=>moveCardTo(actionCard,nextStageOf(actionCard.stage))}]:[]),
-{icon:"",label:t.statement,fn:()=>{setStatementFor(actionCard.customer);setActionCard(null);}},
+{icon:"👤",label:t.statement,fn:()=>{setStatementFor(actionCard.customer);setActionCard(null);}},
 ...(can?[{icon:actionCard.delivered?"↩️":"✅",label:actionCard.delivered?"إلغاء التسليم":"تم التسليم",fn:()=>toggleDelivered(actionCard)},
 {icon:"⚖️",label:"تسليم جزئي",fn:()=>{const q=prompt("الكمية المسلّمة من الكرت:",actionCard.quantity||"");if(q!==null)partialDeliver(actionCard,q);}}]:[]),
 ...(can?[{icon:"📦",label:actionCard.stored?"↩️ رجوع من المخزن المجهز":"📦 نقل للمخزن المجهز",fn:()=>toggleStored(actionCard)}]:[]),
@@ -1086,12 +1169,12 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 ...(can?[{icon:"📋",label:t.copyCard,fn:()=>{setCopyCard(actionCard);setActionCard(null);}},
 {icon:"🔄",label:t.moveCard,fn:()=>{setMoveCard(actionCard);setActionCard(null);}},
 {icon:"⭐",label:actionCard.pinned?t.unpin:t.pinCard,fn:()=>togglePin(actionCard)}]:[]),
-{icon:"️",label:t.printCard,fn:()=>{setPrintTarget(actionCard);setActionCard(null);}},
+{icon:"🖨️",label:t.printCard,fn:()=>{setPrintTarget(actionCard);setActionCard(null);}},
 {icon:"🔳",label:t.showBarcode,fn:()=>{setBcCard(actionCard);setActionCard(null);}},
-{icon:"",label:t.showQr,fn:()=>{setQrCard(actionCard);setActionCard(null);}},
-...(actionCard.photo?[{icon:"️",label:t.viewPhoto,fn:()=>{setPhotoView(actionCard);setActionCard(null);}}]:[]),
+{icon:"📱",label:t.showQr,fn:()=>{setQrCard(actionCard);setActionCard(null);}},
+...(actionCard.photo?[{icon:"🖼️",label:t.viewPhoto,fn:()=>{setPhotoView(actionCard);setActionCard(null);}}]:[]),
 ...(can?[{icon:"🗄️",label:actionCard.archived?t.unarchive:t.archiveCard,fn:()=>toggleArchive(actionCard)},
-{icon:"️",label:t.delete,fn:()=>undoDelete(actionCard),danger:true}]:[])
+{icon:"🗑️",label:t.delete,fn:()=>undoDelete(actionCard),danger:true}]:[])
 ].map((it,i)=>(<button key={i} onClick={it.fn} className="anim" style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:"12px 10px",background:"transparent",border:"none",borderTop:"1px solid "+theme.border,color:it.danger?"var(--red)":theme.text,fontSize:14.5,textAlign:"start",animationDelay:(i*40)+"ms"}}>{it.icon} {it.label}</button>))}
 </div></div>)}
 {moveCard_&&(
@@ -1130,7 +1213,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div className="modal" onClick={()=>setShowSettings(false)}>
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:400}}>
 <h3 style={{margin:"0 0 14px"}}>⚙️ {t.settings}</h3>
-<button onClick={()=>{localStorage.removeItem("companyID");localStorage.removeItem("username");localStorage.removeItem("pin");localStorage.removeItem("role");setShowSettings(false);location.reload();}} className="btnO" style={{marginBottom:12,borderColor:"var(--red)",color:"var(--red)"}}> تسجيل خروج</button>
+<button onClick={()=>{localStorage.removeItem("companyID");localStorage.removeItem("username");localStorage.removeItem("pin");localStorage.removeItem("role");setShowSettings(false);location.reload();}} className="btnO" style={{marginBottom:12,borderColor:"var(--red)",color:"var(--red)"}}>🚪 تسجيل خروج</button>
 <div style={{display:"flex",alignItems:"center",gap:8,padding:"10px 12px",background:"rgba(124,92,255,.08)",border:"1px solid var(--line)",borderRadius:12,marginBottom:12}}>
 <div style={{fontSize:22}}>{localStorage.getItem("role")==="master"?"👑":localStorage.getItem("role")==="manager"?"👔":localStorage.getItem("role")==="assistant"?"🎖️":"👷"}</div>
 <div style={{flex:1}}>
@@ -1142,12 +1225,12 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <MyPinPanel/>
 <div className="lbl">🌐 {t.language}</div><div style={{marginBottom:10}}><button onClick={()=>{const n=lang==="ar"?"en":"ar";setLang(n);localStorage.setItem("pref_lang",n);}} className="chip on">{lang==="ar"?"العربية":"English"}</button></div>
 <div style={{display:"flex",gap:6,marginBottom:12}}>
-<button onClick={()=>{const m=themeMode==="light"?"dark":"light";setThemeMode(m);localStorage.setItem("themeMode",m);}} className={"chip"+(themeMode==="light"?" on":"")} style={{flex:1}}>{themeMode==="light"?" دايم":"☀️ فاتح"}</button>
+<button onClick={()=>{const m=themeMode==="light"?"dark":"light";setThemeMode(m);localStorage.setItem("themeMode",m);}} className={"chip"+(themeMode==="light"?" on":"")} style={{flex:1}}>{themeMode==="light"?"🌙 دايم":"☀️ فاتح"}</button>
 <button onClick={()=>{setPrefVib(v=>{const nv=!v;localStorage.setItem("prefVib",nv?"1":"0");return nv;});}} className={"chip"+(prefVib?" on":"")} style={{flex:1}}>📳 اهتزاز {prefVib?"ON":"OFF"}</button>
 <button onClick={()=>{setPrefSnd(v=>{const nv=!v;localStorage.setItem("prefSnd",nv?"1":"0");return nv;});}} className={"chip"+(prefSnd?" on":"")} style={{flex:1}}>🔊 صوت {prefSnd?"ON":"OFF"}</button>
 </div>
 {(localStorage.getItem("role")==="manager"||localStorage.getItem("role")==="assistant"||localStorage.getItem("role")==="master")&&<>
-<div className="lbl">️ لوجو الشركة</div>
+<div className="lbl">🖼️ لوجو الشركة</div>
 <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:10}}>
 {logoSrc&&<img src={logoSrc} style={{width:44,height:44,borderRadius:10,objectFit:"cover"}}/>}
 <label className="chip on" style={{display:"inline-flex",alignItems:"center",gap:6,cursor:"pointer"}}>📤 رفع لوجو<input type="file" accept="image/png,image/jpeg" style={{display:"none"}} onChange={e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const rd=new FileReader();rd.onerror=()=>alert("❌ فشل قراءة الملف");rd.onload=()=>{const img=new Image();img.onerror=()=>alert("❌ نوع الصورة مش مدعوم — اختار JPG أو PNG");img.onload=()=>{const m=Math.max(img.width,img.height);const sc=Math.min(1,256/m);const c=document.createElement("canvas");c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);c.getContext("2d").drawImage(img,0,0,c.width,c.height);saveFactory({logo:c.toDataURL("image/png")});try{localStorage.setItem("logo_local",c.toDataURL("image/png"));}catch(e){}};img.src=rd.result;};rd.readAsDataURL(f);e.target.value="";}}/></label>
@@ -1161,7 +1244,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 {!can&&(<div className="card" style={{padding:14,marginBottom:10}}>
 <div className="lbl">🔑 {t.unlockTitle}</div>
 <input className="inp" inputMode="numeric" value={codeInput} onChange={e=>setCodeInput(e.target.value)} placeholder="******"/>
-<button onClick={tryUnlock} className="btnG"> {t.confirmName}</button>
+<button onClick={tryUnlock} className="btnG">🔓 {t.confirmName}</button>
 <p style={{fontSize:11,color:theme.textDim,marginTop:8}}>{t.unlockHint}</p>
 </div>)}
 {can&&(<>
@@ -1173,13 +1256,13 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div className="lbl">⏰ {t.lateDays}</div><input className="inp" type="number" min="1" value={lateDraft} onChange={e=>setLateDraft(e.target.value)}/>
 <button onClick={saveFactoryDrafts} className="btnG" style={{marginBottom:10}}>💾 {t.saveFactoryBtn}</button>
 </>}
-<div className="lbl">️ {t.manageStages}</div><div style={{marginBottom:10}}>{stages.map(s=>(<div key={s} style={{display:"flex",gap:6,alignItems:"center",marginBottom:6}}><span style={{flex:1,fontSize:13}}>{s}</span><button onClick={()=>{const cur=(factory.stageLocks||{})[s];const nx={...(factory.stageLocks||{})};if(cur)delete nx[s];else nx[s]=1;saveFactory({stageLocks:nx});}} className={"chip"+((factory.stageLocks||{})[s]?" on":"")} title="قفل المرحلة">{(factory.stageLocks||{})[s]?"🔒":"🔓"}</button><button onClick={()=>{const n=prompt(t.rename,s);if(n&&n.trim()&&n!==s)renameStage(s,n.trim());}} className="chip">✏️</button><button onClick={()=>{if(confirm(t.delete+" "+s))saveStages(stages.filter(x=>x!==s));}} className="chip">🗑️</button></div>))}
+<div className="lbl">🎚️ {t.manageStages}</div><div style={{marginBottom:10}}>{stages.map(s=>(<div key={s} style={{display:"flex",gap:6,alignItems:"center",marginBottom:6}}><span style={{flex:1,fontSize:13}}>{s}</span><button onClick={()=>{const cur=(factory.stageLocks||{})[s];const nx={...(factory.stageLocks||{})};if(cur)delete nx[s];else nx[s]=1;saveFactory({stageLocks:nx});}} className={"chip"+((factory.stageLocks||{})[s]?" on":"")} title="قفل المرحلة">{(factory.stageLocks||{})[s]?"🔒":"🔓"}</button><button onClick={()=>{const n=prompt(t.rename,s);if(n&&n.trim()&&n!==s)renameStage(s,n.trim());}} className="chip">✏️</button><button onClick={()=>{if(confirm(t.delete+" "+s))saveStages(stages.filter(x=>x!==s));}} className="chip">🗑️</button></div>))}
 <button onClick={()=>{const n=prompt(t.addStage);if(n&&n.trim()&&!stages.includes(n.trim()))saveStages(stages.concat([n.trim()]));}} className="chip" style={{marginTop:4}}>➕</button></div>
 <div className="lbl">🔧 {t.manageMachines}</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{machines.map(m=><button key={m} onClick={()=>{if(confirm(t.delete+" "+m))saveMachines(machines.filter(x=>x!==m));}} className="chip">{m} ✕</button>)}<button onClick={()=>{const n=prompt(t.add);if(n&&n.trim()&&!machines.includes(n.trim()))saveMachines(machines.concat([n.trim()]));}} className="chip on">➕</button></div>
 <div className="lbl">🎨 {t.manageColors}</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{customColors.map(c=><button key={c} onClick={()=>saveColors(customColors.filter(x=>x!==c))} className="chip">{c} ✕</button>)}<button onClick={()=>{const n=prompt(t.add);if(n&&n.trim())saveColors(customColors.concat([n.trim()]));}} className="chip on">➕</button></div>
-<div className="lbl">🚩 أعلام الكروت</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{(factory.flags||[]).map(f=><button key={f} onClick={()=>{if(confirm("حذف العلم: "+f)){setFactory(ff=>({...ff,flags:(ff.flags||[]).filter(x=>x!==f)}));db.collection("config").doc("factory").set({flags:firebase.firestore.FieldValue.arrayRemove(f)},{merge:true});}}} className="chip">{f} ✕</button>)}<button onClick={()=>{const n=prompt("اسم العلم الجديد (مثال: ️ طباعة قماش)");if(n&&n.trim()){setFactory(f=>({...f,flags:[...(f.flags||[]),n.trim()]}));db.collection("config").doc("factory").set({flags:firebase.firestore.FieldValue.arrayUnion(n.trim())},{merge:true});}}} className="chip on">➕</button></div>
-<div className="lbl">️ أجازات المصنع</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>{(factory.holidays||[]).map(h=><button key={h} onClick={()=>{if(confirm("حذف إجازة "+h+"؟"))saveFactory({holidays:(factory.holidays||[]).filter(x=>x!==h)});}} className="chip">{h} ✕</button>)}</div><input type="date" className="inp" style={{marginBottom:8}} onChange={e=>{if(e.target.value&&!((factory.holidays)||[]).includes(e.target.value))saveFactory({holidays:[...(factory.holidays||[]),e.target.value]});e.target.value="";}}/><button onClick={()=>saveFactory({closed:!factory.closed})} className={"chip"+(factory.closed?" on":"")} style={{marginBottom:10}}>{factory.closed?"🔒 المصنع مقفل اليوم":" المصنع شغال"}</button>
-<button onClick={()=>{if(!("Notification" in window)){alert("المتصفح مش بيدعم التنبيهات");return;}Notification.requestPermission().then(p=>alert(p==="granted"?"✅ تنبيهات التأخر اشتغلت":"❌ اسمح بالإشعارات من إعدادات المتصفح"));}} className="chip" style={{marginBottom:10}}>🔔 تنبيهات التأخر</button>
+<div className="lbl">🚩 أعلام الكروت</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{(factory.flags||[]).map(f=><button key={f} onClick={()=>{if(confirm("حذف العلم: "+f)){setFactory(ff=>({...ff,flags:(ff.flags||[]).filter(x=>x!==f)}));db.collection("config").doc("factory").set({flags:firebase.firestore.FieldValue.arrayRemove(f)},{merge:true});}}} className="chip">{f} ✕</button>)}<button onClick={()=>{const n=prompt("اسم العلم الجديد (مثال: 🖨️ طباعة قماش)");if(n&&n.trim()){setFactory(f=>({...f,flags:[...(f.flags||[]),n.trim()]}));db.collection("config").doc("factory").set({flags:firebase.firestore.FieldValue.arrayUnion(n.trim())},{merge:true});}}} className="chip on">➕</button></div>
+<div className="lbl">🏖️ أجازات المصنع</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>{(factory.holidays||[]).map(h=><button key={h} onClick={()=>{if(confirm("حذف إجازة "+h+"؟"))saveFactory({holidays:(factory.holidays||[]).filter(x=>x!==h)});}} className="chip">{h} ✕</button>)}</div><input type="date" className="inp" style={{marginBottom:8}} onChange={e=>{if(e.target.value&&!((factory.holidays)||[]).includes(e.target.value))saveFactory({holidays:[...(factory.holidays||[]),e.target.value]});e.target.value="";}}/><button onClick={()=>saveFactory({closed:!factory.closed})} className={"chip"+(factory.closed?" on":"")} style={{marginBottom:10}}>{factory.closed?"🔒 المصنع مقفل اليوم":"🔓 المصنع شغال"}</button>
+<button onClick={()=>{if(!("Notification" in window)){alert("المتصفح مش بيدعم التنبيهات");return;}Notification.requestPermission().then(p=>alert(p==="granted"?"✅ تنبيهات التأخر اشتغلت — حتى والتطبيق في الخلفية":"❌ اسمح بالإشعارات من إعدادات المتصفح"));}} className="chip" style={{marginBottom:10}}>🔔 تنبيهات التأخر</button>
 {(localStorage.getItem("role")==="manager"||localStorage.getItem("role")==="assistant"||localStorage.getItem("role")==="master")&&<>
 <div style={{...grid2,marginTop:8}}>
 <button onClick={()=>setAppQr(true)} className="btnO">🔳 {t.appQr}</button>
@@ -1208,14 +1291,14 @@ const del=(w)=>{if(!confirm("حذف حساب "+w.id+"؟"))return;db.collection("
 const edit=(w)=>{var nn=prompt("الاسم:",w.name||w.id);if(nn===null)return;var pp=prompt("الرمز:",w.pin);if(pp===null)return;db.collection("users").doc(w.id).update({name:nn,pin:pp});};
 const pro=(w)=>{var nr=w.role==="assistant"?"worker":"assistant";db.collection("users").doc(w.id).update({role:nr});};
 return <div className="card" style={{padding:14,marginTop:12}}>
-<div className="lbl"> إدارة العمال والمساعدين</div>
+<div className="lbl">👥 إدارة العمال والمساعدين</div>
 {ws.filter(w=>w.role!=="manager").map(w=><div key={w.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:"1px solid #242B47"}}>
-<div><b style={{fontSize:13}}>{w.role==="assistant"?"️":"👷"} {w.name||w.id}</b><div style={{fontSize:11,color:"#8A93B5"}}>رمز: {w.pin}</div><div style={{marginTop:3}}><LastSeen name={w.id}/></div></div>
+<div><b style={{fontSize:13}}>{w.role==="assistant"?"🎖️":"👷"} {w.name||w.id}</b><div style={{fontSize:11,color:"#8A93B5"}}>رمز: {w.pin}</div><div style={{marginTop:3}}><LastSeen name={w.id}/></div></div>
 <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
 <button className="chip" onClick={()=>tog(w)} style={{borderColor:w.locked?"#FF5C7A":"#2DD4A8",color:w.locked?"#FF5C7A":"#2DD4A8"}}>{w.locked?"🔒":"✅"}</button>
 <button className="chip" onClick={()=>edit(w)}>✏️</button>
 <button className="chip" onClick={()=>pro(w)}>{w.role==="assistant"?"⬇️":"🎖️"}</button>
-<button className="chip" onClick={()=>del(w)} style={{borderColor:"#FF5C7A",color:"#FF5C7A"}}>️</button>
+<button className="chip" onClick={()=>del(w)} style={{borderColor:"#FF5C7A",color:"#FF5C7A"}}>🗑️</button>
 </div>
 </div>)}
 <div style={{display:"flex",gap:6,marginTop:10}}>
@@ -1255,10 +1338,10 @@ if(!localStorage.getItem("companyID")&&!localStorage.getItem("introSeen")){
 var s=document.createElement("div");
 s.id="introScr";
 s.style.cssText="position:fixed;inset:0;background:radial-gradient(900px 480px at 85% -10%,rgba(124,92,255,.16),transparent),radial-gradient(700px 420px at 10% 110%,rgba(94,143,214,.12),transparent),#0B0E1A;z-index:10000;display:flex;flex-direction:column";
-var feats=[["📋","#7C5CFF","كروت ومتابعة حية","كروت إنتاج متحركة بين المراحل مع سجل كامل لكل حركة"],["📊","#5E8FD6","رؤية واضحة للتقدم","لوحة معلومات ذكية تعرض الإنجاز والتفاصيل"],["🔔","#2DD4A8","تنبيهات ذكية","تنبيهات في الوقت المناسب لمتابعة ما يهمك"],["👥","#FFB65C","تنظيم أفضل","رتب عمالك ومهام شركتك في مكان واحد"],["","#2DD4A8","آمن ومعزول","بيانات كل شركة في درجها الخاص ومحمية برموز"]];
+var feats=[["📋","#7C5CFF","كروت ومتابعة حية","كروت إنتاج متحركة بين المراحل مع سجل كامل لكل حركة"],["📊","#5E8FD6","رؤية واضحة للتقدم","لوحة معلومات ذكية تعرض الإنجاز والتفاصيل"],["🔔","#2DD4A8","تنبيهات ذكية","تنبيهات في الوقت المناسب لمتابعة ما يهمك"],["👥","#FFB65C","تنظيم أفضل","رتب عمالك ومهام شركتك في مكان واحد"],["🔒","#2DD4A8","آمن ومعزول","بيانات كل شركة في درجها الخاص ومحمية برموز"]];
 var fh="";
-for(var i=0;i<feats.length;i++){fh+='<div style="display:flex;align-items:center;gap:12px;text-align:start;background:linear-gradient(180deg,#1B2036,#141829);border:1px solid #242B47;border-radius:16px;padding:12px;margin-bottom:10px;animation:inUp .5s both;animation-delay:'+(i*90)+'ms"><div style="width:46px;height:46px;border-radius:14px;background:'+feats[i][1]+'22;border:1px solid '+feats[i][1]+'55;display:flex;align-items:center;justifyContent:center;font-size:20px;flex-shrink:0">'+feats[i][0]+'</div><div><div style="font-size:14px;font-weight:800;color:#EDEFF5;margin-bottom:2px">'+feats[i][2]+'</div><div style="font-size:11px;color:#8A93B5;line-height:1.6">'+feats[i][3]+'</div></div></div>';}
-s.innerHTML='<style>@keyframes inUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}</style><div style="flex:1;overflow-y:auto;padding:28px 20px 12px;text-align:center"><div style="width:86px;height:86px;border-radius:26px;background:linear-gradient(135deg,#7C5CFF,#5E8FD6);display:flex;align-items:center;justifyContent:center;margin:0 auto 16px;font-size:42px;box-shadow:0 0 34px rgba(124,92,255,.5);animation:floaty 3s infinite">🏭</div><h1 style="font-size:26px;font-weight:900;color:#EDEFF5;margin-bottom:6px">نظام إدارة <span style="background:linear-gradient(135deg,#7C5CFF,#5E8FD6);-webkit-background-clip:text;-webkit-text-fill-color:transparent">المراحل</span></h1><p style="color:#8A93B5;font-size:13px;line-height:1.8;margin-bottom:20px">حل متكامل لإدارة ومتابعة مراحل العمل<br>من التسجيل حتى التسليم — بدقة وسهولة</p>'+fh+'</div><div style="padding:14px 20px;background:linear-gradient(180deg,rgba(11,14,26,0),#0B0E1A 40%);border-top:1px solid #242B47"><button id="inBtn" style="width:100%;background:linear-gradient(135deg,#7C5CFF,#5E8FD6);border:none;color:#fff;border-radius:14px;padding:14px;font-weight:900;font-size:15px;cursor:pointer">هل لديك حساب؟ دخول</button><button id="inSkip" style="width:100%;background:none;border:none;color:#8A93B5;font-size:12px;cursor:pointer;margin-top:10px">تخطي التعريف</button></div>';
+for(var i=0;i<feats.length;i++){fh+='<div style="display:flex;align-items:center;gap:12px;text-align:start;background:linear-gradient(180deg,#1B2036,#141829);border:1px solid #242B47;border-radius:16px;padding:12px;margin-bottom:10px;animation:inUp .5s both;animation-delay:'+(i*90)+'ms"><div style="width:46px;height:46px;border-radius:14px;background:'+feats[i][1]+'22;border:1px solid '+feats[i][1]+'55;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">'+feats[i][0]+'</div><div><div style="font-size:14px;font-weight:800;color:#EDEFF5;margin-bottom:2px">'+feats[i][2]+'</div><div style="font-size:11px;color:#8A93B5;line-height:1.6">'+feats[i][3]+'</div></div></div>';}
+s.innerHTML='<style>@keyframes inUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}</style><div style="flex:1;overflow-y:auto;padding:28px 20px 12px;text-align:center"><div style="width:86px;height:86px;border-radius:26px;background:linear-gradient(135deg,#7C5CFF,#5E8FD6);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:42px;box-shadow:0 0 34px rgba(124,92,255,.5);animation:floaty 3s infinite">🏭</div><h1 style="font-size:26px;font-weight:900;color:#EDEFF5;margin-bottom:6px">نظام إدارة <span style="background:linear-gradient(135deg,#7C5CFF,#5E8FD6);-webkit-background-clip:text;-webkit-text-fill-color:transparent">المراحل</span></h1><p style="color:#8A93B5;font-size:13px;line-height:1.8;margin-bottom:20px">حل متكامل لإدارة ومتابعة مراحل العمل<br>من التسجيل حتى التسليم — بدقة وسهولة</p>'+fh+'</div><div style="padding:14px 20px;background:linear-gradient(180deg,rgba(11,14,26,0),#0B0E1A 40%);border-top:1px solid #242B47"><button id="inBtn" style="width:100%;background:linear-gradient(135deg,#7C5CFF,#5E8FD6);border:none;color:#fff;border-radius:14px;padding:14px;font-weight:900;font-size:15px;cursor:pointer">هل لديك حساب؟ دخول</button><button id="inSkip" style="width:100%;background:none;border:none;color:#8A93B5;font-size:12px;cursor:pointer;margin-top:10px">تخطي التعريف</button></div>';
 document.getElementById("root").appendChild(s);
 function closeIntro(){localStorage.setItem("introSeen","1");var el=document.getElementById("introScr");if(el)el.remove();}
 document.getElementById("inBtn").onclick=closeIntro;
@@ -1267,14 +1350,14 @@ document.getElementById("inSkip").onclick=closeIntro;
 if(!localStorage.getItem("companyID")){
 var d=document.createElement("div");
 d.style.cssText="position:fixed;inset:0;background:#0B0E1A;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:20px;z-index:9999";
-d.innerHTML='<div style="background:linear-gradient(180deg,#1B2036,#141829);border:1px solid #242B47;border-radius:20px;padding:24px;width:100%;max-width:360px"><h2 style="text-align:center;margin-bottom:20px;color:#EDEFF5">تسجيل الدخول</h2><div style="font-size:12px;font-weight:800;margin-bottom:6px;color:#8A93B5">معرف الشركة</div><input id="lg_cid" style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid #242B47;background:#1B2036;color:#EDEFF5;font-size:15px;margin-bottom:12px;outline:none" placeholder="مثل: ABC123 أو MASTER"/><div style="font-size:12px;font-weight:800;margin-bottom:6px;color:#8A93B5">اسم المستخدم</div><input id="lg_un" style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid #242B47;background:#1B2036;color:#EDEFF5;font-size:15px;margin-bottom:12px;outline:none" placeholder="مثل: ahmed أو admin"/><div style="font-size:12px;font-weight:800;margin-bottom:6px;color:#8A93B5">الرمز</div><input id="lg_pin" type="password" style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid #242B47;background:#1B2036;color:#EDEFF5;font-size:15px;margin-bottom:12px;outline:none" placeholder="مثل: 1234"/><button id="lg_btn" style="width:100%;background:linear-gradient(135deg,#7C5CFF,#5E8FD6);border:none;color:#fff;border-radius:14px;padding:13px 18px;font-weight:800;font-size:14px;cursor:pointer">دخول</button><button id="lg_demo" style="width:100%;margin-top:12px;background:rgba(255,255,255,.1);border:1px solid #242B47;color:#EDEFF5;border-radius:14px;padding:12px 16px;font-weight:700;font-size:14px;cursor:pointer"> جرب ببلاش (ديمو)</button></div>';
+d.innerHTML='<div style="background:linear-gradient(180deg,#1B2036,#141829);border:1px solid #242B47;border-radius:20px;padding:24px;width:100%;max-width:360px"><h2 style="text-align:center;margin-bottom:20px;color:#EDEFF5">\u062A\u0633\u062C\u064A\u0644 \u0627\u0644\u062F\u062E\u0648\u0644</h2><div style="font-size:12px;font-weight:800;margin-bottom:6px;color:#8A93B5">\u0645\u0639\u0631\u0641 \u0627\u0644\u0634\u0631\u0643\u0629</div><input id="lg_cid" style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid #242B47;background:#1B2036;color:#EDEFF5;font-size:15px;margin-bottom:12px;outline:none" placeholder="\u0645\u062B\u0644: ABC123 \u0623\u0648 MASTER"/><div style="font-size:12px;font-weight:800;margin-bottom:6px;color:#8A93B5">\u0627\u0633\u0645 \u0627\u0644\u0645\u0633\u062A\u062E\u062F\u0645</div><input id="lg_un" style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid #242B47;background:#1B2036;color:#EDEFF5;font-size:15px;margin-bottom:12px;outline:none" placeholder="\u0645\u062B\u0644: ahmed \u0623\u0648 admin"/><div style="font-size:12px;font-weight:800;margin-bottom:6px;color:#8A93B5">\u0627\u0644\u0631\u0645\u0632</div><input id="lg_pin" type="password" style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid #242B47;background:#1B2036;color:#EDEFF5;font-size:15px;margin-bottom:12px;outline:none" placeholder="\u0645\u062B\u0644: 1234"/><button id="lg_btn" style="width:100%;background:linear-gradient(135deg,#7C5CFF,#5E8FD6);border:none;color:#fff;border-radius:14px;padding:13px 18px;font-weight:800;font-size:14px;cursor:pointer">\u062F\u062E\u0648\u0644</button><button id="lg_demo" style="width:100%;margin-top:12px;background:rgba(255,255,255,.1);border:1px solid #242B47;color:#EDEFF5;border-radius:14px;padding:12px 16px;font-weight:700;font-size:14px;cursor:pointer">\uD83C\uDFAE \u062C\u0631\u0628 \u0628\u0628\u0644\u0627\u0634 (\u062F\u064A\u0645\u0648)</button></div>';
 document.getElementById("root").appendChild(d);
-document.getElementById("lg_btn").onclick=function(){var c=document.getElementById("lg_cid").value.trim(),u=document.getElementById("lg_un").value.trim(),p=document.getElementById("lg_pin").value.trim();if(!c||!u||!p){alert("املأ جميع الحقول");return;}if(c==="MASTER"){if(u==="admin"&&p==="20112005"){localStorage.setItem("companyID",c);localStorage.setItem("username",u);localStorage.setItem("pin",p);localStorage.setItem("role","master");location.reload();}else{alert("بيانات الماستر غلط");}return;}var uref=(c==="NEWTEX"||c==="DEFAULT")?db._raw("users"):db._raw("companies/"+c+"/users");uref.get().then(function(snap){if(snap.empty){localStorage.setItem("companyID",c);localStorage.setItem("username",u);localStorage.setItem("pin",p);localStorage.setItem("role","manager");location.reload();return;}uref.doc(u).get().then(function(ud){if(!ud.exists||ud.data().pin!==p){alert("اسم المستخدم أو الرمز غلط");return;}if(ud.data().locked){alert("الحساب موقوف من المدير");return;}localStorage.setItem("companyID",c);localStorage.setItem("username",u);localStorage.setItem("pin",p);localStorage.setItem("role",ud.data().role||"worker");location.reload();}).catch(function(){alert("خطأ في الاتصال");});}).catch(function(){alert("خطأ في الاتصال");});};
+document.getElementById("lg_btn").onclick=function(){var c=document.getElementById("lg_cid").value.trim(),u=document.getElementById("lg_un").value.trim(),p=document.getElementById("lg_pin").value.trim();if(!c||!u||!p){alert("\u0627\u0645\u0644\u0623 \u062C\u0645\u064A\u0639 \u0627\u0644\u062D\u0642\u0648\u0644");return;}if(c==="MASTER"){if(u==="admin"&&p==="20112005"){localStorage.setItem("companyID",c);localStorage.setItem("username",u);localStorage.setItem("pin",p);localStorage.setItem("role","master");location.reload();}else{alert("\u0628\u064A\u0627\u0646\u0627\u062A \u0627\u0644\u0645\u0627\u0633\u062A\u0631 \u063A\u0644\u0637");}return;}var uref=(c==="NEWTEX"||c==="DEFAULT")?db._raw("users"):db._raw("companies/"+c+"/users");uref.get().then(function(snap){if(snap.empty){localStorage.setItem("companyID",c);localStorage.setItem("username",u);localStorage.setItem("pin",p);localStorage.setItem("role","manager");location.reload();return;}uref.doc(u).get().then(function(ud){if(!ud.exists||ud.data().pin!==p){alert("\u0627\u0633\u0645 \u0627\u0644\u0645\u0633\u062A\u062E\u062F\u0645 \u0623\u0648 \u0627\u0644\u0631\u0645\u0632 \u063A\u0644\u0637");return;}if(ud.data().locked){alert("\u0627\u0644\u062D\u0633\u0627\u0628 \u0645\u0648\u0642\u0648\u0641 \u0645\u0646 \u0627\u0644\u0645\u062F\u064A\u0631");return;}localStorage.setItem("companyID",c);localStorage.setItem("username",u);localStorage.setItem("pin",p);localStorage.setItem("role",ud.data().role||"worker");location.reload();}).catch(function(){alert("\u062E\u0637\u0623 \u0641\u064A \u0627\u0644\u0627\u062A\u0635\u0627\u0644");});}).catch(function(){alert("\u062E\u0637\u0623 \u0641\u064A \u0627\u0644\u0627\u062A\u0635\u0627\u0644");});};
 document.getElementById("lg_demo").onclick=function(){localStorage.setItem("companyID","DEMO");localStorage.setItem("username","demo");localStorage.setItem("pin","0000");localStorage.setItem("role","manager");location.reload();};
 }else{
 if(window.isMaster){location.replace("master.html");}else{
-(function(){var r=localStorage.getItem("role");if(r==="worker"||r==="assistant"){var u=localStorage.getItem("username");db.collection("users").doc(u).get().then(function(d){if(!d.exists||d.data().locked){localStorage.removeItem("companyID");localStorage.removeItem("username");localStorage.removeItem("pin");localStorage.removeItem("role");alert("الحساب موقوف من المدير");location.reload();}}).catch(function(){});}})();
-class EB extends React.Component{constructor(p){super(p);this.state={err:0};}static getDerivedStateFromError(){return{err:1};}render(){if(this.state.err)return(<div dir="rtl" style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:12,background:"#0B0E1A",color:"#EDEFF5",textAlign:"center",padding:20}}><div style={{fontSize:56}}>️</div><h2 style={{margin:0}}>حصلت مشكلة صغيرة</h2><div style={{color:"#8A93B5",fontSize:13}}>متقلقش بياناتك سليمة — دوس إعادة</div><button className="btnG" onClick={()=>location.reload()}>🔄 إعادة التشغيل</button></div>);return this.props.children;}}
+(function(){var r=localStorage.getItem("role");if(r==="worker"||r==="assistant"){var u=localStorage.getItem("username");db.collection("users").doc(u).get().then(function(d){if(!d.exists||d.data().locked){localStorage.removeItem("companyID");localStorage.removeItem("username");localStorage.removeItem("pin");localStorage.removeItem("role");alert("\u0627\u0644\u062D\u0633\u0627\u0628 \u0645\u0648\u0642\u0648\u0641 \u0645\u0646 \u0627\u0644\u0645\u062F\u064A\u0631");location.reload();}}).catch(function(){});}})();
+class EB extends React.Component{constructor(p){super(p);this.state={err:0};}static getDerivedStateFromError(){return{err:1};}render(){if(this.state.err)return(<div dir="rtl" style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:12,background:"#0B0E1A",color:"#EDEFF5",textAlign:"center",padding:20}}><div style={{fontSize:56}}>🛠️</div><h2 style={{margin:0}}>حصلت مشكلة صغيرة</h2><div style={{color:"#8A93B5",fontSize:13}}>متقلقش بياناتك سليمة — دوس إعادة</div><button className="btnG" onClick={()=>location.reload()}>🔄 إعادة التشغيل</button></div>);return this.props.children;}}
 ReactDOM.createRoot(document.getElementById("root")).render(<EB><App/></EB>);
 window.__booted=true;
 }
