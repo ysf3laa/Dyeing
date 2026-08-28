@@ -106,6 +106,7 @@ ar:{appName:"متابعة المراحل",search:"بحث في كل الكروت.
 en:{appName:"Dyeing Tracker",search:"Search...",settings:"Settings",dailyLog:"Daily Log",addStage:"Add Stage",add:"Add",cardsPlural:"cards",lastActivity:"Last Activity",distribution:"Distribution",lateOnly:"Late",all:"All",newCard:"New Card",code:"Code",customer:"Customer",message:"Batch",category:"Category",color:"Color",quantity:"Qty",barcode:"Barcode",machine:"Machine",prepare:"Prepare",dye:"Dye",time:"Date",notes:"Notes",phone:"Phone",address:"Address",urgent:"Urgent",save:"Save",cancel:"Cancel",duplicateWarning:"Fully duplicate. Save?",saveAnyway:"Save",edit:"Edit",copyCard:"Copy",moveCard:"Move",showQr:"QR",delete:"Delete",openWhatsapp:"WhatsApp",call:"Call",pinCard:"Pin",unpin:"Unpin",yourName:"Name",enterNameHint:"Saved once",confirmName:"OK",language:"Lang",darkMode:"Dark",noResults:"None",machineOptional:"opt",linkedCards:"Linked",aged1:"1d",aged2:"Late",noCardsHere:"Empty",online:"🟢",offline:"🔴",syncing:"⏳",synced:"✅",allCards:"All cards",home:"Home",stagesLabel:"Stages",history:"History",nextStage:"Next",report:"Report",copy:"Copy",onlineNow:"Online",backup:"CSV",qtyTotal:"Qty",scanBarcode:"Scan",showBarcode:"Barcode",cameraErr:"Camera error",photo:"Photo",viewPhoto:"View",shareCard:"Share",statement:"Statement",due:"Due",overdue:"Overdue",dueSoon:"Soon",archive:"Archive",archiveCard:"Archive",unarchive:"Restore",printCard:"Print",workers:"Workers",notFound:"Not found",foundIn:"In",colorsLabel:"Colors",factoryName:"Factory name",waNumber:"Factory WhatsApp",unit:"Unit",lateDays:"Late after (days)",printSize:"Print size",manageStages:"Stages",manageMachines:"Machines",manageColors:"Colors",appQr:"App QR",backupFull:"JSON backup",restore:"Restore",wipe:"Wipe",wipeSure:"Sure?!",rename:"Rename",yourNameEdit:"Edit name",scanAny:"Scan",unlockTitle:"Activation code",unlockHint:"From manager - once per device",viewOnly:"🔒 View only",unlockedMsg:"Activated ✅",lockedNote:"🔒 View only",importImage:"Import from image",reading:"Reading",extracted:"Review data",chooseImport:"Source",camera:"Camera",gallery:"Gallery",saveFactoryBtn:"Save"}
 };
 const FIELD_KEYS=["code","customer","message","category","color","quantity","barcode","machine","prepare","dye","time","notes","phone","address"];
+const DEFAULT_FIELDS=[{key:"customer",visible:true},{key:"code",visible:true},{key:"message",visible:true},{key:"category",visible:true},{key:"color",visible:true},{key:"quantity",visible:true},{key:"barcode",visible:true},{key:"machine",visible:true},{key:"prepare",visible:true},{key:"dye",visible:true},{key:"time",visible:true},{key:"phone",visible:true},{key:"address",visible:true},{key:"notes",visible:true}];
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
 function nowISO(){return new Date().toISOString();}
 function toMs(v){if(!v)return 0;if(typeof v==="number")return v;if(v.toDate)return v.toDate().getTime();const d=new Date(v);return isNaN(d.getTime())?0:d.getTime();}
@@ -215,7 +216,7 @@ const [codeInput,setCodeInput]=useState("");const [gemKey,setGemKey]=useState(lo
 const [importBusy,setImportBusy]=useState(null);const [importDraft,setImportDraft]=useState(null);const [importMenu,setImportMenu]=useState(false);
 const [lang,setLang]=useState(()=>localStorage.getItem("pref_lang")||"ar");
 const [dark,setDark]=useState(true);
-const [stages,setStages]=useState(DEFAULT_STAGES);const [machines,setMachines]=useState(DEFAULT_MACHINES);
+const [stages,setStages]=useState(DEFAULT_STAGES);const [machines,setMachines]=useState(DEFAULT_MACHINES);const [cardFields,setCardFields]=useState(DEFAULT_FIELDS);
 const [showMyWork,setShowMyWork]=useState(false);
 const [showAsk,setShowAsk]=useState(false);const [askQ,setAskQ]=useState("");const [askA,setAskA]=useState("");const [askBusy,setAskBusy]=useState(0);
 const [showBook,setShowBook]=useState(false);
@@ -307,6 +308,7 @@ const uiRef=useRef({});
 uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,showTopCust,photoView,appQr,importMenu,importDraft,showMic,showWarehouse,addLoad,loadDetail,showLateList,showDelivered,heroEdit,showDefects,defectFor,showAnnounce,linkedFrom,showAsk,showBook,showBlack,showFlags,showMyWork,showSched,showStored};
 const t=DICT[lang];const dir=lang==="ar"?"rtl":"ltr";
 const can=true;unlocked;
+const canEditFields=["manager","assistant","master"].includes(localStorage.getItem("role")||"");
 const [themeMode,setThemeMode]=useState(localStorage.getItem("themeMode")||"dark");
 const [prefVib,setPrefVib]=useState(localStorage.getItem("prefVib")!=="0");
 const [prefSnd,setPrefSnd]=useState(localStorage.getItem("prefSnd")!=="0");
@@ -337,8 +339,9 @@ db.collection("logs").onSnapshot(sn=>{setLog(sn.docs.map(d=>({id:d.id,...d.data(
 db.collection("loads").onSnapshot(sn=>{setLoads(sn.docs.map(d=>({id:d.id,...d.data()})));});
 db.collection("defects").onSnapshot(sn=>{setDefects(sn.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>toMs(b.time)-toMs(a.time)));});
 db.collection("config").onSnapshot(sn=>{const g=id=>{const d=sn.docs.find(x=>x.id===id);return d?d.data():null;};
-const s=g("stages"),m=g("machines"),f=g("factory"),cl=g("colors");
+const s=g("stages"),m=g("machines"),f=g("factory"),cl=g("colors"),cf=g("fields");
 if(s)setStages(s.list||DEFAULT_STAGES);if(m)setMachines(m.list||DEFAULT_MACHINES);
+if(cf)setCardFields(cf.list&&cf.list.length?cf.list:DEFAULT_FIELDS);
 if(f)setFactory({fname:(f.fname&&f.fname!=="متابعة الصباغة"?f.fname:"متابعة المراحل"),wa:f.wa||"",unit:f.unit||"كيلو",lateDays:f.lateDays||2,printSize:f.printSize||"A5",gkey:f.gkey||"",heroT:f.heroT||"",heroS:f.heroS||"",logo:f.logo||"",closed:!!f.closed,holidays:f.holidays||[],flags:f.flags||[],colorBook:f.colorBook||[],stageLocks:f.stageLocks||{}});
 if(cl)setCustomColors(cl.list||[]);
 const an=g("announce");if(an&&an.text)setAnnounce(an);else setAnnounce(null);});
@@ -403,6 +406,12 @@ const saveStages=l=>{if(!can||!db)return;db.collection("config").doc("stages").s
 const renameStage=(o,n)=>{if(!can)return;saveStages(stages.map(s=>s===o?n:s));cards.filter(c=>c.stage===o).forEach(c=>db.collection("cards").doc(c.id).set({stage:n},{merge:true}));};
 const saveMachines=l=>{if(!can||!db)return;db.collection("config").doc("machines").set({list:l});};
 const saveColors=l=>{if(!can||!db)return;db.collection("config").doc("colors").set({list:l});};
+const saveFields=l=>{if(!canEditFields||!db)return;setCardFields(l);db.collection("config").doc("fields").set({list:l});};
+const fldOrder=(k,dir)=>{const i2=cardFields.findIndex(x=>x.key===k);const j=i2+dir;if(i2===-1||j<0||j>=cardFields.length)return;const l=[...cardFields];const tmp=l[i2];l[i2]=l[j];l[j]=tmp;saveFields(l);};
+const fldToggle=k=>{const l=cardFields.map(f=>f.key===k?{...f,visible:f.visible===false?true:false}:f);saveFields(l);};
+const fldAdd=()=>{const lbl=prompt("اسم الخانة الجديدة:");if(!lbl||!lbl.trim())return;const key="custom_"+uid();saveFields([...cardFields,{key,label:lbl.trim(),custom:true,visible:true}]);};
+const fldDel=k=>{if(!confirm(t.delete+"؟"))return;saveFields(cardFields.filter(f=>f.key!==k));};
+const fldLabel=f=>f.custom?f.label:(t[f.key]||f.key);
 const ocrNow=f=>{if(!window.Tesseract){showToast("❌","danger");return;}
 setImportBusy(0);
 const rr3=new FileReader();
@@ -542,6 +551,24 @@ if(liveID)return(<div dir="rtl" style={{minHeight:"100vh",background:"#fff",colo
 </div></div>);
 if(!ready)return(<div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:theme.bg,color:theme.text,flexDirection:"column",gap:16}}><div style={{fontSize:48,animation:"floaty 2s infinite"}}>🏭</div><div className="spin" style={{fontSize:24}}>⚙️</div><div style={{fontSize:14,color:theme.textDim,marginTop:4}}>🕌 صلي على النبي</div></div>);
 if(!ownerName)return(<div dir={dir} style={{minHeight:"100vh",background:theme.bg,color:theme.text,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}><div className="card" style={{padding:32,width:"100%",maxWidth:380,textAlign:"center"}}><div style={{width:60,height:60,borderRadius:18,background:"linear-gradient(135deg,var(--vio),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px",fontSize:28,animation:"floaty 2.5s infinite",boxShadow:"0 10px 30px rgba(124,92,255,.4)"}}>🏭</div><h2 style={{margin:"0 0 6px",fontSize:20}}>{factory.fname}</h2><p style={{color:theme.textDim,fontSize:13,marginBottom:18}}>{t.yourName} — {t.enterNameHint}</p><input autoFocus value={nameInput} onChange={e=>setNameInput(e.target.value)} placeholder={t.yourName} className="inp" style={{textAlign:"center"}} onKeyDown={e=>e.key==="Enter"&&confirmName()}/><button onClick={confirmName} className="btnG">{t.confirmName}</button></div></div>);
+const renderField=f=>{const key=f.key;switch(key){
+case "customer":return(<React.Fragment key={key}>
+{favs.length>0&&(<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:6}}>{favs.map(fv=><button key={fv} onClick={()=>onCustomerChange(fv)} className="chip on" style={{fontSize:11}}>⭐ {fv}</button>)}</div>)}
+<div className="lbl">{t.customer}</div><div style={{display:"flex",gap:6,alignItems:"center"}}><input className="inp" style={{flex:1,marginBottom:10}} list="customersList" value={editingCard.customer} onChange={e=>onCustomerChange(e.target.value)}/><button onClick={()=>toggleFav(editingCard.customer)} style={{width:44,height:44,borderRadius:12,border:"1px solid "+theme.border,background:favs.includes(editingCard.customer)?"rgba(255,182,92,.15)":"transparent",fontSize:18}}>{favs.includes(editingCard.customer)?"⭐":"☆"}</button></div>
+<datalist id="customersList">{knownCustomers.slice(0,50).map(k=><option key={k.name} value={k.name}/>)}</datalist>
+</React.Fragment>);
+case "color":return(<React.Fragment key={key}>
+<div><div className="lbl">{t.color}</div><input className="inp" value={editingCard.color} onChange={e=>setEditingCard({...editingCard,color:e.target.value})}/></div>
+<div className="lbl">{t.colorsLabel}</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{allColors.map(c=><button key={c} onClick={()=>setEditingCard({...editingCard,color:c})} className={"chip"+(editingCard.color===c?" on":"")}>{c}</button>)}</div>
+</React.Fragment>);
+case "quantity":return(<div key={key}><div className="lbl">{t.quantity}</div><div style={{display:"flex",gap:6}}><input className="inp" style={{flex:1}} value={editingCard.quantity} onChange={e=>setEditingCard({...editingCard,quantity:e.target.value})}/><button onClick={()=>{const ex=prompt("🧮 اكتب العملية:",editingCard.quantity||"");if(ex===null)return;const clean=String(ex).replace(/[٠-٩]/g,d=>String("٠١٢٣٤٥٦٧٨٩".indexOf(d))).replace(/×/g,"*").replace(/÷/g,"/").replace(/[^0-9+\-*/.() ]/g,"");if(!clean.trim())return;try{const v=Function('"use strict";return ('+clean+")")();if(isFinite(v))setEditingCard({...editingCard,quantity:String(Math.round(v*100)/100)});}catch(e){}}} style={{width:44,height:44,borderRadius:12,border:"1px solid "+theme.border,background:"transparent",fontSize:16}}>🧮</button></div></div>);
+case "barcode":return(<div key={key}><div className="lbl">{t.barcode}</div><div style={{display:"flex",gap:6}}><input className="inp" style={{marginBottom:6}} value={editingCard.barcode} onChange={e=>setEditingCard({...editingCard,barcode:e.target.value})}/><button onClick={()=>{scanMode.current="form";setShowScanner(true);}} style={{flex:"0 0 auto",padding:"0 12px",borderRadius:12,border:"none",background:"var(--teal)",color:"#04211a",fontSize:16,fontWeight:800}}>📷</button></div>
+{editingCard.barcode&&<div style={{background:"#fff",borderRadius:8,padding:"6px 4px",marginBottom:8,textAlign:"center"}}><BarcodeView value={editingCard.barcode}/></div>}</div>);
+case "machine":return(<React.Fragment key={key}><div className="lbl">{t.machine}</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{machines.map(m=><button key={m} onClick={()=>setEditingCard({...editingCard,machine:m})} className={"chip"+(editingCard.machine===m?" on":"")}>{m}</button>)}</div></React.Fragment>);
+case "phone":return(<div key={key}><div className="lbl">{t.phone}</div><input className="inp" value={editingCard.phone} onChange={e=>setEditingCard({...editingCard,phone:e.target.value})}/></div>);
+case "notes":return(<React.Fragment key={key}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><div className="lbl">{t.notes}</div><button onClick={noteMic} className={"chip"+(micOn?" on":"")}>🎙️</button></div><textarea rows={2} className="inp" value={editingCard.notes} onChange={e=>setEditingCard({...editingCard,notes:e.target.value})}/></React.Fragment>);
+default:return(<div key={key}><div className="lbl">{fldLabel(f)}</div><input className="inp" value={editingCard[key]||""} onChange={e=>setEditingCard({...editingCard,[key]:e.target.value})}/></div>);
+}};
 return(
 <div dir={dir} style={{minHeight:"100vh",background:theme.bg,color:theme.text,paddingBottom:90}}>
 <div style={{position:"fixed",top:0,left:0,right:0,padding:"6px 12px",background:"rgba(11,14,26,.85)",backdropFilter:"blur(10px)",borderBottom:"1px solid "+theme.border,fontSize:11,color:statusColor,zIndex:300,textAlign:"center",fontWeight:700}}>{statusMsg}{!can&&<span style={{color:theme.warn}}> · {t.lockedNote}</span>}</div>
@@ -1105,31 +1132,9 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 {can&&cards.some(c=>c.id===editingCard.id)&&(<>
 <div className="lbl">{t.stagesLabel}</div><select className="inp" value={editingCard.stage} onChange={e=>setEditingCard({...editingCard,stage:e.target.value})}>{stages.map(s=><option key={s}>{s}</option>)}</select>
 </>)}
-{favs.length>0&&(<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:6}}>{favs.map(f=><button key={f} onClick={()=>onCustomerChange(f)} className="chip on" style={{fontSize:11}}>⭐ {f}</button>)}</div>)}
-<div className="lbl">{t.customer}</div><div style={{display:"flex",gap:6,alignItems:"center"}}><input className="inp" style={{flex:1,marginBottom:10}} list="customersList" value={editingCard.customer} onChange={e=>onCustomerChange(e.target.value)}/><button onClick={()=>toggleFav(editingCard.customer)} style={{width:44,height:44,borderRadius:12,border:"1px solid "+theme.border,background:favs.includes(editingCard.customer)?"rgba(255,182,92,.15)":"transparent",fontSize:18}}>{favs.includes(editingCard.customer)?"⭐":"☆"}</button></div>
-<datalist id="customersList">{knownCustomers.slice(0,50).map(k=><option key={k.name} value={k.name}/>)}</datalist>
-<div style={grid2}>
-<div><div className="lbl">{t.code}</div><input className="inp" value={editingCard.code} onChange={e=>setEditingCard({...editingCard,code:e.target.value})}/></div>
-<div><div className="lbl">{t.message}</div><input className="inp" value={editingCard.message} onChange={e=>setEditingCard({...editingCard,message:e.target.value})}/></div></div>
-<div style={grid2}>
-<div><div className="lbl">{t.category}</div><input className="inp" value={editingCard.category} onChange={e=>setEditingCard({...editingCard,category:e.target.value})}/></div>
-<div><div className="lbl">{t.color}</div><input className="inp" value={editingCard.color} onChange={e=>setEditingCard({...editingCard,color:e.target.value})}/></div></div>
-<div className="lbl">{t.colorsLabel}</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{allColors.map(c=><button key={c} onClick={()=>setEditingCard({...editingCard,color:c})} className={"chip"+(editingCard.color===c?" on":"")}>{c}</button>)}</div>
-<div style={grid2}>
-<div><div className="lbl">{t.quantity}</div><div style={{display:"flex",gap:6}}><input className="inp" style={{flex:1}} value={editingCard.quantity} onChange={e=>setEditingCard({...editingCard,quantity:e.target.value})}/><button onClick={()=>{const ex=prompt("🧮 اكتب العملية:",editingCard.quantity||"");if(ex===null)return;const clean=String(ex).replace(/[٠-٩]/g,d=>String("٠١٢٣٤٥٦٧٨٩".indexOf(d))).replace(/×/g,"*").replace(/÷/g,"/").replace(/[^0-9+\-*/.() ]/g,"");if(!clean.trim())return;try{const v=Function('"use strict";return ('+clean+")")();if(isFinite(v))setEditingCard({...editingCard,quantity:String(Math.round(v*100)/100)});}catch(e){}}} style={{width:44,height:44,borderRadius:12,border:"1px solid "+theme.border,background:"transparent",fontSize:16}}>🧮</button></div></div>
-<div><div className="lbl">{t.barcode}</div><div style={{display:"flex",gap:6}}><input className="inp" style={{marginBottom:6}} value={editingCard.barcode} onChange={e=>setEditingCard({...editingCard,barcode:e.target.value})}/><button onClick={()=>{scanMode.current="form";setShowScanner(true);}} style={{flex:"0 0 auto",padding:"0 12px",borderRadius:12,border:"none",background:"var(--teal)",color:"#04211a",fontSize:16,fontWeight:800}}>📷</button></div>
-{editingCard.barcode&&<div style={{background:"#fff",borderRadius:8,padding:"6px 4px",marginBottom:8,textAlign:"center"}}><BarcodeView value={editingCard.barcode}/></div>}</div></div>
-<div className="lbl">{t.machine}</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{machines.map(m=><button key={m} onClick={()=>setEditingCard({...editingCard,machine:m})} className={"chip"+(editingCard.machine===m?" on":"")}>{m}</button>)}</div>
-<div style={grid2}>
-<div><div className="lbl">{t.prepare}</div><input className="inp" value={editingCard.prepare} onChange={e=>setEditingCard({...editingCard,prepare:e.target.value})}/></div>
-<div><div className="lbl">{t.dye}</div><input className="inp" value={editingCard.dye} onChange={e=>setEditingCard({...editingCard,dye:e.target.value})}/></div></div>
-<div style={grid2}>
-<div><div className="lbl">{t.time}</div><input className="inp" value={editingCard.time} onChange={e=>setEditingCard({...editingCard,time:e.target.value})}/></div>
-<div><div className="lbl">{t.due}</div><input type="date" className="inp" value={editingCard.due||""} onChange={e=>setEditingCard({...editingCard,due:e.target.value})}/>
-<div style={{display:"flex",gap:6,marginBottom:8}}>{[1,3,7].map(n=><button key={n} onClick={()=>setEditingCard({...editingCard,due:localDate(new Date(Date.now()+n*86400000))})} className="chip">+{n}</button>)}</div></div></div>
-<div style={grid2}>
-<div><div className="lbl">{t.phone}</div><input className="inp" value={editingCard.phone} onChange={e=>setEditingCard({...editingCard,phone:e.target.value})}/></div>
-<div><div className="lbl">{t.address}</div><input className="inp" value={editingCard.address||""} onChange={e=>setEditingCard({...editingCard,address:e.target.value})}/></div></div>
+{cardFields.filter(f=>f.visible!==false).map(f=>renderField(f))}
+<div className="lbl">{t.due}</div><input type="date" className="inp" value={editingCard.due||""} onChange={e=>setEditingCard({...editingCard,due:e.target.value})}/>
+<div style={{display:"flex",gap:6,marginBottom:8}}>{[1,3,7].map(n=><button key={n} onClick={()=>setEditingCard({...editingCard,due:localDate(new Date(Date.now()+n*86400000))})} className="chip">+{n}</button>)}</div>
 {can&&(<>
 <div className="lbl">🚛 الحمولة</div><select className="inp" value={editingCard.loadId||""} onChange={e=>setEditingCard({...editingCard,loadId:e.target.value})}><option value="">بدون حمولة</option>{loads.filter(l=>!editingCard.customer||l.customer===editingCard.customer).map(l=>{const s=loadStats(l);return <option key={l.id} value={l.id}>{l.customer} — متبقي {s.rem}</option>;})}</select>
 <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:10}}>
@@ -1139,7 +1144,6 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 </div>
 </>)}
 {editingCard.phone&&(<div style={{display:"flex",gap:8,marginBottom:10}}><a href={"tel:"+editingCard.phone} className="btnO" style={{textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>📞</a><a href={"https://wa.me/"+editingCard.phone.replace(/\D/g,"")} target="_blank" rel="noreferrer" className="btnO" style={{textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>💬</a></div>)}
-<div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><div className="lbl">{t.notes}</div><button onClick={noteMic} className={"chip"+(micOn?" on":"")}>🎙️</button></div><textarea rows={2} className="inp" value={editingCard.notes} onChange={e=>setEditingCard({...editingCard,notes:e.target.value})}/>
 <div className="lbl">📸 صور الأمر</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{(editingCard.photos||[]).map((p,i)=>(<span key={i} style={{position:"relative",display:"inline-block",cursor:"zoom-in"}} onClick={()=>setPhotoView(p)}><img src={p} style={{width:56,height:56,objectFit:"cover",borderRadius:10,border:"1px solid "+theme.border}}/><button onClick={()=>setEditingCard({...editingCard,photos:(editingCard.photos||[]).filter((x,j)=>j!==i)})} style={{position:"absolute",top:-6,left:-6,background:"var(--red)",color:"#fff",border:"none",borderRadius:"50%",width:18,height:18,fontSize:10,cursor:"pointer"}}>✕</button></span>))}<button className="chip on" onClick={()=>{var inp=document.createElement("input");inp.type="file";inp.accept="image/*";inp.onchange=e=>{var f=e.target.files[0];if(f)compressImg(f,800,function(d){setEditingCard(ec=>({...ec,photos:[...(ec.photos||[]),d]}));});};inp.click();}}>➕ صورة</button></div>
 {cards.some(cc=>cc.id===editingCard.id)&&(<div style={{display:"flex",gap:8,alignItems:"center",marginBottom:12,flexWrap:"wrap"}}>{editingCard.timerStart?(<><span style={{fontSize:12,color:"#2DD4A8",fontWeight:700}}>⏱️ شغال {fmtDur(Date.now()-editingCard.timerStart)}</span><button className="btnG" onClick={()=>{const add=Math.max(1,Math.round((Date.now()-editingCard.timerStart)/60000));db.collection("cards").doc(editingCard.id).update({timerStart:0,workMins:firebase.firestore.FieldValue.increment(add)});setEditingCard({...editingCard,timerStart:0,workMins:(editingCard.workMins||0)+add});}}>⏹️ إيقاف</button></>):(<button className="btnO" onClick={()=>{db.collection("cards").doc(editingCard.id).update({timerStart:Date.now()});setEditingCard({...editingCard,timerStart:Date.now()});}}>⏱️ ابدأ عدّاد الشغل</button>)}{(editingCard.workMins||0)>0&&<span style={{fontSize:11,color:theme.textDim}}>⏳ الإجمالي: {fmtDur(editingCard.workMins*60000)}</span>}</div>)}
 <label style={{display:"flex",alignItems:"center",gap:8,marginBottom:14,fontSize:14}}><input type="checkbox" checked={!!editingCard.urgent} onChange={e=>setEditingCard({...editingCard,urgent:e.target.checked})}/> ⚠️ {t.urgent}</label>
@@ -1260,6 +1264,17 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <button onClick={()=>{const n=prompt(t.addStage);if(n&&n.trim()&&!stages.includes(n.trim()))saveStages(stages.concat([n.trim()]));}} className="chip" style={{marginTop:4}}>➕</button></div>
 <div className="lbl">🔧 {t.manageMachines}</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{machines.map(m=><button key={m} onClick={()=>{if(confirm(t.delete+" "+m))saveMachines(machines.filter(x=>x!==m));}} className="chip">{m} ✕</button>)}<button onClick={()=>{const n=prompt(t.add);if(n&&n.trim()&&!machines.includes(n.trim()))saveMachines(machines.concat([n.trim()]));}} className="chip on">➕</button></div>
 <div className="lbl">🎨 {t.manageColors}</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{customColors.map(c=><button key={c} onClick={()=>saveColors(customColors.filter(x=>x!==c))} className="chip">{c} ✕</button>)}<button onClick={()=>{const n=prompt(t.add);if(n&&n.trim())saveColors(customColors.concat([n.trim()]));}} className="chip on">➕</button></div>
+{canEditFields&&(<>
+<div className="lbl">🎴 شكل الكرت (بيانات الكرت)</div>
+<div style={{marginBottom:10}}>{cardFields.map((f,i)=>(<div key={f.key} style={{display:"flex",gap:6,alignItems:"center",marginBottom:6}}>
+<span style={{flex:1,fontSize:13,opacity:f.visible===false?.45:1}}>{fldLabel(f)}</span>
+<button onClick={()=>fldOrder(f.key,-1)} className="chip" disabled={i===0}>⬆️</button>
+<button onClick={()=>fldOrder(f.key,1)} className="chip" disabled={i===cardFields.length-1}>⬇️</button>
+<button onClick={()=>fldToggle(f.key)} className={"chip"+(f.visible===false?"":" on")}>{f.visible===false?"🙈":"👁️"}</button>
+{f.custom&&<button onClick={()=>fldDel(f.key)} className="chip">🗑️</button>}
+</div>))}</div>
+<button onClick={fldAdd} className="chip on" style={{marginBottom:10}}>➕ إضافة خانة مخصصة</button>
+</>)}
 <div className="lbl">🚩 أعلام الكروت</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{(factory.flags||[]).map(f=><button key={f} onClick={()=>{if(confirm("حذف العلم: "+f)){setFactory(ff=>({...ff,flags:(ff.flags||[]).filter(x=>x!==f)}));db.collection("config").doc("factory").set({flags:firebase.firestore.FieldValue.arrayRemove(f)},{merge:true});}}} className="chip">{f} ✕</button>)}<button onClick={()=>{const n=prompt("اسم العلم الجديد (مثال: 🖨️ طباعة قماش)");if(n&&n.trim()){setFactory(f=>({...f,flags:[...(f.flags||[]),n.trim()]}));db.collection("config").doc("factory").set({flags:firebase.firestore.FieldValue.arrayUnion(n.trim())},{merge:true});}}} className="chip on">➕</button></div>
 <div className="lbl">🏖️ أجازات المصنع</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>{(factory.holidays||[]).map(h=><button key={h} onClick={()=>{if(confirm("حذف إجازة "+h+"؟"))saveFactory({holidays:(factory.holidays||[]).filter(x=>x!==h)});}} className="chip">{h} ✕</button>)}</div><input type="date" className="inp" style={{marginBottom:8}} onChange={e=>{if(e.target.value&&!((factory.holidays)||[]).includes(e.target.value))saveFactory({holidays:[...(factory.holidays||[]),e.target.value]});e.target.value="";}}/><button onClick={()=>saveFactory({closed:!factory.closed})} className={"chip"+(factory.closed?" on":"")} style={{marginBottom:10}}>{factory.closed?"🔒 المصنع مقفل اليوم":"🔓 المصنع شغال"}</button>
 <button onClick={()=>{if(!("Notification" in window)){alert("المتصفح مش بيدعم التنبيهات");return;}Notification.requestPermission().then(p=>alert(p==="granted"?"✅ تنبيهات التأخر اشتغلت — حتى والتطبيق في الخلفية":"❌ اسمح بالإشعارات من إعدادات المتصفح"));}} className="chip" style={{marginBottom:10}}>🔔 تنبيهات التأخر</button>
