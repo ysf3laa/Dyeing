@@ -219,9 +219,6 @@ const [showMyWork,setShowMyWork]=useState(false);
 const [showAsk,setShowAsk]=useState(false);const [askQ,setAskQ]=useState("");const [askA,setAskA]=useState("");const [askBusy,setAskBusy]=useState(0);
 const [showBook,setShowBook]=useState(false);
 const [gemKeyDraft,setGemKeyDraft]=useState(localStorage.getItem("gemini_key")||"");
-const pushedRef=React.useRef(false);
-useEffect(()=>{const open=!!(photoView||showAsk||showBook||editingCard||showMenu||showFlags||showWorkers||showMyWork||qrCard||actionCard);if(open&&!pushedRef.current){pushedRef.current=true;try{history.pushState({app:1},"");}catch(e){}}if(!open)pushedRef.current=false;},[photoView,showAsk,showBook,editingCard,showMenu,showFlags,showWorkers,showMyWork,qrCard,actionCard]);
-useEffect(()=>{const h=()=>{if(pushedRef.current){pushedRef.current=false;setPhotoView(null);setShowAsk(false);setShowBook(false);setEditingCard(null);setShowMenu(false);setShowFlags(false);setShowWorkers(false);setShowMyWork(false);setQrCard(null);setActionCard(null);}else{setScreen("home");}};window.addEventListener("popstate",h);return()=>window.removeEventListener("popstate",h);},[]);
 const askGemini=async()=>{const q=askQ.trim();if(!q||askBusy)return;setAskBusy(1);setAskA("");const key=String(factory.gkey||localStorage.getItem("gemini_key")||window.__masterGem||"").trim();if(!key){setAskA("❌ مفيش مفتاح Gemini");setAskBusy(0);return;}
 const cardsDump=liveCards.slice(0,300).map(c=>[c.customer,c.code,c.color,c.category,c.quantity,c.stage,c.delivered?"مسلّم":""].filter(Boolean).join("|")).join("\n");
 const loadsDump=(loads||[]).map(l=>{const s=loadStats(l);return [l.name||l.category||l.title||"خامة","كلي:"+(l.total||0),"باقي:"+Math.max(0,Math.round(s.rem))].join("|");}).join("\n");
@@ -279,6 +276,9 @@ const [bcCard,setBcCard]=useState(null);const [nameDraft,setNameDraft]=useState(
 const [editingCard,setEditingCard]=useState(null);const [actionCard,setActionCard]=useState(null);
 const [moveCard_,setMoveCard]=useState(null);const [copyCard_,setCopyCard]=useState(null);
 const [qrCard,setQrCard]=useState(null);const [toast,setToast]=useState(null);
+const pushedRef=React.useRef(false);
+useEffect(()=>{const open=!!(photoView||showAsk||showBook||editingCard||showMenu||showFlags||showWorkers||showMyWork||qrCard||actionCard);if(open&&!pushedRef.current){pushedRef.current=true;try{history.pushState({app:1},"");}catch(e){}}if(!open)pushedRef.current=false;},[photoView,showAsk,showBook,editingCard,showMenu,showFlags,showWorkers,showMyWork,qrCard,actionCard]);
+useEffect(()=>{const h=()=>{if(pushedRef.current){pushedRef.current=false;setPhotoView(null);setShowAsk(false);setShowBook(false);setEditingCard(null);setShowMenu(false);setShowFlags(false);setShowWorkers(false);setShowMyWork(false);setQrCard(null);setActionCard(null);}else{setScreen("home");}};window.addEventListener("popstate",h);return()=>window.removeEventListener("popstate",h);},[]);
 const [micOn,setMicOn]=useState(false);const [micText,setMicText]=useState("");const [showMic,setShowMic]=useState(false);const [micLang,setMicLang]=useState("ar-EG");
 const recRef=useRef(null);
 const photoInputRef=useRef(null);const photoGalRef=useRef(null);const scanFileRef=useRef(null);
