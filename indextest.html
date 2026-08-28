@@ -283,85 +283,56 @@ const [editingCard,setEditingCard]=useState(null);const [actionCard,setActionCar
 const [moveCard_,setMoveCard]=useState(null);const [copyCard_,setCopyCard]=useState(null);
 const [qrCard,setQrCard]=useState(null);const [toast,setToast]=useState(null);
 const modalRef=React.useRef(false);const screenRef=React.useRef("home");
-/* ===== نظام الرجوع الموحد والنظيف ===== */
 useEffect(()=>{
-  // تسجيل خطوة أولية عند فتح التطبيق
-  history.pushState({guard:1},"");
-  
-  const onPop = () => {
-    const u = uiRef.current;
-    
-    // 1. أولوية إغلاق النوافذ المنبثقة (Modals)
-    if(u.showAsk) { setShowAsk(false); history.pushState({guard:1},""); return; }
-    if(u.showBook) { setShowBook(false); history.pushState({guard:1},""); return; }
-    if(u.showBlack) { setShowBlack(false); history.pushState({guard:1},""); return; }
-    if(u.showFlags) { setShowFlags(false); history.pushState({guard:1},""); return; }
-    if(u.showMyWork) { setShowMyWork(false); history.pushState({guard:1},""); return; }
-    if(u.showSched) { setShowSched(false); history.pushState({guard:1},""); return; }
-    if(u.showStored) { setShowStored(false); history.pushState({guard:1},""); return; }
-    if(u.showTopCust) { setShowTopCust(false); history.pushState({guard:1},""); return; }
-    if(u.showLateList) { setShowLateList(false); history.pushState({guard:1},""); return; }
-    if(u.showDelivered) { setShowDelivered(false); history.pushState({guard:1},""); return; }
-    if(u.heroEdit) { setHeroEdit(false); history.pushState({guard:1},""); return; }
-    if(u.showDefects) { setShowDefects(false); history.pushState({guard:1},""); return; }
-    if(u.defectFor) { setDefectFor(null); history.pushState({guard:1},""); return; }
-    if(u.showAnnounce) { setShowAnnounce(false); history.pushState({guard:1},""); return; }
-    if(u.linkedFrom) { setLinkedFrom(null); history.pushState({guard:1},""); return; }
-    if(u.addLoad) { setAddLoad(false); history.pushState({guard:1},""); return; }
-    if(u.loadDetail) { setLoadDetail(null); history.pushState({guard:1},""); return; }
-    if(u.showWarehouse) { setShowWarehouse(false); history.pushState({guard:1},""); return; }
-    if(u.showMic) { setShowMic(false); history.pushState({guard:1},""); return; }
-    if(u.importMenu) { setImportMenu(false); history.pushState({guard:1},""); return; }
-    if(u.importDraft) { setImportDraft(null); history.pushState({guard:1},""); return; }
-    if(u.reportText) { setReportText(null); history.pushState({guard:1},""); return; }
-    if(u.showScanner) { setShowScanner(false); history.pushState({guard:1},""); return; }
-    if(u.bcCard) { setBcCard(null); history.pushState({guard:1},""); return; }
-    if(u.statementFor) { setStatementFor(null); history.pushState({guard:1},""); return; }
-    if(u.showWorkers) { setShowWorkers(false); history.pushState({guard:1},""); return; }
-    if(u.photoView) { setPhotoView(null); history.pushState({guard:1},""); return; }
-    if(u.appQr) { setAppQr(false); history.pushState({guard:1},""); return; }
-    if(u.showMenu) { setShowMenu(false); history.pushState({guard:1},""); return; }
-    if(u.editingCard) { setEditingCard(null); history.pushState({guard:1},""); return; }
-    if(u.actionCard) { setActionCard(null); history.pushState({guard:1},""); return; }
-    if(u.moveCard_) { setMoveCard(null); history.pushState({guard:1},""); return; }
-    if(u.copyCard_) { setCopyCard(null); history.pushState({guard:1},""); return; }
-    if(u.qrCard) { setQrCard(null); history.pushState({guard:1},""); return; }
-    if(u.showSearch) { setShowSearch(false); history.pushState({guard:1},""); return; }
-    if(u.showSettings) { setShowSettings(false); history.pushState({guard:1},""); return; }
-
-    // 2. التنقل بين الشاشات (مع تعويض خطوة التاريخ فوراً لمنع الخروج العرضي)
-    if(u.screen === "stage") {
-      setScreen("stages");
-      history.pushState({guard:1},"");
-      return;
-    }
-    if(u.screen === "stages" || u.screen === "log" || u.screen === "archive" || u.screen !== "home") {
-      setScreen("home");
-      history.pushState({guard:1},"");
-      return;
-    }
-
-    // 3. منطق الخروج من الرئيسية (يتطلب ضغطة مزدوجة)
-    if(u.screen === "home") {
-      if(!window.__exitPending) {
-        window.__exitPending = true;
-        showToast("🔙 دوس رجوع تاني للخروج");
-        // نضيف خطوة جديدة حتى تكون هناك خطوة تستهلك في الضغطة الثانية
-        history.pushState({guard:1},"");
-        // إلغاء الحالة بعد 2.5 ثانية لو المستخدم لم يضغط مرة أخرى
-        setTimeout(()=>{ window.__exitPending = false; }, 2500);
-        return;
-      }
-      // الضغطة الثانية: خروج فعلي
-      window.__exitPending = false;
-      history.back();
-      return;
-    }
+  const onPop=()=>{
+    const u=uiRef.current;
+    if(u.showAsk)setShowAsk(false);
+    else if(u.showBook)setShowBook(false);
+    else if(u.showBlack)setShowBlack(false);
+    else if(u.showFlags)setShowFlags(false);
+    else if(u.showMyWork)setShowMyWork(false);
+    else if(u.showSched)setShowSched(false);
+    else if(u.showStored)setShowStored(false);
+    else if(u.showTopCust)setShowTopCust(false);
+    else if(u.showLateList)setShowLateList(false);
+    else if(u.showDelivered)setShowDelivered(false);
+    else if(u.heroEdit)setHeroEdit(false);
+    else if(u.showDefects)setShowDefects(false);
+    else if(u.defectFor)setDefectFor(null);
+    else if(u.showAnnounce)setShowAnnounce(false);
+    else if(u.linkedFrom)setLinkedFrom(null);
+    else if(u.addLoad)setAddLoad(false);
+    else if(u.loadDetail)setLoadDetail(null);
+    else if(u.showWarehouse)setShowWarehouse(false);
+    else if(u.showMic)setShowMic(false);
+    else if(u.importMenu)setImportMenu(false);
+    else if(u.importDraft)setImportDraft(null);
+    else if(u.reportText)setReportText(null);
+    else if(u.showScanner)setShowScanner(false);
+    else if(u.bcCard)setBcCard(null);
+    else if(u.statementFor)setStatementFor(null);
+    else if(u.showWorkers)setShowWorkers(false);
+    else if(u.photoView)setPhotoView(null);
+    else if(u.appQr)setAppQr(false);
+    else if(u.showMenu)setShowMenu(false);
+    else if(u.editingCard)setEditingCard(null);
+    else if(u.actionCard)setActionCard(null);
+    else if(u.moveCard_)setMoveCard(null);
+    else if(u.copyCard_)setCopyCard(null);
+    else if(u.qrCard)setQrCard(null);
+    else if(u.showSearch)setShowSearch(false);
+    else if(u.showSettings)setShowSettings(false);
+    else if(u.screen==="stage")setScreen("stages");
+    else if(u.screen==="stages")setScreen("home");
+    else if(u.screen==="log")setScreen("home");
+    else if(u.screen==="archive")setScreen("home");
+    else if(u.screen!=="home"){setScreen("home");}
+    else{history.back();return;}
+    history.pushState({guard:1},"");
   };
-
-  window.addEventListener("popstate", onPop);
-  return () => window.removeEventListener("popstate", onPop);
-}, []);
+  window.addEventListener("popstate",onPop);
+  return()=>window.removeEventListener("popstate",onPop);
+},[]);
 useEffect(()=>{const on=()=>{setIsOnline(true);setSyncStatus("syncing");setTimeout(()=>{setSyncStatus("synced");setTimeout(()=>setSyncStatus("idle"),2000);},1500);};const off=()=>{setIsOnline(false);setSyncStatus("idle");};window.addEventListener("online",on);window.addEventListener("offline",off);return()=>{window.removeEventListener("online",on);window.removeEventListener("offline",off);};},[]);
 useEffect(()=>{const b=document.getElementById("syncBar");if(b)b.classList.toggle("active",syncStatus==="syncing");},[syncStatus]);
 useEffect(()=>{if(!fbReady||!auth||!db)return;const un=auth.onAuthStateChanged(async user=>{if(user){setUserId(user.uid);const s=localStorage.getItem("owner_name_"+(localStorage.getItem("username")||user.uid));if(s)setOwnerName(s);else{const o=localStorage.getItem("owner_name_"+user.uid);if(o)setOwnerName(o);}
