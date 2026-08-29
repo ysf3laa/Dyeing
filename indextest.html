@@ -141,7 +141,7 @@ function b64e(s){return btoa(unescape(encodeURIComponent(s))).replace(/\+/g,"-")
 function b64d(s){s=String(s).replace(/-/g,"+").replace(/_/g,"/");while(s.length%4)s+="=";return JSON.parse(decodeURIComponent(escape(atob(s))));}
 function pubUrl(c){try{const v=c.barcode||c.code||c.id;return APP_URL+"?d="+b64e(JSON.stringify({n:c.customer||"",c:v,col:c.color||"",cat:c.category||"",q:c.quantity||""}));}catch(e){return APP_URL;}}
 function readCompressed(f,cb){const r=new FileReader();r.onload=()=>{const i=new Image();i.onload=()=>{const s=Math.min(1,700/Math.max(i.width,i.height));const c=document.createElement("canvas");c.width=Math.round(i.width*s);c.height=Math.round(i.height*s);c.getContext("2d").drawImage(i,0,0,c.width,c.height);cb(c.toDataURL("image/jpeg",0.6));};i.src=r.result;};r.readAsDataURL(f);}
-function MenuBtn({children,onClick,active}){return <button onClick={onClick} style={{width:"100%",display:"flex",alignItems:"center",gap:8,padding:"11px 10px",borderRadius:12,border:"none",background:active?"rgba(124,92,255,.15)":"transparent",color:active?"var(--vio2)":"var(--txt)",fontSize:14,fontWeight:700,textAlign:"start",marginBottom:2}}>{children}</button>;}
+function MenuBtn({children,onClick,active}){return <button onClick={onClick} style={{width:"100%",minWidth:0,display:"flex",alignItems:"center",gap:6,padding:"11px 8px",borderRadius:12,border:"none",background:active?"rgba(124,92,255,.15)":"transparent",color:active?"var(--vio2)":"var(--txt)",fontSize:15.5,fontWeight:700,textAlign:"start",marginBottom:2,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{children}</button>;}
 function BarcodeView({value,h}){const r=useRef(null);useEffect(()=>{if(r.current&&value&&window.JsBarcode){try{JsBarcode(r.current,value,{format:"CODE128",background:"transparent",lineColor:"#000",width:2,height:h||50,displayValue:true,fontSize:14,font:"monospace",margin:0});}catch(e){}}},[value,h]);if(!value)return null;return <svg ref={r} style={{maxWidth:"100%"}}/>;}
 function QrView({value,size}){const r=useRef(null);useEffect(()=>{if(r.current&&value&&window.QRCode){r.current.innerHTML="";try{new QRCode(r.current,{text:String(value),width:size||200,height:size||200,correctLevel:QRCode.CorrectLevel.M});}catch(e){}}},[value,size]);if(!window.QRCode)return <div style={{fontSize:12,padding:8}}>{value}</div>;return <div ref={r} style={{display:"inline-block",background:"#fff",borderRadius:12,padding:8}}/>;}
 function Ring({pct,size,color,children}){return <div className="ring" style={{width:size,height:size,background:"conic-gradient("+color+" "+(pct*3.6)+"deg,var(--line) 0)"}}><div style={{width:size-14,height:size-14,borderRadius:"50%",background:"var(--panel)",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column"}}>{children}</div></div>;}
@@ -822,12 +822,13 @@ return(<div style={{padding:"8mm",fontFamily:"Arial",color:"#000",direction:"rtl
 </div></div>)}
 {showMenu&&(
 <div className="modal" onClick={()=>setShowMenu(false)}>
-<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:300}}>
+<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:360}}>
 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}><span style={{fontSize:22}}>🏭</span><b>{factory.fname}</b></div>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:4}}>
 <MenuBtn onClick={()=>{setScreen("home");setShowMenu(false);}} active={screen==="home"}>🏠 {t.home}</MenuBtn>
 <MenuBtn onClick={()=>{setScreen("stages");setShowMenu(false);}} active={screen==="stages"}>🏭 {t.stagesLabel}</MenuBtn>
 <MenuBtn onClick={()=>{setShowWarehouse(true);setShowMenu(false);}}>📦 المخزن الرئيسي</MenuBtn>
-<div style={{height:1,background:theme.border,margin:"8px 0"}}/>
+<div style={{gridColumn:"1 / -1",height:1,background:theme.border,margin:"8px 0"}}/>
 <MenuBtn onClick={()=>{setReportText(buildReport());setShowMenu(false);}}>📊 {t.report}</MenuBtn>
 <MenuBtn onClick={()=>{setStatementFor(knownCustomers[0]?knownCustomers[0].name:"");setShowMenu(false);}}>👥 {t.statement}</MenuBtn>
 <MenuBtn onClick={()=>{setShowTopCust(true);setShowMenu(false);}}>🏅 أعلى العملاء</MenuBtn>
@@ -843,6 +844,9 @@ return(<div style={{padding:"8mm",fontFamily:"Arial",color:"#000",direction:"rtl
 <MenuBtn onClick={()=>{setShowFlags(true);setShowMenu(false);}}>🚩 أعلام الكروت</MenuBtn>
 <MenuBtn onClick={()=>{setNameDraft(ownerName);openSettingsGuard();setShowMenu(false);}}>⚙️ {t.settings}</MenuBtn>
 <MenuBtn onClick={()=>{window.open("https://wa.me/"+SUPPORT_WA+"?text="+encodeURIComponent("🆘 دعم — "+(factory.fname||"")+" | المستخدم: "+(ownerName||"")+" | الشركة: "+(localStorage.getItem("companyID")||"")),"_blank");setShowMenu(false);}}>🆘 دعم واتساب</MenuBtn>
+</div>
+<div style={{height:1,background:theme.border,margin:"10px 0"}}/>
+<button onClick={()=>{localStorage.removeItem("companyID");localStorage.removeItem("username");localStorage.removeItem("pin");localStorage.removeItem("role");setShowMenu(false);location.reload();}} className="btnO" style={{borderColor:"var(--red)",color:"var(--red)"}}>🚪 تسجيل خروج</button>
 </div></div>)}
 {showLateList&&(
 <div className="modal" onClick={()=>setShowLateList(false)}>
@@ -1217,7 +1221,6 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div className="modal" onClick={()=>setShowSettings(false)}>
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:400}}>
 <h3 style={{margin:"0 0 14px"}}>⚙️ {t.settings}</h3>
-<button onClick={()=>{localStorage.removeItem("companyID");localStorage.removeItem("username");localStorage.removeItem("pin");localStorage.removeItem("role");setShowSettings(false);location.reload();}} className="btnO" style={{marginBottom:12,borderColor:"var(--red)",color:"var(--red)"}}>🚪 تسجيل خروج</button>
 <div style={{display:"flex",alignItems:"center",gap:8,padding:"10px 12px",background:"rgba(124,92,255,.08)",border:"1px solid var(--line)",borderRadius:12,marginBottom:12}}>
 <div style={{fontSize:22}}>{localStorage.getItem("role")==="master"?"👑":localStorage.getItem("role")==="manager"?"👔":localStorage.getItem("role")==="assistant"?"🎖️":"👷"}</div>
 <div style={{flex:1}}>
