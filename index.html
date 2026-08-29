@@ -69,7 +69,7 @@ fieldset{border:none;margin:0;padding:0;min-width:0}
 <script>
 window.onerror=function(m,u,l){if(m&&m!=="Script error."&&!window.__booted){var r=document.getElementById("root");if(r)r.innerHTML='<div style="padding:16px;color:#FF5C7A;font-size:12px;word-break:break-all;text-align:center">خطأ: '+m+'<br>سطر: '+l+'<br>📄 الملف: '+u+'</div>';}};
 window.addEventListener("unhandledrejection",function(e){e.preventDefault();console.warn(e.reason);});
-setTimeout(function(){if(!window.__booted){var r=document.getElementById("root");if(r&&r.innerHTML.indexOf("خطأ")===-1){var d=document.createElement("div");d.style.cssText="position:fixed;bottom:10px;left:10px;right:10px;background:#1B2036;color:#FF5C7A;border:1px solid #FF5C7A;border-radius:14px;padding:12px;font-size:12px;text-align:center;z-index:99999";d.innerHTML="⚠️ المكتبات لسه بتتحمل — دوس إعادة أو غيّر الشبكة<br><button onclick='location.reload()' style='margin-top:8px;background:#7C5CFF;color:#fff;border:none;border-radius:10px;padding:9px 22px;font-size:13px;font-weight:700'>🔄 إعادة المحاولة</button>";r.appendChild(d);}}},45000);
+setTimeout(function(){if(!window.__booted){var r=document.getElementById("root");if(r&&r.innerHTML.indexOf("خطأ")===-1&&!document.getElementById("slowLoadMsg")){var d=document.createElement("div");d.id="slowLoadMsg";d.style.cssText="position:fixed;bottom:10px;left:10px;right:10px;background:#1B2036;color:#FF5C7A;border:1px solid #FF5C7A;border-radius:14px;padding:12px;font-size:12px;text-align:center;z-index:99999";d.innerHTML="⚠️ لسه بيحمّل، الاتصال شكله بطيء — دوس إعادة أو غيّر الشبكة<br><button onclick='location.reload()' style='margin-top:8px;background:#7C5CFF;color:#fff;border:none;border-radius:10px;padding:9px 22px;font-size:13px;font-weight:700'>🔄 إعادة المحاولة</button>";r.appendChild(d);}}},120000);
 </script>
 <script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script>
 <script src="lib/react.js"></script>
@@ -88,8 +88,9 @@ if(window.isDemo){setInterval(()=>{localStorage.clear();location.reload();},3600
 <script src="lib/fbfs.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 <script src="lib/qrcode.js"></script>
-<script src="lib/html5qrcode.js"></script>
-<script src="lib/tesseract.js"></script>
+<script>
+window.loadScriptOnce=function(src){window.__loadedScripts=window.__loadedScripts||{};if(window.__loadedScripts[src])return window.__loadedScripts[src];window.__loadedScripts[src]=new Promise(function(resolve,reject){var s=document.createElement("script");s.src=src;s.onload=function(){resolve();};s.onerror=function(){delete window.__loadedScripts[src];reject(new Error("load failed: "+src));};document.head.appendChild(s);});return window.__loadedScripts[src];};
+</script>
 <script type="text/babel" data-presets="react">
 const {useState,useEffect,useRef}=React;
 function useCountUp(v,dur){const [n,setN]=useState(0);useEffect(()=>{let s=null;let raf;const step=t=>{if(s===null)s=t;const p=Math.min(1,(t-s)/(dur||900));setN(Math.round(v*(1-Math.pow(1-p,3))));if(p<1)raf=requestAnimationFrame(step);};raf=requestAnimationFrame(step);return()=>cancelAnimationFrame(raf);},[v]);return n;}
@@ -217,7 +218,7 @@ const [appQr,setAppQr]=useState(false);const [wipeConfirm,setWipeConfirm]=useSta
 const [unlocked,setUnlocked]=useState(()=>localStorage.getItem("dye_unlock")==="1");
 const [codeInput,setCodeInput]=useState("");const [gemKey,setGemKey]=useState(localStorage.getItem("gemini_key")||"");
 const [importBusy,setImportBusy]=useState(null);const [importDraft,setImportDraft]=useState(null);const [importMenu,setImportMenu]=useState(false);
-const [lang,setLang]=useState(()=>localStorage.getItem("pref_lang")||"ar");
+const [lang,setLang]=useState(()=>{const saved=localStorage.getItem("pref_lang");if(saved)return saved;const nav=((navigator.language||navigator.userLanguage||"")+"").toLowerCase();return nav.startsWith("ar")?"ar":"en";});
 const [dark,setDark]=useState(true);
 const [stages,setStages]=useState(DEFAULT_STAGES);const [machines,setMachines]=useState(DEFAULT_MACHINES);const [cardFields,setCardFields]=useState(DEFAULT_FIELDS);
 const [showMyWork,setShowMyWork]=useState(false);
@@ -310,6 +311,7 @@ const gotoDone=useRef(false);
 const uiRef=useRef({});
 uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,showTopCust,photoView,appQr,importMenu,importDraft,showMic,showWarehouse,addLoad,loadDetail,showLateList,showDelivered,heroEdit,showDefects,defectFor,showAnnounce,linkedFrom,showAsk,showBook,showBlack,showFlags,showMyWork,showSched,showStored};
 const t=DICT[lang];const dir=lang==="ar"?"rtl":"ltr";
+useEffect(()=>{document.documentElement.lang=lang;document.documentElement.dir=dir;},[lang,dir]);
 const can=true;unlocked;
 const canEditFields=["manager","assistant","master"].includes(localStorage.getItem("role")||"");
 const [themeMode,setThemeMode]=useState(localStorage.getItem("themeMode")||"dark");
@@ -353,10 +355,14 @@ useEffect(()=>{if(!firebaseOk||!userId||!ownerName||!db)return;const beat=()=>{t
 useEffect(()=>{if(!ready||gotoDone.current)return;const g=new URLSearchParams(window.location.search).get("goto");if(!g)return;let p=null;try{p=b64d(g);}catch(e){return;}if(!p||!p.c)return;
 const f=cards.find(c=>(c.barcode&&c.barcode===p.c)||c.code===p.c);
 if(f){gotoDone.current=true;jumpToCard(f);showToast("📍 "+t.foundIn+": "+f.stage);}},[ready,cards]);
-useEffect(()=>{if(!showScanner||!window.Html5Qrcode)return;let done=false;const hq=new Html5Qrcode("bc-reader");scannerRef.current=hq;
+useEffect(()=>{if(!showScanner)return;let done=false,hq=null,cancelled=false;
+(async()=>{try{if(!window.Html5Qrcode)await window.loadScriptOnce("lib/html5qrcode.js");}catch(e){if(!cancelled){setShowScanner(false);showToast(t.cameraErr,"danger");}return;}
+if(cancelled||!window.Html5Qrcode)return;
+hq=new Html5Qrcode("bc-reader");scannerRef.current=hq;
 const fm=window.Html5QrcodeSupportedFormats?[Html5QrcodeSupportedFormats.QR_CODE,Html5QrcodeSupportedFormats.CODE_128,Html5QrcodeSupportedFormats.CODE_39,Html5QrcodeSupportedFormats.EAN_13]:null;
-hq.start({facingMode:"environment"},Object.assign({fps:10,qrbox:{width:250,height:190}},fm?{formatsToSupport:fm}:{}),(txt)=>{if(done)return;done=true;try{hq.stop();}catch(e){}setShowScanner(false);handleScan(String(txt).trim());},()=>{}).catch(()=>{setShowScanner(false);showToast(t.cameraErr,"danger");});
-return()=>{done=true;try{hq.stop();hq.clear();}catch(e){}};},[showScanner]);
+hq.start({facingMode:"environment"},Object.assign({fps:10,qrbox:{width:250,height:190}},fm?{formatsToSupport:fm}:{}),(txt)=>{if(done)return;done=true;try{hq.stop();}catch(e){}setShowScanner(false);handleScan(String(txt).trim());},()=>{}).catch(()=>{if(!cancelled){setShowScanner(false);showToast(t.cameraErr,"danger");}});
+})();
+return()=>{cancelled=true;done=true;if(hq){try{hq.stop();hq.clear();}catch(e){}}};},[showScanner]);
 const showToast=(m,k)=>{setToast({msg:m,kind:k||"ok"});setTimeout(()=>setToast(null),2600);};
 const confirmName=()=>{if(!nameInput.trim())return;setOwnerName(nameInput.trim());if(userId)localStorage.setItem("owner_name_"+(localStorage.getItem("username")||userId),nameInput.trim());};
 const jumpToCard=c=>{setActiveStage(c.stage);setScreen("stage");setEditingCard(c);};
@@ -415,8 +421,9 @@ const fldToggle=k=>{const l=cardFields.map(f=>f.key===k?{...f,visible:f.visible=
 const fldAdd=()=>{const lbl=prompt("اسم الخانة الجديدة:");if(!lbl||!lbl.trim())return;const key="custom_"+uid();saveFields([...cardFields,{key,label:lbl.trim(),custom:true,visible:true}]);};
 const fldDel=k=>{if(!confirm(t.delete+"؟"))return;saveFields(cardFields.filter(f=>f.key!==k));};
 const fldLabel=f=>f.custom?f.label:(t[f.key]||f.key);
-const ocrNow=f=>{if(!window.Tesseract){showToast("❌","danger");return;}
-setImportBusy(0);
+const ocrNow=async f=>{setImportBusy(0);
+if(!window.Tesseract){try{await window.loadScriptOnce("lib/tesseract.js");}catch(e){setImportBusy(null);showToast("❌","danger");return;}}
+if(!window.Tesseract){setImportBusy(null);showToast("❌","danger");return;}
 const rr3=new FileReader();
 rr3.onload=()=>{const im=new Image();im.onload=async()=>{
 const sc=Math.max(2,Math.min(3,1400/im.width));
@@ -1354,6 +1361,14 @@ return(<div><input autoFocus value={q} onChange={e=>setQ(e.target.value)} placeh
 {q.trim()&&r.length===0&&<p style={{color:"var(--dim)",fontSize:13,textAlign:"center"}}>{t.noResults}</p>}
 <div>{r.map((c,i)=>(<div key={c.id} onClick={()=>onPick(c)} className="card anim" style={{cursor:"pointer",padding:"10px 12px",marginBottom:8,animationDelay:(i*40)+"ms"}}><b style={{fontSize:14}}>{c.customer} · {c.code}</b><div style={{fontSize:12,color:"var(--dim)"}}>{c.stage} — {c.color}</div></div>))}</div></div>);
 }
+const LP_DICT={
+ar:{},
+en:{appName:"Stage Tracking",navHome:"Home",navFeatures:"Features",navShowcase:"Showcase",navContact:"Contact Us",navLogin:"Enter System",phoneTop:"Dashboard",miniStat1:"Active Products",miniStat2:"Work Stages",miniStat3:"Today's Reports",miniStat4:"New Alerts",stageListLbl:"Current Stages",stage1:"Receiving",stage2:"Dyeing",stage3:"Finishing",stage4:"Winding",stage5:"Delivery",heroTitle:'Control every <span class="g">stage of production</span> from one screen',heroDesc:"A smart system to track orders, manage stages, monitor quantities, oversee workers, and print reports instantly — all from one place.",btnStart:"Get Started",btnExplore:"Explore Features",heroNote:"Works on all devices",statLabel1:"Active Orders",statLabel2:"Users",statLabel3:"Production Stages",statLabel4:"Daily Reports",eyebrow1:"Workflow",heading1:"Work Stages",eyebrow2:"Capabilities",heading2:"System Features",feat1Title:"Works on Mobile",feat1Desc:"Fully mobile-optimized design that runs smoothly on any device.",feat2Title:"Instant Search",feat2Desc:"Find any order quickly and easily using any data.",feat3Title:"Barcode Scanning",feat3Desc:"Barcode & QR support for faster, more accurate logging.",feat4Title:"Live Reports",feat4Desc:"Instant, clear real-time reports and statistics.",feat5Title:"Card Printing",feat5Desc:"Print cards and statements with total ease.",feat6Title:"Cloud Sync",feat6Desc:"Your data is saved and synced instantly to the cloud.",eyebrow3:"Showcase",heading3:"System Snapshots",sc1:"Dashboard",sc2:"Stage Tracking",sc3:"Order Management",sc4:"Reports",sc5:"Customer Management",eyebrow4:"Comparison",heading4:"Why Stage Tracking?",goodTitle:"With Stage Tracking",good1:"Instant, accurate data",good2:"Track every stage",good3:"Instant, comprehensive reports",good4:"Automatic saving & archiving",badTitle:"Traditional Methods",bad1:"Lost paperwork",bad2:"Human errors",bad3:"Difficult to track",bad4:"Delayed reports",ctaTitle:'Manage your factory <span class="g">professionally</span>',ctaDesc:"Join hundreds of factories managing their business smartly and easily with Stage Tracking.",ctaFoot1:"No download needed",ctaFoot2:"Works directly in the browser",footerText:"© 2026 Stage Tracking — All rights reserved"}
+};
+function applyLpLang(root,lg){if(lg==="ar")return;const dict=LP_DICT[lg]||LP_DICT.en;
+root.querySelectorAll("[data-i18n]").forEach(function(el){const k=el.getAttribute("data-i18n");if(dict[k]!=null)el.textContent=dict[k];});
+root.querySelectorAll("[data-i18n-html]").forEach(function(el){const k=el.getAttribute("data-i18n-html");if(dict[k]!=null)el.innerHTML=dict[k];});
+}
 (function(){const q=new URLSearchParams(location.search);const c=q.get("cid"),u=q.get("un"),p=q.get("p");if(c&&u&&p){localStorage.setItem("companyID",c);localStorage.setItem("username",u);localStorage.setItem("pin",p);setTimeout(()=>location.replace(location.pathname),100);}})();
 if(!localStorage.getItem("companyID")){
 var s=document.createElement("div");
@@ -1480,6 +1495,9 @@ s.innerHTML=`
 #introScr .lp-cta-foot{display:flex;align-items:center;gap:12px;margin-top:14px;flex-wrap:wrap}
 #introScr .lp-cta-foot span{font-size:11.5px;color:#5F6A8F;font-weight:600}
 #introScr .lp-foot{padding:30px 0;text-align:center;color:#5F6A8F;font-size:12px;border-top:1px solid #242B47;margin-top:30px}
+#introScr .lp-contact-btn{display:inline-flex;align-items:center;gap:9px;background:#25D366;color:#fff;font-weight:800;font-size:14.5px;padding:14px 26px;border:none;border-radius:14px;box-shadow:0 10px 26px rgba(37,211,102,.35);text-decoration:none;margin-top:18px}
+#introScr .lp-wa-float{position:fixed;bottom:22px;left:22px;width:56px;height:56px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;color:#fff;font-size:26px;box-shadow:0 10px 26px rgba(37,211,102,.5);z-index:70;text-decoration:none;animation:lpFloat 3s ease-in-out infinite}
+@media(max-width:900px){#introScr .lp-wa-float{left:14px;bottom:14px;width:50px;height:50px;font-size:22px}}
 @keyframes lpFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 @keyframes lpSpin{to{transform:rotate(360deg)}}
 @media(max-width:900px){
@@ -1508,15 +1526,15 @@ s.innerHTML=`
 </style>
 <div class="lp-bgfx"><div class="lp-blob b1"></div><div class="lp-blob b2"></div><div class="lp-blob b3"></div></div>
 <nav class="lp-nav">
-  <div class="lp-logo"><div class="cube"><i class="fa-solid fa-cube"></i></div>متابعة المراحل</div>
+  <div class="lp-logo"><div class="cube"><i class="fa-solid fa-cube"></i></div><span data-i18n="appName">متابعة المراحل</span></div>
   <div class="lp-nav-links" id="lpNavLinks">
-    <a href="#lpHome" class="on">الرئيسية</a>
-    <a href="#lpFeatures">المميزات</a>
-    <a href="#lpShowcase">لقطات النظام</a>
-    <a href="#lpContact">تواصل معنا</a>
+    <a href="#lpHome" class="on" data-i18n="navHome">الرئيسية</a>
+    <a href="#lpFeatures" data-i18n="navFeatures">المميزات</a>
+    <a href="#lpShowcase" data-i18n="navShowcase">لقطات النظام</a>
+    <a href="#lpContact" data-i18n="navContact">تواصل معنا</a>
   </div>
   <div style="display:flex;align-items:center;gap:8px">
-    <button class="lp-btn-login" id="lpLoginNav"><i class="fa-solid fa-arrow-left"></i> دخول النظام</button>
+    <button class="lp-btn-login" id="lpLoginNav"><i class="fa-solid fa-arrow-left"></i> <span data-i18n="navLogin">دخول النظام</span></button>
     <button class="lp-burger" id="lpBurger"><i class="fa-solid fa-bars"></i></button>
   </div>
 </nav>
@@ -1527,24 +1545,24 @@ s.innerHTML=`
     <div class="lp-platform-glow"></div>
     <div class="lp-phone">
       <div class="lp-phone-screen">
-        <div class="lp-phone-top"><i class="fa-solid fa-bars"></i><span>لوحة التحكم</span><i class="fa-regular fa-bell"></i></div>
+        <div class="lp-phone-top"><i class="fa-solid fa-bars"></i><span data-i18n="phoneTop">لوحة التحكم</span><i class="fa-regular fa-bell"></i></div>
         <div class="lp-ring-wrap">
           <svg width="92" height="92"><circle cx="46" cy="46" r="38" stroke="#242B47" stroke-width="8" fill="none"/><circle id="lpHeroRing" cx="46" cy="46" r="38" stroke="url(#lpg1)" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="238" stroke-dashoffset="238"/><defs><linearGradient id="lpg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7C5CFF"/><stop offset="1" stop-color="#5E8FD6"/></linearGradient></defs></svg>
           <div class="pct">85%</div>
         </div>
         <div class="lp-mini-stats">
-          <div class="lp-mini-card"><i class="fa-solid fa-boxes-stacked" style="background:rgba(124,92,255,.2);color:#9F7CFF"></i><div><b>128</b><span>المنتجات النشطة</span></div></div>
-          <div class="lp-mini-card"><i class="fa-solid fa-diagram-project" style="background:rgba(94,143,214,.2);color:#5E8FD6"></i><div><b>24</b><span>مراحل العمل</span></div></div>
-          <div class="lp-mini-card"><i class="fa-solid fa-chart-simple" style="background:rgba(45,212,168,.2);color:#2DD4A8"></i><div><b>16</b><span>تقارير اليوم</span></div></div>
-          <div class="lp-mini-card"><i class="fa-solid fa-bell" style="background:rgba(255,182,92,.2);color:#FFB65C"></i><div><b>8</b><span>تنبيهات جديدة</span></div></div>
+          <div class="lp-mini-card"><i class="fa-solid fa-boxes-stacked" style="background:rgba(124,92,255,.2);color:#9F7CFF"></i><div><b>128</b><span data-i18n="miniStat1">المنتجات النشطة</span></div></div>
+          <div class="lp-mini-card"><i class="fa-solid fa-diagram-project" style="background:rgba(94,143,214,.2);color:#5E8FD6"></i><div><b>24</b><span data-i18n="miniStat2">مراحل العمل</span></div></div>
+          <div class="lp-mini-card"><i class="fa-solid fa-chart-simple" style="background:rgba(45,212,168,.2);color:#2DD4A8"></i><div><b>16</b><span data-i18n="miniStat3">تقارير اليوم</span></div></div>
+          <div class="lp-mini-card"><i class="fa-solid fa-bell" style="background:rgba(255,182,92,.2);color:#FFB65C"></i><div><b>8</b><span data-i18n="miniStat4">تنبيهات جديدة</span></div></div>
         </div>
         <div class="lp-stage-list">
-          <div class="lbl">المراحل الحالية</div>
-          <div class="lp-stage-row"><span class="dot" style="background:#7C5CFF"></span>حيات</div>
-          <div class="lp-stage-row"><span class="dot" style="background:#5E8FD6"></span>صباغة</div>
-          <div class="lp-stage-row"><span class="dot" style="background:#2DD4A8"></span>تجهيز</div>
-          <div class="lp-stage-row"><span class="dot" style="background:#FF5CA8"></span>لف</div>
-          <div class="lp-stage-row"><span class="dot" style="background:#FFB65C"></span>تسليم</div>
+          <div class="lbl" data-i18n="stageListLbl">المراحل الحالية</div>
+          <div class="lp-stage-row"><span class="dot" style="background:#7C5CFF"></span><span data-i18n="stage1">حيات</span></div>
+          <div class="lp-stage-row"><span class="dot" style="background:#5E8FD6"></span><span data-i18n="stage2">صباغة</span></div>
+          <div class="lp-stage-row"><span class="dot" style="background:#2DD4A8"></span><span data-i18n="stage3">تجهيز</span></div>
+          <div class="lp-stage-row"><span class="dot" style="background:#FF5CA8"></span><span data-i18n="stage4">لف</span></div>
+          <div class="lp-stage-row"><span class="dot" style="background:#FFB65C"></span><span data-i18n="stage5">تسليم</span></div>
         </div>
         <div class="lp-phone-nav">
           <i class="fa-solid fa-house" style="color:#9F7CFF"></i>
@@ -1557,78 +1575,78 @@ s.innerHTML=`
     </div>
   </div>
   <div class="lp-hero-text lp-reveal">
-    <h1>تحكم في كل <span class="g">مراحل الإنتاج</span> من شاشة واحدة</h1>
-    <p>نظام ذكي لمتابعة الطلبات، إدارة المراحل، تتبع الكميات، مراقبة العمال، وطباعة التقارير لحظيًا — كل ذلك من مكان واحد.</p>
+    <h1 data-i18n-html="heroTitle">تحكم في كل <span class="g">مراحل الإنتاج</span> من شاشة واحدة</h1>
+    <p data-i18n="heroDesc">نظام ذكي لمتابعة الطلبات، إدارة المراحل، تتبع الكميات، مراقبة العمال، وطباعة التقارير لحظيًا — كل ذلك من مكان واحد.</p>
     <div class="lp-hero-cta">
-      <button class="lp-btn-primary" id="lpStartBtn">ابدأ الآن <i class="fa-solid fa-rocket"></i></button>
-      <button class="lp-btn-ghost" id="lpExploreBtn">استكشف المميزات <i class="fa-solid fa-chevron-left"></i></button>
+      <button class="lp-btn-primary" id="lpStartBtn"><span data-i18n="btnStart">ابدأ الآن</span> <i class="fa-solid fa-rocket"></i></button>
+      <button class="lp-btn-ghost" id="lpExploreBtn"><span data-i18n="btnExplore">استكشف المميزات</span> <i class="fa-solid fa-chevron-left"></i></button>
     </div>
-    <div class="lp-hero-note">يعمل على جميع الأجهزة <span class="icns"><i class="fa-brands fa-android"></i><i class="fa-brands fa-apple"></i></span></div>
+    <div class="lp-hero-note"><span data-i18n="heroNote">يعمل على جميع الأجهزة</span> <span class="icns"><i class="fa-brands fa-android"></i><i class="fa-brands fa-apple"></i></span></div>
   </div>
 </section>
 
 <section class="lp-stats-bar lp-reveal">
-  <div class="lp-stat-card"><div class="lp-stat-icon" style="background:rgba(124,92,255,.18);color:#9F7CFF"><i class="fa-solid fa-clipboard-list"></i></div><div><b data-lpcount="2458">0</b><span>الطلبات النشطة</span></div></div>
-  <div class="lp-stat-card"><div class="lp-stat-icon" style="background:rgba(94,143,214,.18);color:#5E8FD6"><i class="fa-solid fa-users"></i></div><div><b data-lpcount="132">0</b><span>المستخدمون</span></div></div>
-  <div class="lp-stat-card"><div class="lp-stat-icon" style="background:rgba(45,212,168,.18);color:#2DD4A8"><i class="fa-solid fa-industry"></i></div><div><b data-lpcount="5">0</b><span>مراحل الإنتاج</span></div></div>
-  <div class="lp-stat-card"><div class="lp-stat-icon" style="background:rgba(255,182,92,.18);color:#FFB65C"><i class="fa-solid fa-arrow-trend-up"></i></div><div><b data-lpcount="89">0</b><span>التقارير اليومية</span></div></div>
+  <div class="lp-stat-card"><div class="lp-stat-icon" style="background:rgba(124,92,255,.18);color:#9F7CFF"><i class="fa-solid fa-clipboard-list"></i></div><div><b data-lpcount="2458">0</b><span data-i18n="statLabel1">الطلبات النشطة</span></div></div>
+  <div class="lp-stat-card"><div class="lp-stat-icon" style="background:rgba(94,143,214,.18);color:#5E8FD6"><i class="fa-solid fa-users"></i></div><div><b data-lpcount="132">0</b><span data-i18n="statLabel2">المستخدمون</span></div></div>
+  <div class="lp-stat-card"><div class="lp-stat-icon" style="background:rgba(45,212,168,.18);color:#2DD4A8"><i class="fa-solid fa-industry"></i></div><div><b data-lpcount="5">0</b><span data-i18n="statLabel3">مراحل الإنتاج</span></div></div>
+  <div class="lp-stat-card"><div class="lp-stat-icon" style="background:rgba(255,182,92,.18);color:#FFB65C"><i class="fa-solid fa-arrow-trend-up"></i></div><div><b data-lpcount="89">0</b><span data-i18n="statLabel4">التقارير اليومية</span></div></div>
 </section>
 
 <section class="lp-pad">
-  <div class="lp-sec-head lp-reveal"><span class="lp-eyebrow">سير العمل</span><h2>مراحل العمل</h2></div>
+  <div class="lp-sec-head lp-reveal"><span class="lp-eyebrow" data-i18n="eyebrow1">سير العمل</span><h2 data-i18n="heading1">مراحل العمل</h2></div>
   <div class="lp-process-track lp-reveal">
-    <div class="lp-p-node" style="--c:#7C5CFF"><div class="circle"><i class="fa-solid fa-truck-fast"></i></div><div class="name">حيات</div><div class="num">05</div></div>
-    <div class="lp-p-node" style="--c:#5E8FD6"><div class="circle"><i class="fa-solid fa-flask"></i></div><div class="name">صباغة</div><div class="num">02</div></div>
-    <div class="lp-p-node" style="--c:#2DD4A8"><div class="circle"><i class="fa-solid fa-gear"></i></div><div class="name">تجهيز</div><div class="num">03</div></div>
-    <div class="lp-p-node" style="--c:#34D399"><div class="circle"><i class="fa-solid fa-atom"></i></div><div class="name">لف</div><div class="num">04</div></div>
-    <div class="lp-p-node" style="--c:#FF5CA8"><div class="circle"><i class="fa-solid fa-circle-check"></i></div><div class="name">تسليم</div><div class="num">01</div></div>
+    <div class="lp-p-node" style="--c:#7C5CFF"><div class="circle"><i class="fa-solid fa-truck-fast"></i></div><div class="name" data-i18n="stage1">حيات</div><div class="num">05</div></div>
+    <div class="lp-p-node" style="--c:#5E8FD6"><div class="circle"><i class="fa-solid fa-flask"></i></div><div class="name" data-i18n="stage2">صباغة</div><div class="num">02</div></div>
+    <div class="lp-p-node" style="--c:#2DD4A8"><div class="circle"><i class="fa-solid fa-gear"></i></div><div class="name" data-i18n="stage3">تجهيز</div><div class="num">03</div></div>
+    <div class="lp-p-node" style="--c:#34D399"><div class="circle"><i class="fa-solid fa-atom"></i></div><div class="name" data-i18n="stage4">لف</div><div class="num">04</div></div>
+    <div class="lp-p-node" style="--c:#FF5CA8"><div class="circle"><i class="fa-solid fa-circle-check"></i></div><div class="name" data-i18n="stage5">تسليم</div><div class="num">01</div></div>
   </div>
 </section>
 
 <section class="lp-pad" id="lpFeatures">
-  <div class="lp-sec-head lp-reveal"><span class="lp-eyebrow">القدرات</span><h2>مميزات النظام</h2></div>
+  <div class="lp-sec-head lp-reveal"><span class="lp-eyebrow" data-i18n="eyebrow2">القدرات</span><h2 data-i18n="heading2">مميزات النظام</h2></div>
   <div class="lp-features-grid">
-    <div class="lp-feat-card lp-reveal" style="--c:#9F7CFF"><div class="lp-feat-icon"><i class="fa-solid fa-mobile-screen-button"></i></div><h3>يعمل على الهاتف</h3><p>تصميم مخصص للموبايل بالكامل، يعمل بسلاسة على أي جهاز.</p></div>
-    <div class="lp-feat-card lp-reveal" style="--c:#2DD4A8"><div class="lp-feat-icon"><i class="fa-solid fa-magnifying-glass"></i></div><h3>بحث فوري</h3><p>ابحث عن أي طلب بسرعة وسهولة عبر أي بيانات.</p></div>
-    <div class="lp-feat-card lp-reveal" style="--c:#5E8FD6"><div class="lp-feat-icon"><i class="fa-solid fa-qrcode"></i></div><h3>مسح الباركود</h3><p>دعم الباركود و QR لتسجيل أسرع وأدق.</p></div>
-    <div class="lp-feat-card lp-reveal" style="--c:#34D399"><div class="lp-feat-icon"><i class="fa-solid fa-chart-line"></i></div><h3>تقارير مباشرة</h3><p>تقارير وإحصائيات لحظية بشكل فوري وواضح.</p></div>
-    <div class="lp-feat-card lp-reveal" style="--c:#5E8FD6"><div class="lp-feat-icon"><i class="fa-solid fa-print"></i></div><h3>طباعة الكروت</h3><p>طباعة كروت وكشوف الحساب بسهولة تامة.</p></div>
-    <div class="lp-feat-card lp-reveal" style="--c:#FF5CA8"><div class="lp-feat-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div><h3>مزامنة سحابية</h3><p>بياناتك محفوظة ومزامنة لحظيًا على السحابة.</p></div>
+    <div class="lp-feat-card lp-reveal" style="--c:#9F7CFF"><div class="lp-feat-icon"><i class="fa-solid fa-mobile-screen-button"></i></div><h3 data-i18n="feat1Title">يعمل على الهاتف</h3><p data-i18n="feat1Desc">تصميم مخصص للموبايل بالكامل، يعمل بسلاسة على أي جهاز.</p></div>
+    <div class="lp-feat-card lp-reveal" style="--c:#2DD4A8"><div class="lp-feat-icon"><i class="fa-solid fa-magnifying-glass"></i></div><h3 data-i18n="feat2Title">بحث فوري</h3><p data-i18n="feat2Desc">ابحث عن أي طلب بسرعة وسهولة عبر أي بيانات.</p></div>
+    <div class="lp-feat-card lp-reveal" style="--c:#5E8FD6"><div class="lp-feat-icon"><i class="fa-solid fa-qrcode"></i></div><h3 data-i18n="feat3Title">مسح الباركود</h3><p data-i18n="feat3Desc">دعم الباركود و QR لتسجيل أسرع وأدق.</p></div>
+    <div class="lp-feat-card lp-reveal" style="--c:#34D399"><div class="lp-feat-icon"><i class="fa-solid fa-chart-line"></i></div><h3 data-i18n="feat4Title">تقارير مباشرة</h3><p data-i18n="feat4Desc">تقارير وإحصائيات لحظية بشكل فوري وواضح.</p></div>
+    <div class="lp-feat-card lp-reveal" style="--c:#5E8FD6"><div class="lp-feat-icon"><i class="fa-solid fa-print"></i></div><h3 data-i18n="feat5Title">طباعة الكروت</h3><p data-i18n="feat5Desc">طباعة كروت وكشوف الحساب بسهولة تامة.</p></div>
+    <div class="lp-feat-card lp-reveal" style="--c:#FF5CA8"><div class="lp-feat-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div><h3 data-i18n="feat6Title">مزامنة سحابية</h3><p data-i18n="feat6Desc">بياناتك محفوظة ومزامنة لحظيًا على السحابة.</p></div>
   </div>
 </section>
 
 <section class="lp-pad" id="lpShowcase">
-  <div class="lp-sec-head lp-reveal"><span class="lp-eyebrow">استعراض</span><h2>لقطات من النظام</h2></div>
+  <div class="lp-sec-head lp-reveal"><span class="lp-eyebrow" data-i18n="eyebrow3">استعراض</span><h2 data-i18n="heading3">لقطات من النظام</h2></div>
   <div class="lp-showcase-wrap lp-reveal">
     <button class="lp-sc-arrow prev" id="lpScPrev"><i class="fa-solid fa-chevron-right"></i></button>
     <button class="lp-sc-arrow next" id="lpScNext"><i class="fa-solid fa-chevron-left"></i></button>
     <div class="lp-showcase-track" id="lpScTrack">
-      <div class="lp-sc-item on"><h4>لوحة التحكم</h4><div class="lp-sc-phone"><div class="lp-sc-inner">
+      <div class="lp-sc-item on"><h4 data-i18n="sc1">لوحة التحكم</h4><div class="lp-sc-phone"><div class="lp-sc-inner">
         <svg width="52" height="52" style="margin:18px auto 8px;display:block"><circle cx="26" cy="26" r="20" stroke="#242B47" stroke-width="5" fill="none"/><circle cx="26" cy="26" r="20" stroke="#7C5CFF" stroke-width="5" fill="none" stroke-dasharray="126" stroke-dashoffset="26" stroke-linecap="round"/></svg>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:0 8px">
           <div style="background:rgba(255,255,255,.05);border-radius:7px;height:30px"></div><div style="background:rgba(255,255,255,.05);border-radius:7px;height:30px"></div>
           <div style="background:rgba(255,255,255,.05);border-radius:7px;height:30px"></div><div style="background:rgba(255,255,255,.05);border-radius:7px;height:30px"></div>
         </div>
       </div></div></div>
-      <div class="lp-sc-item"><h4>متابعة المراحل</h4><div class="lp-sc-phone"><div class="lp-sc-inner" style="display:flex;flex-direction:column;gap:7px;padding-top:14px">
+      <div class="lp-sc-item"><h4 data-i18n="sc2">متابعة المراحل</h4><div class="lp-sc-phone"><div class="lp-sc-inner" style="display:flex;flex-direction:column;gap:7px;padding-top:14px">
         <div style="display:flex;gap:5px;align-items:center;background:rgba(255,255,255,.05);border-radius:7px;padding:7px"><span style="width:7px;height:7px;border-radius:50%;background:#7C5CFF"></span><div style="flex:1;height:5px;background:rgba(255,255,255,.1);border-radius:4px"></div></div>
         <div style="display:flex;gap:5px;align-items:center;background:rgba(255,255,255,.05);border-radius:7px;padding:7px"><span style="width:7px;height:7px;border-radius:50%;background:#2DD4A8"></span><div style="flex:1;height:5px;background:rgba(255,255,255,.1);border-radius:4px"></div></div>
         <div style="display:flex;gap:5px;align-items:center;background:rgba(255,255,255,.05);border-radius:7px;padding:7px"><span style="width:7px;height:7px;border-radius:50%;background:#FF5CA8"></span><div style="flex:1;height:5px;background:rgba(255,255,255,.1);border-radius:4px"></div></div>
       </div></div></div>
-      <div class="lp-sc-item"><h4>إدارة الطلبات</h4><div class="lp-sc-phone"><div class="lp-sc-inner" style="display:flex;flex-direction:column;gap:6px;padding-top:14px">
+      <div class="lp-sc-item"><h4 data-i18n="sc3">إدارة الطلبات</h4><div class="lp-sc-phone"><div class="lp-sc-inner" style="display:flex;flex-direction:column;gap:6px;padding-top:14px">
         <div style="background:rgba(255,255,255,.05);border-radius:7px;height:24px"></div>
         <div style="background:rgba(255,255,255,.05);border-radius:7px;height:24px"></div>
         <div style="background:rgba(255,255,255,.05);border-radius:7px;height:24px"></div>
         <div style="background:rgba(124,92,255,.15);border:1px solid rgba(124,92,255,.4);border-radius:7px;height:24px"></div>
       </div></div></div>
-      <div class="lp-sc-item"><h4>التقارير</h4><div class="lp-sc-phone"><div class="lp-sc-inner" style="display:flex;align-items:flex-end;gap:5px;height:86px;padding:16px 8px 0">
+      <div class="lp-sc-item"><h4 data-i18n="sc4">التقارير</h4><div class="lp-sc-phone"><div class="lp-sc-inner" style="display:flex;align-items:flex-end;gap:5px;height:86px;padding:16px 8px 0">
         <div style="flex:1;height:40%;background:#7C5CFF;border-radius:3px 3px 0 0"></div>
         <div style="flex:1;height:70%;background:#5E8FD6;border-radius:3px 3px 0 0"></div>
         <div style="flex:1;height:55%;background:#2DD4A8;border-radius:3px 3px 0 0"></div>
         <div style="flex:1;height:90%;background:#FF5CA8;border-radius:3px 3px 0 0"></div>
         <div style="flex:1;height:35%;background:#FFB65C;border-radius:3px 3px 0 0"></div>
       </div></div></div>
-      <div class="lp-sc-item"><h4>إدارة العملاء</h4><div class="lp-sc-phone"><div class="lp-sc-inner" style="display:flex;flex-direction:column;gap:7px;padding-top:14px">
+      <div class="lp-sc-item"><h4 data-i18n="sc5">إدارة العملاء</h4><div class="lp-sc-phone"><div class="lp-sc-inner" style="display:flex;flex-direction:column;gap:7px;padding-top:14px">
         <div style="display:flex;gap:7px;align-items:center"><span style="width:17px;height:17px;border-radius:50%;background:#7C5CFF"></span><div style="flex:1;height:5px;background:rgba(255,255,255,.1);border-radius:4px"></div></div>
         <div style="display:flex;gap:7px;align-items:center"><span style="width:17px;height:17px;border-radius:50%;background:#5E8FD6"></span><div style="flex:1;height:5px;background:rgba(255,255,255,.1);border-radius:4px"></div></div>
         <div style="display:flex;gap:7px;align-items:center"><span style="width:17px;height:17px;border-radius:50%;background:#2DD4A8"></span><div style="flex:1;height:5px;background:rgba(255,255,255,.1);border-radius:4px"></div></div>
@@ -1639,26 +1657,26 @@ s.innerHTML=`
 </section>
 
 <section class="lp-pad">
-  <div class="lp-sec-head lp-reveal"><span class="lp-eyebrow">المقارنة</span><h2>لماذا متابعة المراحل؟</h2></div>
+  <div class="lp-sec-head lp-reveal"><span class="lp-eyebrow" data-i18n="eyebrow4">المقارنة</span><h2 data-i18n="heading4">لماذا متابعة المراحل؟</h2></div>
   <div class="lp-compare-grid lp-reveal">
     <div class="lp-compare-col good">
       <div class="lp-compare-face"><i class="fa-regular fa-face-smile"></i></div>
-      <h3>مع متابعة المراحل</h3>
+      <h3 data-i18n="goodTitle">مع متابعة المراحل</h3>
       <ul>
-        <li><i class="fa-solid fa-circle-check"></i> بيانات لحظية ودقيقة</li>
-        <li><i class="fa-solid fa-circle-check"></i> متابعة جميع المراحل</li>
-        <li><i class="fa-solid fa-circle-check"></i> تقارير فورية وشاملة</li>
-        <li><i class="fa-solid fa-circle-check"></i> حفظ وأرشفة تلقائية</li>
+        <li><i class="fa-solid fa-circle-check"></i> <span data-i18n="good1">بيانات لحظية ودقيقة</span></li>
+        <li><i class="fa-solid fa-circle-check"></i> <span data-i18n="good2">متابعة جميع المراحل</span></li>
+        <li><i class="fa-solid fa-circle-check"></i> <span data-i18n="good3">تقارير فورية وشاملة</span></li>
+        <li><i class="fa-solid fa-circle-check"></i> <span data-i18n="good4">حفظ وأرشفة تلقائية</span></li>
       </ul>
     </div>
     <div class="lp-compare-col bad">
       <div class="lp-compare-face"><i class="fa-regular fa-face-frown"></i></div>
-      <h3>الطرق التقليدية</h3>
+      <h3 data-i18n="badTitle">الطرق التقليدية</h3>
       <ul>
-        <li><i class="fa-solid fa-circle-xmark"></i> أوراق مفقودة</li>
-        <li><i class="fa-solid fa-circle-xmark"></i> أخطاء بشرية</li>
-        <li><i class="fa-solid fa-circle-xmark"></i> صعوبة في المتابعة</li>
-        <li><i class="fa-solid fa-circle-xmark"></i> تقارير متأخرة</li>
+        <li><i class="fa-solid fa-circle-xmark"></i> <span data-i18n="bad1">أوراق مفقودة</span></li>
+        <li><i class="fa-solid fa-circle-xmark"></i> <span data-i18n="bad2">أخطاء بشرية</span></li>
+        <li><i class="fa-solid fa-circle-xmark"></i> <span data-i18n="bad3">صعوبة في المتابعة</span></li>
+        <li><i class="fa-solid fa-circle-xmark"></i> <span data-i18n="bad4">تقارير متأخرة</span></li>
       </ul>
     </div>
     <div class="lp-vs-badge">VS</div>
@@ -1673,19 +1691,25 @@ s.innerHTML=`
       <div class="lp-cta-cube"><i class="fa-solid fa-cube"></i></div>
     </div>
     <div class="lp-cta-text">
-      <h2>ابدأ إدارة مصنعك <span class="g">باحترافية</span></h2>
-      <p>انضم إلى مئات المصانع التي تدير أعمالها بذكاء وسهولة عبر متابعة المراحل.</p>
-      <button class="lp-btn-primary" id="lpLoginCta">دخول النظام <i class="fa-solid fa-arrow-left"></i></button>
-      <div class="lp-cta-foot"><span>لا حاجة للتحميل</span><span>•</span><span>يعمل مباشرة من المتصفح</span></div>
+      <h2 data-i18n-html="ctaTitle">ابدأ إدارة مصنعك <span class="g">باحترافية</span></h2>
+      <p data-i18n="ctaDesc">انضم إلى مئات المصانع التي تدير أعمالها بذكاء وسهولة عبر متابعة المراحل.</p>
+      <button class="lp-btn-primary" id="lpLoginCta"><span data-i18n="navLogin">دخول النظام</span> <i class="fa-solid fa-arrow-left"></i></button>
+      <div class="lp-cta-foot"><span data-i18n="ctaFoot1">لا حاجة للتحميل</span><span>•</span><span data-i18n="ctaFoot2">يعمل مباشرة من المتصفح</span></div>
+      <div><a class="lp-contact-btn" id="lpContactBtn" href="#" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> <span data-i18n="navContact">تواصل معنا</span></a></div>
     </div>
   </div>
 </section>
 </div>
-<footer class="lp-foot">© 2026 متابعة المراحل — جميع الحقوق محفوظة</footer>
+<a class="lp-wa-float" id="lpWaFloat" href="#" target="_blank" rel="noopener" aria-label="تواصل معنا واتساب"><i class="fa-brands fa-whatsapp"></i></a>
+<footer class="lp-foot" data-i18n="footerText">© 2026 متابعة المراحل — جميع الحقوق محفوظة</footer>
 `;
 document.getElementById("root").appendChild(s);
+(function(){var saved=localStorage.getItem("pref_lang");var nav=((navigator.language||navigator.userLanguage||"")+"").toLowerCase();var lg=saved||(nav.startsWith("ar")?"ar":"en");applyLpLang(s,lg);})();
 (function(){
 function closeIntro(){var el=document.getElementById("introScr");if(el)el.remove();}
+var lpWaLink="https://wa.me/"+SUPPORT_WA+"?text="+encodeURIComponent("مرحبًا، عايز أعرف أكتر عن نظام متابعة المراحل");
+var lpContactBtnEl=document.getElementById("lpContactBtn");if(lpContactBtnEl)lpContactBtnEl.href=lpWaLink;
+var lpWaFloatEl=document.getElementById("lpWaFloat");if(lpWaFloatEl)lpWaFloatEl.href=lpWaLink;
 document.getElementById("lpLoginNav").onclick=closeIntro;
 document.getElementById("lpStartBtn").onclick=closeIntro;
 document.getElementById("lpLoginCta").onclick=closeIntro;
