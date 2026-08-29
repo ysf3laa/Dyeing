@@ -8,6 +8,9 @@
 <link rel="icon" href="icon.svg">
 <meta name="mobile-web-app-capable" content="yes">
 <title>متابعة المراحل</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
 :root{--bg:#0B0E1A;--panel:#141829;--panel2:#1B2036;--line:#242B47;--txt:#EDEFF5;--dim:#8A93B5;--vio:#7C5CFF;--vio2:#9F7CFF;--blue:#5E8FD6;--teal:#2DD4A8;--red:#FF5C7A;--warn:#FFB65C}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -1352,18 +1355,408 @@ return(<div><input autoFocus value={q} onChange={e=>setQ(e.target.value)} placeh
 <div>{r.map((c,i)=>(<div key={c.id} onClick={()=>onPick(c)} className="card anim" style={{cursor:"pointer",padding:"10px 12px",marginBottom:8,animationDelay:(i*40)+"ms"}}><b style={{fontSize:14}}>{c.customer} · {c.code}</b><div style={{fontSize:12,color:"var(--dim)"}}>{c.stage} — {c.color}</div></div>))}</div></div>);
 }
 (function(){const q=new URLSearchParams(location.search);const c=q.get("cid"),u=q.get("un"),p=q.get("p");if(c&&u&&p){localStorage.setItem("companyID",c);localStorage.setItem("username",u);localStorage.setItem("pin",p);setTimeout(()=>location.replace(location.pathname),100);}})();
-if(!localStorage.getItem("companyID")&&!localStorage.getItem("introSeen")){
+if(!localStorage.getItem("companyID")){
 var s=document.createElement("div");
 s.id="introScr";
-s.style.cssText="position:fixed;inset:0;background:radial-gradient(900px 480px at 85% -10%,rgba(124,92,255,.16),transparent),radial-gradient(700px 420px at 10% 110%,rgba(94,143,214,.12),transparent),#0B0E1A;z-index:10000;display:flex;flex-direction:column";
-var feats=[["📋","#7C5CFF","كروت ومتابعة حية","كروت إنتاج متحركة بين المراحل مع سجل كامل لكل حركة"],["📊","#5E8FD6","رؤية واضحة للتقدم","لوحة معلومات ذكية تعرض الإنجاز والتفاصيل"],["🔔","#2DD4A8","تنبيهات ذكية","تنبيهات في الوقت المناسب لمتابعة ما يهمك"],["👥","#FFB65C","تنظيم أفضل","رتب عمالك ومهام شركتك في مكان واحد"],["🔒","#2DD4A8","آمن ومعزول","بيانات كل شركة في درجها الخاص ومحمية برموز"]];
-var fh="";
-for(var i=0;i<feats.length;i++){fh+='<div style="display:flex;align-items:center;gap:12px;text-align:start;background:linear-gradient(180deg,#1B2036,#141829);border:1px solid #242B47;border-radius:16px;padding:12px;margin-bottom:10px;animation:inUp .5s both;animation-delay:'+(i*90)+'ms"><div style="width:46px;height:46px;border-radius:14px;background:'+feats[i][1]+'22;border:1px solid '+feats[i][1]+'55;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">'+feats[i][0]+'</div><div><div style="font-size:14px;font-weight:800;color:#EDEFF5;margin-bottom:2px">'+feats[i][2]+'</div><div style="font-size:11px;color:#8A93B5;line-height:1.6">'+feats[i][3]+'</div></div></div>';}
-s.innerHTML='<style>@keyframes inUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}</style><div style="flex:1;overflow-y:auto;padding:28px 20px 12px;text-align:center"><div style="width:86px;height:86px;border-radius:26px;background:linear-gradient(135deg,#7C5CFF,#5E8FD6);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:42px;box-shadow:0 0 34px rgba(124,92,255,.5);animation:floaty 3s infinite">🏭</div><h1 style="font-size:26px;font-weight:900;color:#EDEFF5;margin-bottom:6px">نظام إدارة <span style="background:linear-gradient(135deg,#7C5CFF,#5E8FD6);-webkit-background-clip:text;-webkit-text-fill-color:transparent">المراحل</span></h1><p style="color:#8A93B5;font-size:13px;line-height:1.8;margin-bottom:20px">حل متكامل لإدارة ومتابعة مراحل العمل<br>من التسجيل حتى التسليم — بدقة وسهولة</p>'+fh+'</div><div style="padding:14px 20px;background:linear-gradient(180deg,rgba(11,14,26,0),#0B0E1A 40%);border-top:1px solid #242B47"><button id="inBtn" style="width:100%;background:linear-gradient(135deg,#7C5CFF,#5E8FD6);border:none;color:#fff;border-radius:14px;padding:14px;font-weight:900;font-size:15px;cursor:pointer">هل لديك حساب؟ دخول</button><button id="inSkip" style="width:100%;background:none;border:none;color:#8A93B5;font-size:12px;cursor:pointer;margin-top:10px">تخطي التعريف</button></div>';
+s.style.cssText="position:fixed;inset:0;background:#0B0E1A;z-index:10000;overflow-y:auto;overflow-x:hidden;scroll-behavior:smooth";
+s.innerHTML=`
+<style>
+#introScr *{box-sizing:border-box}
+#introScr .lp-bgfx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+#introScr .lp-blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.32;animation:lpBlob 22s ease-in-out infinite}
+#introScr .lp-blob.b1{width:480px;height:480px;background:#7C5CFF;top:-140px;right:-100px}
+#introScr .lp-blob.b2{width:380px;height:380px;background:#5E8FD6;bottom:10%;left:-120px;animation-delay:-7s}
+#introScr .lp-blob.b3{width:340px;height:340px;background:#2DD4A8;bottom:-140px;right:20%;opacity:.16;animation-delay:-14s}
+@keyframes lpBlob{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-40px) scale(1.1)}66%{transform:translate(-25px,25px) scale(.94)}}
+#introScr .lp-wrap{max-width:1160px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
+#introScr section{position:relative;z-index:1}
+#introScr .lp-reveal{opacity:0;transform:translateY(30px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+#introScr .lp-reveal.in{opacity:1;transform:none}
+#introScr .lp-nav{position:sticky;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:14px 24px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);background:rgba(11,14,26,.7);border-bottom:1px solid rgba(255,255,255,.05)}
+#introScr .lp-logo{display:flex;align-items:center;gap:9px;font-weight:900;font-size:16px;color:#EDEFF5}
+#introScr .lp-logo .cube{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#7C5CFF,#5E8FD6);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 22px rgba(124,92,255,.35);color:#fff;font-size:14px;animation:lpFloat 4s ease-in-out infinite}
+#introScr .lp-nav-links{display:flex;gap:4px;align-items:center}
+#introScr .lp-nav-links a{padding:8px 14px;border-radius:10px;font-size:13.5px;font-weight:700;color:#8A93B5;transition:all .25s;text-decoration:none}
+#introScr .lp-nav-links a:hover{color:#EDEFF5;background:rgba(255,255,255,.04)}
+#introScr .lp-nav-links a.on{color:#fff;background:linear-gradient(135deg,rgba(124,92,255,.25),rgba(94,143,214,.15));box-shadow:inset 0 0 0 1px rgba(124,92,255,.35)}
+#introScr .lp-btn-login{display:flex;align-items:center;gap:7px;background:linear-gradient(135deg,#7C5CFF,#5E8FD6);color:#fff;font-weight:800;font-size:13px;padding:10px 18px;border:none;border-radius:11px;box-shadow:0 8px 22px rgba(124,92,255,.35)}
+#introScr .lp-burger{display:none;background:none;border:none;color:#EDEFF5;font-size:19px}
+#introScr .lp-hero{padding:60px 0 70px;display:grid;grid-template-columns:1.05fr .95fr;gap:36px;align-items:center}
+#introScr .lp-hero-text h1{font-size:38px;font-weight:900;line-height:1.28;margin-bottom:18px;color:#EDEFF5}
+#introScr .lp-hero-text h1 .g{background:linear-gradient(135deg,#9F7CFF,#5E8FD6);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+#introScr .lp-hero-text p{color:#8A93B5;font-size:15px;line-height:1.85;max-width:500px;margin-bottom:26px}
+#introScr .lp-hero-cta{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+#introScr .lp-btn-primary{background:linear-gradient(135deg,#7C5CFF,#5E8FD6);color:#fff;border:none;border-radius:14px;padding:15px 28px;font-weight:800;font-size:14.5px;box-shadow:0 10px 30px rgba(124,92,255,.35);display:flex;align-items:center;gap:9px}
+#introScr .lp-btn-ghost{background:rgba(255,255,255,.03);border:1px solid #242B47;color:#EDEFF5;border-radius:14px;padding:15px 24px;font-weight:700;font-size:14px;display:flex;align-items:center;gap:9px}
+#introScr .lp-hero-note{display:flex;align-items:center;gap:10px;color:#5F6A8F;font-size:12.5px;font-weight:600}
+#introScr .lp-hero-note .icns{display:flex;gap:7px;font-size:15px;color:#8A93B5}
+#introScr .lp-hero-visual{position:relative;display:flex;align-items:center;justify-content:center;height:560px}
+#introScr .lp-platform{position:absolute;bottom:20px;width:270px;height:270px;border-radius:50%;border:1px solid rgba(124,92,255,.25);animation:lpSpin 14s linear infinite}
+#introScr .lp-platform::before{content:'';position:absolute;inset:-36px;border-radius:50%;border:1px solid rgba(94,143,214,.15);animation:lpSpin 20s linear infinite reverse}
+#introScr .lp-platform-glow{position:absolute;bottom:8px;width:250px;height:60px;background:radial-gradient(ellipse at center,rgba(124,92,255,.5),transparent 70%);filter:blur(10px);animation:lpPulseOp 3s ease-in-out infinite}
+@keyframes lpPulseOp{0%,100%{opacity:.6}50%{opacity:1}}
+#introScr .lp-phone{position:relative;width:225px;height:470px;background:linear-gradient(160deg,#1c2140,#0d1024);border:6px solid #05070f;border-radius:38px;box-shadow:0 26px 60px rgba(0,0,0,.6),0 0 0 1px rgba(124,92,255,.15),0 0 50px rgba(124,92,255,.22);animation:lpFloat 5s ease-in-out infinite;z-index:2;overflow:hidden}
+#introScr .lp-phone::before{content:'';position:absolute;top:11px;left:50%;transform:translateX(-50%);width:72px;height:16px;background:#05070f;border-radius:20px;z-index:5}
+#introScr .lp-phone-screen{position:absolute;inset:0;padding:30px 14px 14px;display:flex;flex-direction:column;gap:9px}
+#introScr .lp-phone-top{display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:800;color:#EDEFF5;padding:0 4px 4px}
+#introScr .lp-phone-top i{color:#9F7CFF;font-size:12px}
+#introScr .lp-ring-wrap{align-self:center;position:relative;width:92px;height:92px;margin:2px 0 6px}
+#introScr .lp-ring-wrap svg{transform:rotate(-90deg)}
+#introScr .lp-ring-wrap .pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#EDEFF5}
+#introScr .lp-mini-stats{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+#introScr .lp-mini-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:11px;padding:7px 9px;display:flex;align-items:center;gap:6px}
+#introScr .lp-mini-card i{font-size:12px;width:20px;height:20px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+#introScr .lp-mini-card b{font-size:12.5px;display:block;font-weight:900;color:#EDEFF5}
+#introScr .lp-mini-card span{font-size:8px;color:#8A93B5;font-weight:700}
+#introScr .lp-stage-list{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:11px;padding:9px 11px;flex:1;display:flex;flex-direction:column;gap:6px}
+#introScr .lp-stage-list .lbl{font-size:9px;color:#8A93B5;font-weight:800;margin-bottom:1px}
+#introScr .lp-stage-row{display:flex;align-items:center;gap:7px;font-size:10.5px;font-weight:700;color:#EDEFF5}
+#introScr .lp-stage-row .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+#introScr .lp-phone-nav{display:flex;justify-content:space-around;align-items:center;padding-top:2px}
+#introScr .lp-phone-nav i{color:#5F6A8F;font-size:13px}
+#introScr .lp-phone-nav .plus{width:27px;height:27px;border-radius:50%;background:linear-gradient(135deg,#7C5CFF,#5E8FD6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;margin-top:-12px}
+#introScr .lp-stats-bar{margin-top:-30px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+#introScr .lp-stat-card{background:linear-gradient(180deg,#1B2036,#141829);border:1px solid #242B47;border-radius:16px;padding:18px;display:flex;align-items:center;gap:12px}
+#introScr .lp-stat-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+#introScr .lp-stat-card b{font-size:21px;font-weight:900;display:block;color:#EDEFF5}
+#introScr .lp-stat-card span{font-size:11px;color:#8A93B5;font-weight:700}
+#introScr .lp-sec-head{text-align:center;margin-bottom:44px}
+#introScr .lp-eyebrow{display:inline-block;font-size:11.5px;font-weight:800;color:#9F7CFF;letter-spacing:.4px;margin-bottom:9px;padding:5px 13px;border:1px solid rgba(124,92,255,.3);border-radius:20px;background:rgba(124,92,255,.08)}
+#introScr .lp-sec-head h2{font-size:28px;font-weight:900;color:#EDEFF5}
+#introScr .lp-pad{padding:80px 0}
+#introScr .lp-process-track{display:flex;align-items:flex-start;justify-content:space-between;position:relative;flex-wrap:wrap;gap:28px 10px}
+#introScr .lp-p-node{display:flex;flex-direction:column;align-items:center;gap:10px;position:relative;z-index:1;flex:1;min-width:90px}
+#introScr .lp-p-node .circle{width:68px;height:68px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;background:#141829;border:2px solid var(--c);position:relative}
+#introScr .lp-p-node .circle::after{content:'';position:absolute;inset:-7px;border-radius:50%;border:1px solid var(--c);opacity:.35;animation:lpPulseRing 2.6s ease-out infinite}
+#introScr .lp-p-node .name{font-weight:800;font-size:13.5px;color:#EDEFF5}
+#introScr .lp-p-node .num{font-size:10.5px;color:#5F6A8F;font-weight:700}
+@keyframes lpPulseRing{0%{transform:scale(1);opacity:.4}100%{transform:scale(1.35);opacity:0}}
+#introScr .lp-features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+#introScr .lp-feat-card{background:linear-gradient(180deg,#1B2036,#141829);border:1px solid #242B47;border-radius:16px;padding:22px;transition:transform .3s}
+#introScr .lp-feat-card:active{transform:scale(.98)}
+#introScr .lp-feat-icon{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:14px;background:rgba(255,255,255,.05);border:1px solid var(--c);color:var(--c)}
+#introScr .lp-feat-card h3{font-size:15px;font-weight:800;margin-bottom:7px;color:#EDEFF5}
+#introScr .lp-feat-card p{font-size:12.5px;color:#8A93B5;line-height:1.8}
+#introScr .lp-showcase-wrap{position:relative}
+#introScr .lp-showcase-track{display:flex;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;padding:8px 4px 22px;scrollbar-width:none}
+#introScr .lp-showcase-track::-webkit-scrollbar{display:none}
+#introScr .lp-sc-item{scroll-snap-align:start;flex:0 0 168px;display:flex;flex-direction:column;align-items:center;gap:12px}
+#introScr .lp-sc-item h4{font-size:13px;font-weight:800;color:#8A93B5}
+#introScr .lp-sc-item.on h4{color:#EDEFF5}
+#introScr .lp-sc-phone{width:168px;height:346px;border-radius:26px;background:linear-gradient(160deg,#1c2140,#0d1024);border:5px solid #05070f;position:relative;overflow:hidden;transition:all .3s;opacity:.5}
+#introScr .lp-sc-item.on .lp-sc-phone{opacity:1;transform:translateY(-6px) scale(1.03);box-shadow:0 22px 50px rgba(0,0,0,.6),0 0 34px rgba(124,92,255,.25)}
+#introScr .lp-sc-inner{position:absolute;inset:0;padding:16px 10px}
+#introScr .lp-sc-arrow{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;background:rgba(20,24,41,.9);border:1px solid #242B47;color:#EDEFF5;font-size:14px;display:flex;align-items:center;justify-content:center;z-index:5}
+#introScr .lp-sc-arrow.prev{right:-4px}
+#introScr .lp-sc-arrow.next{left:-4px}
+#introScr .lp-sc-dots{display:flex;justify-content:center;gap:6px;margin-top:6px}
+#introScr .lp-sc-dots span{width:7px;height:7px;border-radius:50%;background:#242B47;transition:all .3s}
+#introScr .lp-sc-dots span.on{width:20px;border-radius:6px;background:linear-gradient(135deg,#7C5CFF,#5E8FD6)}
+#introScr .lp-compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;position:relative}
+#introScr .lp-compare-col{border-radius:20px;padding:28px 22px;border:1px solid #242B47}
+#introScr .lp-compare-col.good{background:linear-gradient(160deg,rgba(45,212,168,.1),#141829)}
+#introScr .lp-compare-col.bad{background:linear-gradient(160deg,rgba(255,92,122,.08),#141829)}
+#introScr .lp-compare-face{width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:23px;margin:0 auto 14px;animation:lpFloat 4s ease-in-out infinite}
+#introScr .lp-compare-col.good .lp-compare-face{background:rgba(45,212,168,.15);color:#2DD4A8}
+#introScr .lp-compare-col.bad .lp-compare-face{background:rgba(255,92,122,.15);color:#FF5C7A}
+#introScr .lp-compare-col h3{text-align:center;font-size:16.5px;font-weight:900;margin-bottom:18px}
+#introScr .lp-compare-col.good h3{color:#2DD4A8}
+#introScr .lp-compare-col.bad h3{color:#FF5C7A}
+#introScr .lp-compare-col ul{list-style:none;padding:0;margin:0}
+#introScr .lp-compare-col ul li{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:700;padding:9px 0;border-bottom:1px dashed rgba(255,255,255,.06);color:#EDEFF5}
+#introScr .lp-compare-col ul li:last-child{border:none}
+#introScr .lp-compare-col.good ul li i{color:#2DD4A8}
+#introScr .lp-compare-col.bad ul li i{color:#FF5C7A}
+#introScr .lp-vs-badge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:58px;height:58px;border-radius:50%;background:#0B0E1A;border:2px solid #242B47;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;z-index:4;color:#EDEFF5;box-shadow:0 0 0 7px #0B0E1A}
+#introScr .lp-cta-box{display:grid;grid-template-columns:.9fr 1.1fr;align-items:center;gap:26px;background:linear-gradient(135deg,rgba(124,92,255,.14),rgba(94,143,214,.08));border:1px solid rgba(124,92,255,.3);border-radius:24px;padding:44px}
+#introScr .lp-cta-visual{display:flex;align-items:center;justify-content:center;position:relative;height:160px}
+#introScr .lp-cta-cube{width:78px;height:78px;border-radius:20px;background:linear-gradient(135deg,#7C5CFF,#5E8FD6);display:flex;align-items:center;justify-content:center;font-size:30px;color:#fff;box-shadow:0 0 44px rgba(124,92,255,.5);animation:lpFloat 4s ease-in-out infinite;position:relative;z-index:2}
+#introScr .lp-cta-orbit{position:absolute;border-radius:50%;border:1px solid rgba(124,92,255,.3)}
+#introScr .lp-cta-orbit.o1{width:132px;height:132px;animation:lpSpin 10s linear infinite}
+#introScr .lp-cta-orbit.o2{width:168px;height:168px;border-color:rgba(94,143,214,.2);animation:lpSpin 16s linear infinite reverse}
+#introScr .lp-cta-text h2{font-size:26px;font-weight:900;margin-bottom:12px;line-height:1.35;color:#EDEFF5}
+#introScr .lp-cta-text h2 .g{background:linear-gradient(135deg,#7C5CFF,#5E8FD6);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+#introScr .lp-cta-text p{color:#8A93B5;font-size:13.5px;margin-bottom:20px;line-height:1.8;max-width:400px}
+#introScr .lp-cta-foot{display:flex;align-items:center;gap:12px;margin-top:14px;flex-wrap:wrap}
+#introScr .lp-cta-foot span{font-size:11.5px;color:#5F6A8F;font-weight:600}
+#introScr .lp-foot{padding:30px 0;text-align:center;color:#5F6A8F;font-size:12px;border-top:1px solid #242B47;margin-top:30px}
+@keyframes lpFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes lpSpin{to{transform:rotate(360deg)}}
+@media(max-width:900px){
+#introScr .lp-nav-links{position:fixed;top:64px;right:14px;left:14px;background:rgba(11,14,26,.97);border:1px solid #242B47;border-radius:14px;flex-direction:column;padding:8px;align-items:stretch;display:none;gap:2px;z-index:60}
+#introScr .lp-nav-links.open{display:flex}
+#introScr .lp-nav-links a{text-align:center}
+#introScr .lp-burger{display:block}
+#introScr .lp-hero{grid-template-columns:1fr;padding-top:16px}
+#introScr .lp-hero-text{text-align:center;order:2}
+#introScr .lp-hero-text p{margin-inline:auto}
+#introScr .lp-hero-cta,#introScr .lp-hero-note{justify-content:center}
+#introScr .lp-hero-visual{order:1;height:420px}
+#introScr .lp-stats-bar{grid-template-columns:1fr 1fr}
+#introScr .lp-features-grid{grid-template-columns:1fr 1fr}
+#introScr .lp-compare-grid{grid-template-columns:1fr;gap:38px}
+#introScr .lp-vs-badge{top:0}
+#introScr .lp-cta-box{grid-template-columns:1fr;text-align:center;padding:30px 20px}
+#introScr .lp-cta-text p{margin-inline:auto}
+#introScr .lp-cta-foot{justify-content:center}
+}
+@media(max-width:560px){
+#introScr .lp-hero-text h1{font-size:27px}
+#introScr .lp-features-grid{grid-template-columns:1fr}
+#introScr .lp-sec-head h2{font-size:22px}
+}
+</style>
+<div class="lp-bgfx"><div class="lp-blob b1"></div><div class="lp-blob b2"></div><div class="lp-blob b3"></div></div>
+<nav class="lp-nav">
+  <div class="lp-logo"><div class="cube"><i class="fa-solid fa-cube"></i></div>متابعة المراحل</div>
+  <div class="lp-nav-links" id="lpNavLinks">
+    <a href="#lpHome" class="on">الرئيسية</a>
+    <a href="#lpFeatures">المميزات</a>
+    <a href="#lpShowcase">لقطات النظام</a>
+    <a href="#lpContact">تواصل معنا</a>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <button class="lp-btn-login" id="lpLoginNav"><i class="fa-solid fa-arrow-left"></i> دخول النظام</button>
+    <button class="lp-burger" id="lpBurger"><i class="fa-solid fa-bars"></i></button>
+  </div>
+</nav>
+<div class="lp-wrap">
+<section class="lp-hero" id="lpHome">
+  <div class="lp-hero-visual lp-reveal">
+    <div class="lp-platform"></div>
+    <div class="lp-platform-glow"></div>
+    <div class="lp-phone">
+      <div class="lp-phone-screen">
+        <div class="lp-phone-top"><i class="fa-solid fa-bars"></i><span>لوحة التحكم</span><i class="fa-regular fa-bell"></i></div>
+        <div class="lp-ring-wrap">
+          <svg width="92" height="92"><circle cx="46" cy="46" r="38" stroke="#242B47" stroke-width="8" fill="none"/><circle id="lpHeroRing" cx="46" cy="46" r="38" stroke="url(#lpg1)" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="238" stroke-dashoffset="238"/><defs><linearGradient id="lpg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7C5CFF"/><stop offset="1" stop-color="#5E8FD6"/></linearGradient></defs></svg>
+          <div class="pct">85%</div>
+        </div>
+        <div class="lp-mini-stats">
+          <div class="lp-mini-card"><i class="fa-solid fa-boxes-stacked" style="background:rgba(124,92,255,.2);color:#9F7CFF"></i><div><b>128</b><span>المنتجات النشطة</span></div></div>
+          <div class="lp-mini-card"><i class="fa-solid fa-diagram-project" style="background:rgba(94,143,214,.2);color:#5E8FD6"></i><div><b>24</b><span>مراحل العمل</span></div></div>
+          <div class="lp-mini-card"><i class="fa-solid fa-chart-simple" style="background:rgba(45,212,168,.2);color:#2DD4A8"></i><div><b>16</b><span>تقارير اليوم</span></div></div>
+          <div class="lp-mini-card"><i class="fa-solid fa-bell" style="background:rgba(255,182,92,.2);color:#FFB65C"></i><div><b>8</b><span>تنبيهات جديدة</span></div></div>
+        </div>
+        <div class="lp-stage-list">
+          <div class="lbl">المراحل الحالية</div>
+          <div class="lp-stage-row"><span class="dot" style="background:#7C5CFF"></span>حيات</div>
+          <div class="lp-stage-row"><span class="dot" style="background:#5E8FD6"></span>صباغة</div>
+          <div class="lp-stage-row"><span class="dot" style="background:#2DD4A8"></span>تجهيز</div>
+          <div class="lp-stage-row"><span class="dot" style="background:#FF5CA8"></span>لف</div>
+          <div class="lp-stage-row"><span class="dot" style="background:#FFB65C"></span>تسليم</div>
+        </div>
+        <div class="lp-phone-nav">
+          <i class="fa-solid fa-house" style="color:#9F7CFF"></i>
+          <i class="fa-solid fa-layer-group"></i>
+          <div class="plus"><i class="fa-solid fa-plus"></i></div>
+          <i class="fa-solid fa-users"></i>
+          <i class="fa-solid fa-gear"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="lp-hero-text lp-reveal">
+    <h1>تحكم في كل <span class="g">مراحل الإنتاج</span> من شاشة واحدة</h1>
+    <p>نظام ذكي لمتابعة الطلبات، إدارة المراحل، تتبع الكميات، مراقبة العمال، وطباعة التقارير لحظيًا — كل ذلك من مكان واحد.</p>
+    <div class="lp-hero-cta">
+      <button class="lp-btn-primary" id="lpStartBtn">ابدأ الآن <i class="fa-solid fa-rocket"></i></button>
+      <button class="lp-btn-ghost" id="lpExploreBtn">استكشف المميزات <i class="fa-solid fa-chevron-left"></i></button>
+    </div>
+    <div class="lp-hero-note">يعمل على جميع الأجهزة <span class="icns"><i class="fa-brands fa-android"></i><i class="fa-brands fa-apple"></i></span></div>
+  </div>
+</section>
+
+<section class="lp-stats-bar lp-reveal">
+  <div class="lp-stat-card"><div class="lp-stat-icon" style="background:rgba(124,92,255,.18);color:#9F7CFF"><i class="fa-solid fa-clipboard-list"></i></div><div><b data-lpcount="2458">0</b><span>الطلبات النشطة</span></div></div>
+  <div class="lp-stat-card"><div class="lp-stat-icon" style="background:rgba(94,143,214,.18);color:#5E8FD6"><i class="fa-solid fa-users"></i></div><div><b data-lpcount="132">0</b><span>المستخدمون</span></div></div>
+  <div class="lp-stat-card"><div class="lp-stat-icon" style="background:rgba(45,212,168,.18);color:#2DD4A8"><i class="fa-solid fa-industry"></i></div><div><b data-lpcount="5">0</b><span>مراحل الإنتاج</span></div></div>
+  <div class="lp-stat-card"><div class="lp-stat-icon" style="background:rgba(255,182,92,.18);color:#FFB65C"><i class="fa-solid fa-arrow-trend-up"></i></div><div><b data-lpcount="89">0</b><span>التقارير اليومية</span></div></div>
+</section>
+
+<section class="lp-pad">
+  <div class="lp-sec-head lp-reveal"><span class="lp-eyebrow">سير العمل</span><h2>مراحل العمل</h2></div>
+  <div class="lp-process-track lp-reveal">
+    <div class="lp-p-node" style="--c:#7C5CFF"><div class="circle"><i class="fa-solid fa-truck-fast"></i></div><div class="name">حيات</div><div class="num">05</div></div>
+    <div class="lp-p-node" style="--c:#5E8FD6"><div class="circle"><i class="fa-solid fa-flask"></i></div><div class="name">صباغة</div><div class="num">02</div></div>
+    <div class="lp-p-node" style="--c:#2DD4A8"><div class="circle"><i class="fa-solid fa-gear"></i></div><div class="name">تجهيز</div><div class="num">03</div></div>
+    <div class="lp-p-node" style="--c:#34D399"><div class="circle"><i class="fa-solid fa-atom"></i></div><div class="name">لف</div><div class="num">04</div></div>
+    <div class="lp-p-node" style="--c:#FF5CA8"><div class="circle"><i class="fa-solid fa-circle-check"></i></div><div class="name">تسليم</div><div class="num">01</div></div>
+  </div>
+</section>
+
+<section class="lp-pad" id="lpFeatures">
+  <div class="lp-sec-head lp-reveal"><span class="lp-eyebrow">القدرات</span><h2>مميزات النظام</h2></div>
+  <div class="lp-features-grid">
+    <div class="lp-feat-card lp-reveal" style="--c:#9F7CFF"><div class="lp-feat-icon"><i class="fa-solid fa-mobile-screen-button"></i></div><h3>يعمل على الهاتف</h3><p>تصميم مخصص للموبايل بالكامل، يعمل بسلاسة على أي جهاز.</p></div>
+    <div class="lp-feat-card lp-reveal" style="--c:#2DD4A8"><div class="lp-feat-icon"><i class="fa-solid fa-magnifying-glass"></i></div><h3>بحث فوري</h3><p>ابحث عن أي طلب بسرعة وسهولة عبر أي بيانات.</p></div>
+    <div class="lp-feat-card lp-reveal" style="--c:#5E8FD6"><div class="lp-feat-icon"><i class="fa-solid fa-qrcode"></i></div><h3>مسح الباركود</h3><p>دعم الباركود و QR لتسجيل أسرع وأدق.</p></div>
+    <div class="lp-feat-card lp-reveal" style="--c:#34D399"><div class="lp-feat-icon"><i class="fa-solid fa-chart-line"></i></div><h3>تقارير مباشرة</h3><p>تقارير وإحصائيات لحظية بشكل فوري وواضح.</p></div>
+    <div class="lp-feat-card lp-reveal" style="--c:#5E8FD6"><div class="lp-feat-icon"><i class="fa-solid fa-print"></i></div><h3>طباعة الكروت</h3><p>طباعة كروت وكشوف الحساب بسهولة تامة.</p></div>
+    <div class="lp-feat-card lp-reveal" style="--c:#FF5CA8"><div class="lp-feat-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div><h3>مزامنة سحابية</h3><p>بياناتك محفوظة ومزامنة لحظيًا على السحابة.</p></div>
+  </div>
+</section>
+
+<section class="lp-pad" id="lpShowcase">
+  <div class="lp-sec-head lp-reveal"><span class="lp-eyebrow">استعراض</span><h2>لقطات من النظام</h2></div>
+  <div class="lp-showcase-wrap lp-reveal">
+    <button class="lp-sc-arrow prev" id="lpScPrev"><i class="fa-solid fa-chevron-right"></i></button>
+    <button class="lp-sc-arrow next" id="lpScNext"><i class="fa-solid fa-chevron-left"></i></button>
+    <div class="lp-showcase-track" id="lpScTrack">
+      <div class="lp-sc-item on"><h4>لوحة التحكم</h4><div class="lp-sc-phone"><div class="lp-sc-inner">
+        <svg width="52" height="52" style="margin:18px auto 8px;display:block"><circle cx="26" cy="26" r="20" stroke="#242B47" stroke-width="5" fill="none"/><circle cx="26" cy="26" r="20" stroke="#7C5CFF" stroke-width="5" fill="none" stroke-dasharray="126" stroke-dashoffset="26" stroke-linecap="round"/></svg>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:0 8px">
+          <div style="background:rgba(255,255,255,.05);border-radius:7px;height:30px"></div><div style="background:rgba(255,255,255,.05);border-radius:7px;height:30px"></div>
+          <div style="background:rgba(255,255,255,.05);border-radius:7px;height:30px"></div><div style="background:rgba(255,255,255,.05);border-radius:7px;height:30px"></div>
+        </div>
+      </div></div></div>
+      <div class="lp-sc-item"><h4>متابعة المراحل</h4><div class="lp-sc-phone"><div class="lp-sc-inner" style="display:flex;flex-direction:column;gap:7px;padding-top:14px">
+        <div style="display:flex;gap:5px;align-items:center;background:rgba(255,255,255,.05);border-radius:7px;padding:7px"><span style="width:7px;height:7px;border-radius:50%;background:#7C5CFF"></span><div style="flex:1;height:5px;background:rgba(255,255,255,.1);border-radius:4px"></div></div>
+        <div style="display:flex;gap:5px;align-items:center;background:rgba(255,255,255,.05);border-radius:7px;padding:7px"><span style="width:7px;height:7px;border-radius:50%;background:#2DD4A8"></span><div style="flex:1;height:5px;background:rgba(255,255,255,.1);border-radius:4px"></div></div>
+        <div style="display:flex;gap:5px;align-items:center;background:rgba(255,255,255,.05);border-radius:7px;padding:7px"><span style="width:7px;height:7px;border-radius:50%;background:#FF5CA8"></span><div style="flex:1;height:5px;background:rgba(255,255,255,.1);border-radius:4px"></div></div>
+      </div></div></div>
+      <div class="lp-sc-item"><h4>إدارة الطلبات</h4><div class="lp-sc-phone"><div class="lp-sc-inner" style="display:flex;flex-direction:column;gap:6px;padding-top:14px">
+        <div style="background:rgba(255,255,255,.05);border-radius:7px;height:24px"></div>
+        <div style="background:rgba(255,255,255,.05);border-radius:7px;height:24px"></div>
+        <div style="background:rgba(255,255,255,.05);border-radius:7px;height:24px"></div>
+        <div style="background:rgba(124,92,255,.15);border:1px solid rgba(124,92,255,.4);border-radius:7px;height:24px"></div>
+      </div></div></div>
+      <div class="lp-sc-item"><h4>التقارير</h4><div class="lp-sc-phone"><div class="lp-sc-inner" style="display:flex;align-items:flex-end;gap:5px;height:86px;padding:16px 8px 0">
+        <div style="flex:1;height:40%;background:#7C5CFF;border-radius:3px 3px 0 0"></div>
+        <div style="flex:1;height:70%;background:#5E8FD6;border-radius:3px 3px 0 0"></div>
+        <div style="flex:1;height:55%;background:#2DD4A8;border-radius:3px 3px 0 0"></div>
+        <div style="flex:1;height:90%;background:#FF5CA8;border-radius:3px 3px 0 0"></div>
+        <div style="flex:1;height:35%;background:#FFB65C;border-radius:3px 3px 0 0"></div>
+      </div></div></div>
+      <div class="lp-sc-item"><h4>إدارة العملاء</h4><div class="lp-sc-phone"><div class="lp-sc-inner" style="display:flex;flex-direction:column;gap:7px;padding-top:14px">
+        <div style="display:flex;gap:7px;align-items:center"><span style="width:17px;height:17px;border-radius:50%;background:#7C5CFF"></span><div style="flex:1;height:5px;background:rgba(255,255,255,.1);border-radius:4px"></div></div>
+        <div style="display:flex;gap:7px;align-items:center"><span style="width:17px;height:17px;border-radius:50%;background:#5E8FD6"></span><div style="flex:1;height:5px;background:rgba(255,255,255,.1);border-radius:4px"></div></div>
+        <div style="display:flex;gap:7px;align-items:center"><span style="width:17px;height:17px;border-radius:50%;background:#2DD4A8"></span><div style="flex:1;height:5px;background:rgba(255,255,255,.1);border-radius:4px"></div></div>
+      </div></div></div>
+    </div>
+    <div class="lp-sc-dots" id="lpScDots"></div>
+  </div>
+</section>
+
+<section class="lp-pad">
+  <div class="lp-sec-head lp-reveal"><span class="lp-eyebrow">المقارنة</span><h2>لماذا متابعة المراحل؟</h2></div>
+  <div class="lp-compare-grid lp-reveal">
+    <div class="lp-compare-col good">
+      <div class="lp-compare-face"><i class="fa-regular fa-face-smile"></i></div>
+      <h3>مع متابعة المراحل</h3>
+      <ul>
+        <li><i class="fa-solid fa-circle-check"></i> بيانات لحظية ودقيقة</li>
+        <li><i class="fa-solid fa-circle-check"></i> متابعة جميع المراحل</li>
+        <li><i class="fa-solid fa-circle-check"></i> تقارير فورية وشاملة</li>
+        <li><i class="fa-solid fa-circle-check"></i> حفظ وأرشفة تلقائية</li>
+      </ul>
+    </div>
+    <div class="lp-compare-col bad">
+      <div class="lp-compare-face"><i class="fa-regular fa-face-frown"></i></div>
+      <h3>الطرق التقليدية</h3>
+      <ul>
+        <li><i class="fa-solid fa-circle-xmark"></i> أوراق مفقودة</li>
+        <li><i class="fa-solid fa-circle-xmark"></i> أخطاء بشرية</li>
+        <li><i class="fa-solid fa-circle-xmark"></i> صعوبة في المتابعة</li>
+        <li><i class="fa-solid fa-circle-xmark"></i> تقارير متأخرة</li>
+      </ul>
+    </div>
+    <div class="lp-vs-badge">VS</div>
+  </div>
+</section>
+
+<section class="lp-pad" id="lpContact">
+  <div class="lp-cta-box lp-reveal">
+    <div class="lp-cta-visual">
+      <div class="lp-cta-orbit o1"></div>
+      <div class="lp-cta-orbit o2"></div>
+      <div class="lp-cta-cube"><i class="fa-solid fa-cube"></i></div>
+    </div>
+    <div class="lp-cta-text">
+      <h2>ابدأ إدارة مصنعك <span class="g">باحترافية</span></h2>
+      <p>انضم إلى مئات المصانع التي تدير أعمالها بذكاء وسهولة عبر متابعة المراحل.</p>
+      <button class="lp-btn-primary" id="lpLoginCta">دخول النظام <i class="fa-solid fa-arrow-left"></i></button>
+      <div class="lp-cta-foot"><span>لا حاجة للتحميل</span><span>•</span><span>يعمل مباشرة من المتصفح</span></div>
+    </div>
+  </div>
+</section>
+</div>
+<footer class="lp-foot">© 2026 متابعة المراحل — جميع الحقوق محفوظة</footer>
+`;
 document.getElementById("root").appendChild(s);
-function closeIntro(){localStorage.setItem("introSeen","1");var el=document.getElementById("introScr");if(el)el.remove();}
-document.getElementById("inBtn").onclick=closeIntro;
-document.getElementById("inSkip").onclick=closeIntro;
+(function(){
+function closeIntro(){var el=document.getElementById("introScr");if(el)el.remove();}
+document.getElementById("lpLoginNav").onclick=closeIntro;
+document.getElementById("lpStartBtn").onclick=closeIntro;
+document.getElementById("lpLoginCta").onclick=closeIntro;
+document.getElementById("lpExploreBtn").onclick=function(){var el=document.getElementById("lpFeatures");if(el)el.scrollIntoView({behavior:"smooth"});};
+document.getElementById("lpBurger").onclick=function(){document.getElementById("lpNavLinks").classList.toggle("open");};
+Array.prototype.forEach.call(document.querySelectorAll("#lpNavLinks a"),function(a){a.addEventListener("click",function(){document.getElementById("lpNavLinks").classList.remove("open");});});
+setTimeout(function(){var r=document.getElementById("lpHeroRing");if(r){r.style.transition="stroke-dashoffset 1.4s ease";r.setAttribute("stroke-dashoffset","36");}},400);
+var lpIo=new IntersectionObserver(function(entries){
+  entries.forEach(function(e,i){
+    if(e.isIntersecting){
+      e.target.style.transitionDelay=(i%4*90)+"ms";
+      e.target.classList.add("in");
+      lpIo.unobserve(e.target);
+    }
+  });
+},{threshold:.15});
+Array.prototype.forEach.call(document.querySelectorAll("#introScr .lp-reveal"),function(el){lpIo.observe(el);});
+var lpCounterIo=new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(e.isIntersecting){
+      var el=e.target,target=+el.dataset.lpcount,dur=1400,start=performance.now();
+      function tick(now){
+        var p=Math.min((now-start)/dur,1);
+        el.textContent=Math.floor(p*target).toLocaleString("en-US");
+        if(p<1)requestAnimationFrame(tick);else el.textContent=target.toLocaleString("en-US");
+      }
+      requestAnimationFrame(tick);
+      lpCounterIo.unobserve(el);
+    }
+  });
+},{threshold:.4});
+Array.prototype.forEach.call(document.querySelectorAll("#introScr [data-lpcount]"),function(el){lpCounterIo.observe(el);});
+var lpTrack=document.getElementById("lpScTrack");
+var lpItems=Array.prototype.slice.call(lpTrack.children);
+var lpDotsWrap=document.getElementById("lpScDots");
+lpItems.forEach(function(_,i){var d=document.createElement("span");if(i===0)d.classList.add("on");d.onclick=function(){lpGoTo(i);};lpDotsWrap.appendChild(d);});
+var lpDots=Array.prototype.slice.call(lpDotsWrap.children);
+var lpActive=0;
+function lpGoTo(i){
+  lpActive=Math.max(0,Math.min(lpItems.length-1,i));
+  lpTrack.scrollTo({left:lpItems[lpActive].offsetLeft-lpTrack.offsetLeft-12,behavior:"smooth"});
+  lpUpdateActive();
+}
+function lpUpdateActive(){
+  lpItems.forEach(function(it,i){it.classList.toggle("on",i===lpActive);});
+  lpDots.forEach(function(d,i){d.classList.toggle("on",i===lpActive);});
+}
+document.getElementById("lpScNext").onclick=function(){lpGoTo(lpActive+1);};
+document.getElementById("lpScPrev").onclick=function(){lpGoTo(lpActive-1);};
+var lpScrollTimer;
+lpTrack.addEventListener("scroll",function(){
+  clearTimeout(lpScrollTimer);
+  lpScrollTimer=setTimeout(function(){
+    var closest=0,min=Infinity;
+    lpItems.forEach(function(it,i){var d=Math.abs(it.offsetLeft-lpTrack.scrollLeft-lpTrack.offsetLeft);if(d<min){min=d;closest=i;}});
+    lpActive=closest;lpUpdateActive();
+  },80);
+});
+var lpSecIds=["lpHome","lpFeatures","lpShowcase"];
+var lpSections=lpSecIds.map(function(id){return document.getElementById(id);}).filter(Boolean);
+var lpNavA=Array.prototype.slice.call(document.querySelectorAll("#lpNavLinks a"));
+var lpSecIo=new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(e.isIntersecting){
+      var id=e.target.id;
+      lpNavA.forEach(function(a){a.classList.toggle("on",a.getAttribute("href")==="#"+id);});
+    }
+  });
+},{threshold:.5});
+lpSections.forEach(function(s){lpSecIo.observe(s);});
+})();
 }
 if(!localStorage.getItem("companyID")){
 var d=document.createElement("div");
