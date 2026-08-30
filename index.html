@@ -281,6 +281,7 @@ const stOrder=(s,dir)=>{const i2=stages.indexOf(s);const j=i2+dir;if(j<0||j>=sta
 const stDel=s=>{const rest=stages.filter(x=>x!==s);const to=prompt("⚠️ كروت "+s+" هتنتقل لمرحلة:\n"+rest.join(" ، "));if(!to||!rest.includes(to.trim()))return;saveStages(rest);cards.filter(c=>c.stage===s).forEach(c=>db.collection("cards").doc(c.id).set({stage:to.trim()},{merge:true}));};
 const [stageQ,setStageQ]=useState("");
 const [announce,setAnnounce]=useState(null);const [showAnnounce,setShowAnnounce]=useState(false);const [announceDraft,setAnnounceDraft]=useState("");const [annDismissed,setAnnDismissed]=useState(localStorage.getItem("ann_dismiss"));
+const [showAnnounceSeen,setShowAnnounceSeen]=useState(false);const annSeenMarked=useRef(null);
 const [showSettings,setShowSettings]=useState(false);const [showSearch,setShowSearch]=useState(false);
 const [showMenu,setShowMenu]=useState(false);const [showScanner,setShowScanner]=useState(false);
 const [bcCard,setBcCard]=useState(null);const [nameDraft,setNameDraft]=useState("");
@@ -352,6 +353,7 @@ if(cl)setCustomColors(cl.list||[]);
 const an=g("announce");if(an&&an.text)setAnnounce(an);else setAnnounce(null);});
 setFirebaseOk(true);setReady(true);}else{try{await auth.signInAnonymously();}catch(e){setReady(true);}}});return()=>un&&un();},[]);
 useEffect(()=>{if(!firebaseOk||!userId||!ownerName||!db)return;const beat=()=>{try{db.collection("presence").doc(userId).set({name:ownerName,last:Date.now()});}catch(e){}};beat();const iv=setInterval(beat,20000);const un=db.collection("presence").onSnapshot(sn=>{const n=Date.now();setOnlineUsers(sn.docs.map(d=>d.data()).filter(p=>n-(p.last||0)<60000));});return()=>{clearInterval(iv);un&&un();};},[firebaseOk,userId,ownerName]);
+useEffect(()=>{if(!db||!ownerName||!announce||!announce.text||!announce.time)return;const u=localStorage.getItem("username");if(!u)return;const key=u+"_"+announce.time;if(annSeenMarked.current===key)return;annSeenMarked.current=key;try{db.collection("announceSeen").doc(u).set({name:ownerName,time:announce.time,seenAt:Date.now()});}catch(e){}},[announce,ownerName]);
 useEffect(()=>{if(!ready||gotoDone.current)return;const g=new URLSearchParams(window.location.search).get("goto");if(!g)return;let p=null;try{p=b64d(g);}catch(e){return;}if(!p||!p.c)return;
 const f=cards.find(c=>(c.barcode&&c.barcode===p.c)||c.code===p.c);
 if(f){gotoDone.current=true;jumpToCard(f);showToast("📍 "+t.foundIn+": "+f.stage);}},[ready,cards]);
@@ -588,6 +590,7 @@ return(
 <span style={{fontSize:18,animation:"floaty 2s infinite"}}>📢</span>
 <div style={{flex:1,fontSize:13,fontWeight:700}}>{announce.text}</div>
 {can&&<button onClick={()=>{setAnnounceDraft(announce.text||"");setShowAnnounce(true);}} style={{background:"rgba(255,255,255,.2)",border:"none",borderRadius:8,padding:"4px 8px",color:"#fff",fontSize:12}}>✏️</button>}
+{can&&<button onClick={()=>setShowAnnounceSeen(true)} style={{background:"rgba(255,255,255,.2)",border:"none",borderRadius:8,padding:"4px 8px",color:"#fff",fontSize:12}}>👁️</button>}
 <button onClick={()=>{localStorage.setItem("ann_dismiss",String(announce.time));setAnnDismissed(String(announce.time));}} style={{background:"rgba(255,255,255,.2)",border:"none",borderRadius:8,padding:"4px 8px",color:"#fff",fontSize:12}}>✕</button>
 </div></div>)}
 {annVisible&&<div style={{height:58}}/>}
@@ -953,7 +956,9 @@ return(<div><h3 style={{margin:"0 0 8px"}}>🚛 {ld.customer} — {ld.total} {fa
 <div style={{display:"flex",gap:8}}>
 <button onClick={saveAnnounce} className="btnG">📢 نشر</button>
 <button onClick={()=>{if(!can||!db)return;db.collection("config").doc("announce").set({text:"",by:"",time:Date.now()});setShowAnnounce(false);showToast("🗑️");}} className="btnO">🗑️ مسح الإعلان</button>
-</div></div></div>)}
+</div>
+{announce&&announce.text&&<button onClick={()=>{setShowAnnounce(false);setShowAnnounceSeen(true);}} className="btnO" style={{marginTop:8,borderColor:"#2D8C74",color:"#2D8C74"}}>👁️ مين شاف الإعلان الحالي؟</button>}</div></div>)}
+{showAnnounceSeen&&<AnnounceSeenModal announce={announce} onClose={()=>setShowAnnounceSeen(false)}/>}
 {linkedFrom&&(()=>{const lk=liveCards.filter(x=>x.message&&x.message===linkedFrom.message&&x.id!==linkedFrom.id);return(
 <div className="modal" onClick={()=>setLinkedFrom(null)}>
 <div className="mbox" onClick={e=>e.stopPropagation()}>
@@ -1302,6 +1307,28 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 </div></div>)}
 {toast&&(<div style={{position:"fixed",bottom:90,left:"50%",transform:"translateX(-50%)",background:toast.kind==="danger"?"var(--red)":"var(--teal)",color:"#fff",padding:"10px 22px",borderRadius:30,fontSize:14,fontWeight:800,zIndex:999,animation:"pop .3s both",boxShadow:"0 8px 24px rgba(0,0,0,.4)"}}>{toast.msg}</div>)}
 </div>);
+}
+function AnnounceSeenModal({announce,onClose}){
+const [ws,setWs]=useState([]);const [seen,setSeen]=useState([]);
+useEffect(()=>{const off=db.collection("users").onSnapshot(function(s){var a=[];s.forEach(function(x){a.push(Object.assign({id:x.id},x.data()));});setWs(a);},function(){});return function(){off&&off();};},[]);
+useEffect(()=>{const off=db.collection("announceSeen").onSnapshot(function(s){var a=[];s.forEach(function(x){a.push(Object.assign({id:x.id},x.data()));});setSeen(a);},function(){});return function(){off&&off();};},[]);
+const team=ws.filter(w=>w.role!=="manager");
+const seenMap={};seen.forEach(s=>{seenMap[s.id]=s;});
+const time=announce&&announce.time;
+const rows=team.map(w=>{const s=seenMap[w.id];const isSeen=!!(s&&s.time===time);return{...w,isSeen,seenAt:s&&s.seenAt};}).sort((a,b)=>(b.isSeen?1:0)-(a.isSeen?1:0));
+const seenCount=rows.filter(r=>r.isSeen).length;
+const fmtAgo=ms=>{if(!ms)return"";const mins=Math.floor((Date.now()-ms)/60000);return mins<1?"دلوقتي":mins<60?"من "+mins+" د":mins<1440?"من "+Math.floor(mins/60)+" س":"من "+Math.floor(mins/1440)+" يوم";};
+return(<div className="modal" onClick={onClose}>
+<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:400}}>
+<h3 style={{margin:"0 0 4px"}}>👁️ مين شاف الإعلان</h3>
+<div style={{fontSize:12,color:"#7FA79E",marginBottom:12}}>{announce&&announce.text?("\""+announce.text+"\" — شافه "+seenCount+" من "+team.length):"مفيش إعلان منشور حاليًا"}</div>
+{team.length===0&&<p style={{color:"#7FA79E",fontSize:13,textAlign:"center",padding:16}}>مفيش عمال مسجلين</p>}
+{rows.map(w=>(<div key={w.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:"1px solid #223038"}}>
+<div><b style={{fontSize:13}}>{w.role==="assistant"?"🎖️":"👷"} {w.name||w.id}</b>{w.isSeen&&<div style={{fontSize:10.5,color:"#2D8C74",marginTop:2}}>👁️ {fmtAgo(w.seenAt)}</div>}</div>
+<span style={{fontSize:12,fontWeight:800,padding:"4px 10px",borderRadius:20,background:w.isSeen?"rgba(45,140,116,.18)":"rgba(226,84,76,.15)",color:w.isSeen?"#2D8C74":"#E2544C"}}>{w.isSeen?"✅ شاف":"⏳ لسه"}</span>
+</div>))}
+<button onClick={onClose} className="btnO" style={{marginTop:12}}>إغلاق</button>
+</div></div>);
 }
 function WorkersPanel(){
 const [ws,setWs]=useState([]);
