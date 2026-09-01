@@ -231,13 +231,60 @@ const blackList=()=>{const arr=[];(cards||[]).forEach(c=>{(c.history||[]).forEac
 useEffect(()=>{if(!blackPlay)return 0;const iv=setInterval(()=>setBlackIdx(i=>i+1),400);return()=>clearInterval(iv);},[blackPlay]);
 useEffect(()=>{const L=blackList().length;if(blackIdx>L)setBlackIdx(L);if(blackPlay&&blackIdx>=L)setBlackPlay(0);},[blackIdx,blackPlay]);
 const askGemini=async()=>{const q=askQ.trim();if(!q||askBusy)return;setAskBusy(1);setAskA("");const key=String(factory.gkey||localStorage.getItem("gemini_key")||window.__masterGem||"").trim();if(!key){setAskA("❌ مفيش مفتاح Gemini");setAskBusy(0);return;}
-const cardsDump=liveCards.slice(0,300).map(c=>[c.customer,c.code,c.color,c.category,c.quantity,c.stage,c.delivered?"مسلّم":""].filter(Boolean).join("|")).join("\n");
+const cardsDump=liveCards.slice(0,300).map(c=>[c.id,c.customer,c.code,c.color,c.category,c.quantity,c.stage,c.delivered?"مسلّم":(c.stored?"في المخزن المجهز":"شغال"),c.urgent?"مستعجل":"",c.pinned?"مثبّت":""].filter(Boolean).join("|")).join("\n");
 const loadsDump=(loads||[]).map(l=>{const s=loadStats(l);return [l.name||l.category||l.title||"خامة","كلي:"+(l.total||0),"باقي:"+Math.max(0,Math.round(s.rem))].join("|");}).join("\n");
-const ctx="انت مساعد ذكي داخل تطبيق مصنع صباغة اسمه "+(factory.fname||"")+". عندك كل بيانات الموقع لحظياً — جاوب أي سؤال منها بالعامية المصرية وبأرقام حقيقية:\n\n🃏 كروت الشغل (عميل|كود|لون|خامة|وزن|مرحلة|حالة):\n"+cardsDump+"\n\n🧵 المخزن الرئيسي (خامة|إجمالي|باقي):\n"+loadsDump+"\n\n📊 ملخص: كروت حية="+liveCards.length+" · متأخرة="+lateCount+"\n🟢 المتصلين دلوقتي: "+(onlineUsers||[]).map(u=>u.name).join("، ")+"\n\n❓ سؤال صاحب المصنع: "+q;
-try{let models=["gemini-2.5-flash","gemini-2.0-flash"];try{const mj=await(await fetch("https://generativelanguage.googleapis.com/v1beta/models?key="+key)).json();if(mj&&mj.models){let av=mj.models.map(m=>String(m.name).replace("models/","")).filter(n=>/flash/.test(n)&&!/image|tts|embed|imagen|video/i.test(n));const nl=av.filter(n=>!n.includes("lite"));if(nl.length)av=nl;if(av.length)models=av.slice(0,3);}}catch(e){}let lastErr="";for(const md of models){try{const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+md+":generateContent?key="+key,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{parts:[{text:ctx}]}]})});const j=await r.json();if(j.error){lastErr=j.error.message||"err";continue;}const txt=j.candidates&&j.candidates[0]&&j.candidates[0].content.parts[0]&&j.candidates[0].content.parts[0].text;if(txt){setAskA(txt);setAskBusy(0);return;}}catch(e){}}setAskA("❌ معرفتش أوصل للنموذج"+(lastErr?" — "+lastErr:""));}catch(e){setAskA("❌ "+e.message);}setAskBusy(0);};
+const actionsHelp="لو رسالة المستخدم أمر تنفيذي رد بـ JSON صافي بس بدون أي كلام أو ```. الأوامر المتاحة:\n"
++"نقل مرحلة: {\"type\":\"action\",\"action\":\"move\",\"cardId\":\"<id>\",\"stage\":\"<مرحلة من: "+stages.join("، ")+">\"}\n"
++"تسليم كامل: {\"type\":\"action\",\"action\":\"deliver\",\"cardId\":\"<id>\"}\n"
++"تسليم جزئي: {\"type\":\"action\",\"action\":\"deliver_partial\",\"cardId\":\"<id>\",\"qty\":\"<رقم>\"}\n"
++"مخزن مجهز (نقل له أو رجوع منه): {\"type\":\"action\",\"action\":\"store\",\"cardId\":\"<id>\"}\n"
++"تسجيل عيب/مرتجع: {\"type\":\"action\",\"action\":\"defect\",\"cardId\":\"<id>\",\"reason\":\"<سبب>\",\"qty\":\"<كمية أو فاضي>\"}\n"
++"تثبيت/إلغاء تثبيت كرت: {\"type\":\"action\",\"action\":\"pin\",\"cardId\":\"<id>\"}\n"
++"أرشفة/رجوع من الأرشيف: {\"type\":\"action\",\"action\":\"archive\",\"cardId\":\"<id>\"}\n"
++"علامة مستعجل (تشغيل/إيقاف): {\"type\":\"action\",\"action\":\"urgent\",\"cardId\":\"<id>\"}\n"
++"إضافة ملاحظة لكرت: {\"type\":\"action\",\"action\":\"note\",\"cardId\":\"<id>\",\"text\":\"<الملاحظة>\"}\n"
++"حذف كرت: {\"type\":\"action\",\"action\":\"delete\",\"cardId\":\"<id>\"}\n"
++"إضافة كرت شغل جديد: {\"type\":\"action\",\"action\":\"add_card\",\"customer\":\"<اسم العميل>\",\"code\":\"<كود أو فاضي>\",\"color\":\"<لون أو فاضي>\",\"category\":\"<خامة أو فاضي>\",\"quantity\":\"<وزن أو فاضي>\",\"stage\":\"<مرحلة أو فاضي>\"}\n"
++"إضافة حمولة للمخزن الرئيسي: {\"type\":\"action\",\"action\":\"add_stock\",\"customer\":\"<اسم الخامة/المورد>\",\"total\":\"<رقم>\",\"category\":\"<فئة أو فاضي>\",\"color\":\"<لون أو فاضي>\"}\n"
++"لو مش قادر تحدد أي كرت بالظبط من كلام المستخدم أو ناقصك بيانات: {\"type\":\"clarify\",\"text\":\"<سؤال توضيح بالعامية>\"}\n"
++"لو الرسالة سؤال معلومة مش أمر تنفيذي: {\"type\":\"answer\",\"text\":\"<إجابة بالعامية المصرية بأرقام حقيقية>\"}\n"
++"اختار cardId من أول عمود في كل سطر من ليستة الكروت تحت. رد JSON فقط من غير شرح.";
+const ctx="انت مساعد ذكي داخل تطبيق مصنع صباغة اسمه "+(factory.fname||"")+"، بيكلمك دلوقتي: "+(ownerName||"")+" ("+(localStorage.getItem("role")||"")+"). عندك كل بيانات الموقع لحظياً:\n\n🃏 كروت الشغل (id|عميل|كود|لون|خامة|وزن|مرحلة|حالة|أعلام):\n"+cardsDump+"\n\n🧵 المخزن الرئيسي (خامة|إجمالي|باقي):\n"+loadsDump+"\n\n📊 ملخص: كروت حية="+liveCards.length+" · متأخرة="+lateCount+"\n🟢 المتصلين دلوقتي: "+(onlineUsers||[]).map(u=>u.name).join("، ")+"\n\n"+actionsHelp+"\n\n❓ رسالة المستخدم: "+q;
+try{let models=["gemini-2.5-flash","gemini-2.0-flash"];try{const mj=await(await fetch("https://generativelanguage.googleapis.com/v1beta/models?key="+key)).json();if(mj&&mj.models){let av=mj.models.map(m=>String(m.name).replace("models/","")).filter(n=>/flash/.test(n)&&!/image|tts|embed|imagen|video/i.test(n));const nl=av.filter(n=>!n.includes("lite"));if(nl.length)av=nl;if(av.length)models=av.slice(0,3);}}catch(e){}
+let lastErr="",txt="";
+for(const md of models){try{const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+md+":generateContent?key="+key,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{parts:[{text:ctx}]}]})});const j=await r.json();if(j.error){lastErr=j.error.message||"err";continue;}txt=(j.candidates&&j.candidates[0]&&j.candidates[0].content.parts[0]&&j.candidates[0].content.parts[0].text)||"";if(txt)break;}catch(e){}}
+if(!txt){setAskA("❌ معرفتش أوصل للنموذج"+(lastErr?" — "+lastErr:""));setAskBusy(0);return;}
+let parsed=null;try{parsed=JSON.parse(txt.replace(/```json|```/g,"").trim());}catch(e){parsed=null;}
+if(!parsed||parsed.type==="answer"){setAskA(parsed&&parsed.text?parsed.text:txt);setAskBusy(0);return;}
+if(parsed.type==="clarify"){setAskA("❓ "+(parsed.text||"محتاج توضيح أكتر"));setAskBusy(0);return;}
+if(parsed.type==="action"){
+if(!can){setAskA("🔒 مفيش عندك صلاحية تنفيذ أوامر دلوقتي");setAskBusy(0);return;}
+const cardless=["add_card","add_stock"];
+let card=null;
+if(!cardless.includes(parsed.action)){card=liveCards.find(c=>c.id===parsed.cardId);if(!card){setAskA("❌ معرفتش ألاقي الكرت ده — قول اسم العميل أو الكود بالظبط");setAskBusy(0);return;}}
+try{
+if(parsed.action==="move"){const dst=stages.includes(parsed.stage)?parsed.stage:(stages.find(s=>s===parsed.stage)||parsed.stage);await moveCardTo(card,dst);setAskA("✅ نقلت كرت "+(card.customer||card.code)+" لمرحلة "+dst);}
+else if(parsed.action==="deliver"){await toggleDelivered(card);setAskA("✅ اتعمل تسليم لكرت "+(card.customer||card.code));}
+else if(parsed.action==="deliver_partial"){await partialDeliver(card,parsed.qty);setAskA("✅ اتسجل تسليم جزئي "+(parsed.qty||"")+" لكرت "+(card.customer||card.code));}
+else if(parsed.action==="store"){const wasStored=card.stored;await toggleStored(card);setAskA("✅ كرت "+(card.customer||card.code)+(wasStored?" رجع من المخزن":" اتنقل للمخزن المجهز"));}
+else if(parsed.action==="defect"){await db.collection("defects").doc(uid()).set({cardId:card.id,customer:card.customer||"",code:card.code||"",stage:card.stage||"",reason:parsed.reason||"",qty:parsed.qty||"",notes:"عن طريق اسأل مصنعك",by:ownerName||"",time:Date.now(),date:localDate(new Date())});setAskA("✅ اتسجل عيب على كرت "+(card.customer||card.code));}
+else if(parsed.action==="pin"){const wasPinned=card.pinned;await togglePin(card);setAskA("✅ "+(wasPinned?"شلت التثبيت من":"ثبّت")+" كرت "+(card.customer||card.code));}
+else if(parsed.action==="archive"){const wasArchived=card.archived;await toggleArchive(card);setAskA("✅ "+(wasArchived?"رجّعت":"أرشفت")+" كرت "+(card.customer||card.code));}
+else if(parsed.action==="urgent"){const wasUrgent=card.urgent;await db.collection("cards").doc(card.id).set({urgent:!wasUrgent},{merge:true});setAskA("✅ كرت "+(card.customer||card.code)+(wasUrgent?" مبقاش مستعجل":" اتعمله علامة مستعجل ⚠️"));}
+else if(parsed.action==="note"){await db.collection("cards").doc(card.id).set({notes:(card.notes?card.notes+" ":"")+(parsed.text||"")},{merge:true});setAskA("✅ اتضافت ملاحظة لكرت "+(card.customer||card.code));}
+else if(parsed.action==="delete"){if(confirm("متأكد تحذف كرت "+(card.customer||card.code)+"؟")){undoDelete(card);setAskA("🗑️ اتحذف كرت "+(card.customer||card.code)+" — فيه زرار تراجع تحت لو غلط");}else{setAskA("❌ اتلغى الحذف");}}
+else if(parsed.action==="add_card"){if(!parsed.customer){setAskA("❓ محتاج اسم العميل عشان أضيف الكرت");setAskBusy(0);return;}const nc={id:uid(),stage:(stages.includes(parsed.stage)?parsed.stage:(activeStage||stages[0]||"")),code:parsed.code||"",customer:parsed.customer||"",category:parsed.category||"",color:parsed.color||"",quantity:parsed.quantity||"",machine:"",prepare:"",dye:"",time:"",notes:"",phone:"",address:"",urgent:false,pinned:false,due:"",photo:"",archived:false,loadId:"",delivered:false,deliveredQty:0};await saveCard(nc,true);setAskA("✅ اتضاف كرت جديد لـ "+nc.customer+" في مرحلة "+nc.stage);}
+else if(parsed.action==="add_stock"){if(!parsed.customer||!parsed.total){setAskA("❓ محتاج اسم الخامة/المورد والكمية الكلية عشان أضيف حمولة");setAskBusy(0);return;}await db.collection("loads").doc(uid()).set({customer:String(parsed.customer).trim(),total:parseFloat(parsed.total)||0,date:localDate(new Date()),notes:"عن طريق اسأل مصنعك",category:parsed.category||"",color:parsed.color||"",barcode:"",machine:""});setAskA("✅ اتضافت حمولة "+parsed.total+" "+(factory.unit||"")+" لـ "+parsed.customer);}
+else{setAskA("❌ أمر مش معروف");}
+}catch(e){setAskA("❌ حصل خطأ أثناء التنفيذ: "+e.message);}
+setAskBusy(0);return;
+}
+setAskA(txt);
+}catch(e){setAskA("❌ "+e.message);}setAskBusy(0);};
 const [companyMembers,setCompanyMembers]=useState([]);
 const [allUsersLive,setAllUsersLive]=useState([]);
-useEffect(()=>{if(!db)return 0;return db.collection("users").onSnapshot(s=>{const a=[];s.forEach(d=>a.push(d.data().name||d.id));a.sort();setAllUsersLive(a);});},[]);
+const [avatars,setAvatars]=useState({});
+useEffect(()=>{if(!db)return 0;return db.collection("users").onSnapshot(s=>{const a=[];const av={};s.forEach(d=>{const dd=d.data()||{};const nm=dd.name||d.id;a.push(nm);if(dd.avatar)av[nm]=dd.avatar;});a.sort();setAllUsersLive(a);setAvatars(av);});},[]);
 {[ownerName].concat(allUsersLive||[]).filter((v,i,a)=>v&&a.indexOf(v)===i).map(w=><option key={w} value={w}>{w===ownerName?"👑 "+w:"👷 "+w}</option>)}
 const [factory,setFactory]=useState({fname:"متابعة المراحل",wa:"",unit:"كيلو",lateDays:2,printSize:"A5",heroT:"",heroS:""});
 const [fnameDraft,setFnameDraft]=useState("متابعة المراحل");const [waDraft,setWaDraft]=useState("");const [lateDraft,setLateDraft]=useState(2);
@@ -247,10 +294,11 @@ const [cards,setCards]=useState([]);const [log,setLog]=useState([]);
 const [loads,setLoads]=useState([]);const [showWarehouse,setShowWarehouse]=useState(false);const [addLoad,setAddLoad]=useState(false);const [loadDetail,setLoadDetail]=useState(null);
 const [loadDraft,setLoadDraft]=useState({customer:"",total:"",date:"",notes:"",category:"",color:"",barcode:"",machine:""});
 const [showLateList,setShowLateList]=useState(false);const [showDelivered,setShowDelivered]=useState(false);const [heroEdit,setHeroEdit]=useState(false);
-const [showStored,setShowStored]=useState(false);
+const [showStored,setShowStored]=useState(false);const [storedSearch,setStoredSearch]=useState("");
 const [defects,setDefects]=useState([]);const [showDefects,setShowDefects]=useState(false);const [defectFor,setDefectFor]=useState(null);const [defectDraft,setDefectDraft]=useState({reason:"",qty:"",notes:""});
 const [linkedFrom,setLinkedFrom]=useState(null);
 const [showFlags,setShowFlags]=useState(false);
+const [showChat,setShowChat]=useState(false);const [chatTab,setChatTab]=useState("group");const [dmWith,setDmWith]=useState("");const [chatDraft,setChatDraft]=useState("");const [groupMsgs,setGroupMsgs]=useState([]);const [dmMsgs,setDmMsgs]=useState([]);const [lastReadChat,setLastReadChat]=useState(()=>+localStorage.getItem("lastReadChat")||0);
 const [screen,setScreen]=useState("home");const [activeStage,setActiveStage]=useState(null);
 const [lateOnly,setLateOnly]=useState(false);
 const [selectMode,setSelectMode]=useState(false);const [selected,setSelected]=useState([]);const [bulkMoveTo,setBulkMoveTo]=useState("");
@@ -302,7 +350,7 @@ useEffect(()=>{
     );
   }catch(e){}
 },[screen]);
-useEffect(()=>{const m=!!(photoView||showAsk||showBook||editingCard||showMenu||showFlags||showWorkers||showMyWork||qrCard||actionCard||showSettings||showSched||showStored);if(m&&!modalRef.current){try{history.pushState({guard:1},"");}catch(e){}}modalRef.current=m;},[photoView,showAsk,showBook,editingCard,showMenu,showFlags,showWorkers,showMyWork,qrCard,actionCard,showSettings,showSched,showStored]);
+useEffect(()=>{const m=!!(photoView||showAsk||showChat||showBook||editingCard||showMenu||showFlags||showWorkers||showMyWork||qrCard||actionCard||showSettings||showSched||showStored);if(m&&!modalRef.current){try{history.pushState({guard:1},"");}catch(e){}}modalRef.current=m;},[photoView,showAsk,showChat,showBook,editingCard,showMenu,showFlags,showWorkers,showMyWork,qrCard,actionCard,showSettings,showSched,showStored]);
 const [micOn,setMicOn]=useState(false);const [micText,setMicText]=useState("");const [showMic,setShowMic]=useState(false);const [micLang,setMicLang]=useState("ar-EG");
 const recRef=useRef(null);
 const photoInputRef=useRef(null);const photoGalRef=useRef(null);const scanFileRef=useRef(null);
@@ -310,7 +358,7 @@ const importCamRef=useRef(null);const importGalRef=useRef(null);
 const scannerRef=useRef(null);const restoreRef=useRef(null);const scanMode=useRef("form");
 const gotoDone=useRef(false);
 const uiRef=useRef({});
-uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,showTopCust,photoView,appQr,importMenu,importDraft,showMic,showWarehouse,addLoad,loadDetail,showLateList,showDelivered,heroEdit,showDefects,defectFor,showAnnounce,linkedFrom,showAsk,showBook,showBlack,showFlags,showMyWork,showSched,showStored};
+uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,showTopCust,photoView,appQr,importMenu,importDraft,showMic,showWarehouse,addLoad,loadDetail,showLateList,showDelivered,heroEdit,showDefects,defectFor,showAnnounce,linkedFrom,showAsk,showBook,showBlack,showFlags,showMyWork,showSched,showStored,showChat};
 const t=DICT[lang];const dir=lang==="ar"?"rtl":"ltr";
 useEffect(()=>{document.documentElement.lang=lang;document.documentElement.dir=dir;},[lang,dir]);
 const can=true;unlocked;
@@ -326,7 +374,7 @@ const LD=+factory.lateDays||2;
 const allColors=PRESET_COLORS.concat(customColors);
 useEffect(()=>{setFnameDraft(factory.fname);setWaDraft(factory.wa);setLateDraft(factory.lateDays);setHeroTDraft(factory.heroT||"");setHeroSDraft(factory.heroS||"");},[factory.fname,factory.wa,factory.lateDays,factory.heroT,factory.heroS]);
 useEffect(()=>{history.pushState({guard:1},"");const iv=setInterval(()=>{try{if(!history.state||!history.state.guard)history.pushState({guard:1},"");}catch(e){}},800);const onPop=()=>{const u=uiRef.current;window.__navLock=Date.now();
-if(u.showAsk)setShowAsk(false);else if(u.showBook)setShowBook(false);else if(u.showBlack)setShowBlack(false);else if(u.showFlags)setShowFlags(false);else if(u.showMyWork)setShowMyWork(false);else if(u.showSched)setShowSched(false);else if(u.showStored)setShowStored(false);else if(u.showTopCust)setShowTopCust(false);else if(u.showLateList)setShowLateList(false);else if(u.showDelivered)setShowDelivered(false);else if(u.heroEdit)setHeroEdit(false);else if(u.showDefects)setShowDefects(false);else if(u.defectFor)setDefectFor(null);else if(u.showAnnounce)setShowAnnounce(false);else if(u.linkedFrom)setLinkedFrom(null);else if(u.addLoad)setAddLoad(false);else if(u.loadDetail)setLoadDetail(null);else if(u.showWarehouse)setShowWarehouse(false);else if(u.showMic)setShowMic(false);else if(u.importMenu)setImportMenu(false);else if(u.importDraft)setImportDraft(null);
+if(u.showAsk)setShowAsk(false);else if(u.showChat)setShowChat(false);else if(u.showBook)setShowBook(false);else if(u.showBlack)setShowBlack(false);else if(u.showFlags)setShowFlags(false);else if(u.showMyWork)setShowMyWork(false);else if(u.showSched)setShowSched(false);else if(u.showStored)setShowStored(false);else if(u.showTopCust)setShowTopCust(false);else if(u.showLateList)setShowLateList(false);else if(u.showDelivered)setShowDelivered(false);else if(u.heroEdit)setHeroEdit(false);else if(u.showDefects)setShowDefects(false);else if(u.defectFor)setDefectFor(null);else if(u.showAnnounce)setShowAnnounce(false);else if(u.linkedFrom)setLinkedFrom(null);else if(u.addLoad)setAddLoad(false);else if(u.loadDetail)setLoadDetail(null);else if(u.showWarehouse)setShowWarehouse(false);else if(u.showMic)setShowMic(false);else if(u.importMenu)setImportMenu(false);else if(u.importDraft)setImportDraft(null);
 else if(u.reportText)setReportText(null);else if(u.showScanner)setShowScanner(false);else if(u.bcCard)setBcCard(null);
 else if(u.statementFor)setStatementFor(null);else if(u.showWorkers)setShowWorkers(false);
 else if(u.photoView)setPhotoView(null);else if(u.appQr)setAppQr(false);else if(u.showMenu)setShowMenu(false);
@@ -353,6 +401,14 @@ if(cl)setCustomColors(cl.list||[]);
 const an=g("announce");if(an&&an.text)setAnnounce(an);else setAnnounce(null);});
 setFirebaseOk(true);setReady(true);}else{try{await auth.signInAnonymously();}catch(e){setReady(true);}}});return()=>un&&un();},[]);
 useEffect(()=>{if(!firebaseOk||!userId||!ownerName||!db)return;const beat=()=>{try{db.collection("presence").doc(userId).set({name:ownerName,last:Date.now()});}catch(e){}};beat();const iv=setInterval(beat,20000);const un=db.collection("presence").onSnapshot(sn=>{const n=Date.now();setOnlineUsers(sn.docs.map(d=>d.data()).filter(p=>n-(p.last||0)<60000));});return()=>{clearInterval(iv);un&&un();};},[firebaseOk,userId,ownerName]);
+const dmId=(a,b)=>[String(a||"").trim(),String(b||"").trim()].sort().join("__");
+useEffect(()=>{if(!db)return 0;return db.collection("chat_group").orderBy("time","desc").limit(200).onSnapshot(sn=>{setGroupMsgs(sn.docs.map(d=>({id:d.id,...d.data()})).reverse());});},[]);
+useEffect(()=>{if(!db||!dmWith||!ownerName)return 0;const id=dmId(ownerName,dmWith);return db.collection("chat_dm").doc(id).collection("msgs").orderBy("time","desc").limit(200).onSnapshot(sn=>{setDmMsgs(sn.docs.map(d=>({id:d.id,...d.data()})).reverse());});},[dmWith,ownerName]);
+useEffect(()=>{if(showChat){const now=Date.now();localStorage.setItem("lastReadChat",String(now));setLastReadChat(now);}},[showChat]);
+const sendChat=async()=>{const txt=chatDraft.trim();if(!txt||!db||!ownerName)return;setChatDraft("");
+if(chatTab==="group"){await db.collection("chat_group").add({text:txt,by:ownerName,time:Date.now()});}
+else{if(!dmWith)return;const id=dmId(ownerName,dmWith);await db.collection("chat_dm").doc(id).collection("msgs").add({text:txt,by:ownerName,time:Date.now()});await db.collection("chat_dm").doc(id).set({participants:[ownerName,dmWith],lastText:txt,lastTime:Date.now()},{merge:true});}};
+const unreadChatCount=groupMsgs.filter(m=>(m.time||0)>lastReadChat&&m.by!==ownerName).length;
 useEffect(()=>{if(!db||!ownerName||!announce||!announce.text||!announce.time)return;const u=localStorage.getItem("username");if(!u)return;const key=u+"_"+announce.time;if(annSeenMarked.current===key)return;annSeenMarked.current=key;try{db.collection("announceSeen").doc(u).set({name:ownerName,time:announce.time,seenAt:Date.now()});}catch(e){}},[announce,ownerName]);
 useEffect(()=>{if(!ready||gotoDone.current)return;const g=new URLSearchParams(window.location.search).get("goto");if(!g)return;let p=null;try{p=b64d(g);}catch(e){return;}if(!p||!p.c)return;
 const f=cards.find(c=>(c.barcode&&c.barcode===p.c)||c.code===p.c);
@@ -396,6 +452,9 @@ const stopMic=()=>{try{recRef.current&&recRef.current.stop();}catch(e){}setMicOn
 const extractVoice=()=>{const d=parseVoice(micText);d.stage=activeStage||stages[0]||"";setShowMic(false);stopMic();setImportDraft(d);};
 const noteMic=()=>{if(micOn){stopMic();return;}const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){showToast("المتصفح مش داعم","danger");return;}try{const rec=new SR();rec.lang=micLang;rec.interimResults=false;
 rec.onresult=e=>{let s="";for(let i=0;i<e.results.length;i++)s+=e.results[i][0].transcript;setEditingCard(c=>c?{...c,notes:(c.notes?c.notes+" ":"")+s}:c);};
+rec.onend=()=>setMicOn(false);rec.onerror=()=>setMicOn(false);rec.start();recRef.current=rec;setMicOn(true);}catch(e){}};
+const askMic=()=>{if(micOn){stopMic();return;}const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){showToast("المتصفح مش داعم الإملاء","danger");return;}try{const rec=new SR();rec.lang=micLang;rec.interimResults=false;
+rec.onresult=e=>{let s="";for(let i=0;i<e.results.length;i++)s+=e.results[i][0].transcript;setAskQ(qv=>(qv?qv+" ":"")+s);};
 rec.onend=()=>setMicOn(false);rec.onerror=()=>setMicOn(false);rec.start();recRef.current=rec;setMicOn(true);}catch(e){}};
 const loadStats=ld=>{const linked=cards.filter(c=>c.loadId===ld.id);const pulled=linked.reduce((a,c)=>a+(parseFloat(c.quantity)||0),0);const del=linked.reduce((a,c)=>a+(c.delivered?(parseFloat(c.quantity)||0):(parseFloat(c.deliveredQty)||0)),0);const inF=pulled-del;const rem=(parseFloat(ld.total)||0)-pulled;return {pulled:pulled,del:del,inF:inF,rem:rem};};
 const saveLoad=async()=>{if(!can||!db||!loadDraft.customer||!loadDraft.total)return;await db.collection("loads").doc(uid()).set({customer:loadDraft.customer.trim(),total:parseFloat(loadDraft.total)||0,date:loadDraft.date||localDate(new Date()),notes:loadDraft.notes||"",category:loadDraft.category||"",color:loadDraft.color||"",barcode:loadDraft.barcode||"",machine:loadDraft.machine||""});setAddLoad(false);setLoadDraft({customer:"",total:"",date:"",notes:"",category:"",color:"",barcode:"",machine:""});showToast("📦 ✅");};
@@ -597,7 +656,7 @@ return(
 {screen==="home"&&(
 <div style={{maxWidth:640,margin:"0 auto",padding:"40px 16px 20px"}}>
 <div className="anim" style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
-<div style={{width:44,height:44,borderRadius:50,background:"linear-gradient(135deg,var(--vio),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,boxShadow:"0 6px 18px rgba(45,140,116,.4)"}}>{(ownerName||"؟")[0]}</div>
+{avatars[ownerName]?<img src={avatars[ownerName]} style={{width:44,height:44,borderRadius:50,objectFit:"cover",boxShadow:"0 6px 18px rgba(45,140,116,.4)"}}/>:<div style={{width:44,height:44,borderRadius:50,background:"linear-gradient(135deg,var(--vio),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,boxShadow:"0 6px 18px rgba(45,140,116,.4)"}}>{(ownerName||"؟")[0]}</div>}
 <div style={{flex:1}}><div style={{fontSize:12,color:theme.textDim}}>👋 مرحباً يا {ownerName}</div><div style={{fontSize:20,fontWeight:900}}>{factory.fname}</div></div>
 <button onClick={()=>setShowSearch(true)} style={hdrBtn}>🔍</button>
 <button onClick={()=>setShowLateList(true)} style={{...hdrBtn,position:"relative"}}>🔔{(()=>{const n=liveCards.filter(c=>!c.delivered&&(c.urgent||adjDays(c)>=(factory.lateDays||2))).length;return n>0?<span style={{position:"absolute",top:4,left:4,background:"var(--red)",color:"#fff",borderRadius:10,fontSize:9,fontWeight:800,padding:"1px 5px",minWidth:16,textAlign:"center"}}>{n}</span>:null;})()}</button>
@@ -626,6 +685,11 @@ return(
 <div style={{width:44,height:44,borderRadius:14,background:"linear-gradient(135deg,var(--vio),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>📦</div>
 <div><div style={{fontSize:13,fontWeight:800}}>مخزن مجهز</div><div style={{fontSize:10.5,color:theme.textDim,marginTop:2}}>{storedCards.length} كرت جاهز</div></div>
 </div>
+</div>
+<div onClick={()=>setShowDefects(true)} className="card anim" style={{animationDelay:"340ms",margin:"10px 0",display:"flex",alignItems:"center",gap:10,cursor:"pointer",borderInlineStart:"4px solid var(--red)"}}>
+<div style={{width:40,height:40,borderRadius:12,background:"rgba(226,84,76,.15)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>⚠️</div>
+<div style={{flex:1}}><div style={{fontSize:13,fontWeight:800}}>عيوب ومرتجعات</div><div style={{fontSize:10.5,color:theme.textDim,marginTop:2}}>{defects.length} مسجلة</div></div>
+<span style={{color:theme.textDim}}>‹</span>
 </div>
 <div className="card anim" style={{animationDelay:"360ms",margin:"12px 0"}}>
 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><span style={{fontSize:20}}>🏆</span><b style={{fontSize:15}}>الانجازات</b></div>
@@ -778,7 +842,7 @@ return(<div key={c.id} className="card" onClick={()=>selectMode?toggleSelect(c.i
 <button className={"chip"+(schedShift==="day"?" on":"")} onClick={()=>setSchedShift("day")}>☀️ صبح</button>
 <button className={"chip"+(schedShift==="night"?" on":"")} onClick={()=>setSchedShift("night")}>🌙 ليل</button>
 </div>
-{machines.map(m=>{const list=schedCards().filter(c=>String(c.machine)===String(m));return(<div key={m} className="card" style={{padding:10,marginBottom:8}}>
+{machines.map((m,mi)=>{const list=schedCards().filter(c=>String(c.machine)===String(m));return(<div key={m} className="card anim" style={{padding:10,marginBottom:8,animationDelay:(mi*70)+"ms"}}>
 <b>🔧 ماكينة {m}</b>{!list.length&&<span style={{color:theme.textDim,fontSize:11}}> · فاضية</span>}
 {list.map(c=><div key={c.id} style={{fontSize:12,marginTop:6,borderTop:"1px dashed "+theme.border,paddingTop:6}}>{c.customer} · {c.code} · {c.color} · {c.quantity} {factory.unit} {c.prepare&&<span style={{color:"var(--warn)"}}>· {c.prepare}</span>}</div>)}
 </div>);})}
@@ -852,6 +916,7 @@ return(<div style={{padding:"8mm",fontFamily:"Arial",color:"#000",direction:"rtl
 <MenuBtn onClick={()=>{setScreen("archive");setShowMenu(false);}}>🗄️ {t.archive}</MenuBtn>
 <MenuBtn onClick={()=>{setScreen("log");setShowMenu(false);}}>📋 {t.dailyLog}</MenuBtn>
 <MenuBtn onClick={()=>{setShowAsk(true);setShowMenu(false);}}>🤖 اسأل مصنعك</MenuBtn>
+<MenuBtn onClick={()=>{setShowChat(true);setShowMenu(false);}}>💬 الشات{unreadChatCount>0?" ("+unreadChatCount+")":""}</MenuBtn>
 <MenuBtn onClick={()=>{setShowBlack(true);setShowMenu(false);}}>⚫ الصندوق الأسود</MenuBtn>
 <MenuBtn onClick={()=>{setShowBook(true);setShowMenu(false);}}>📚 بوكيمون الألوان</MenuBtn>
 <MenuBtn onClick={()=>{setShowFlags(true);setShowMenu(false);}}>🚩 أعلام الكروت</MenuBtn>
@@ -1127,7 +1192,32 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div style={{padding:14,textAlign:"center"}}><button onClick={()=>scanFileRef.current&&scanFileRef.current.click()} className="btnG" style={{width:"auto",padding:"12px 22px"}}>📁 صورة من الجهاز</button></div>
 <input ref={scanFileRef} type="file" accept="image/*" style={{display:"none"}} onChange={scanFromFile}/>
 </div>)}
-{showAsk&&(<div className="modal" onClick={()=>setShowAsk(false)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:420}}><h3 style={{margin:"0 0 12px"}}>🤖 اسأل مصنعك</h3><textarea rows={2} className="inp" placeholder="مثال: إيه أهدأ مرحلة دلوقتي؟ مين أكبر عميل متأخر؟" value={askQ} onChange={e=>setAskQ(e.target.value)}/><button className="btnG" style={{marginTop:8}} onClick={askGemini}>{askBusy?"⏳ بيفكر...":"🤖 اسأل"}</button>{askA&&<div style={{marginTop:10,padding:"10px 12px",borderRadius:12,background:theme.panelAlt,fontSize:13,whiteSpace:"pre-wrap",lineHeight:1.8}}>{askA}</div>}</div></div>)}
+{showAsk&&(<div className="modal" onClick={()=>setShowAsk(false)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:420}}><h3 style={{margin:"0 0 6px"}}>🤖 اسأل مصنعك</h3><p style={{fontSize:11.5,color:theme.textDim,margin:"0 0 10px"}}>اسأل عن أي حاجة أو مُر بأمر تنفيذي: نقل مرحلة، تسليم كامل/جزئي، مخزن مجهز، تسجيل عيب، تثبيت، أرشفة، علامة مستعجل، ملاحظة، حذف، إضافة كرت جديد، أو إضافة حمولة مخزن</p><div style={{display:"flex",gap:6}}><textarea rows={2} className="inp" style={{flex:1,marginBottom:0}} placeholder="مثال: إيه أهدأ مرحلة دلوقتي؟ / انقل كرت محمد للتجفيف" value={askQ} onChange={e=>setAskQ(e.target.value)}/><button onClick={askMic} className={"chip"+(micOn?" on":"")} style={{height:"fit-content"}}>{micOn?"⏹️":"🎙️"}</button></div><button className="btnG" style={{marginTop:8}} onClick={askGemini}>{askBusy?"⏳ بيفكر...":"🤖 اسأل / نفّذ"}</button>{askA&&<div style={{marginTop:10,padding:"10px 12px",borderRadius:12,background:theme.panelAlt,fontSize:13,whiteSpace:"pre-wrap",lineHeight:1.8}}>{askA}</div>}</div></div>)}
+{showChat&&(<div className="modal" onClick={()=>setShowChat(false)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:440,display:"flex",flexDirection:"column",height:"80vh"}}>
+<div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+<h3 style={{flex:1,margin:0}}>💬 الشات</h3>
+<button className={"chip"+(chatTab==="group"?" on":"")} onClick={()=>setChatTab("group")}>👥 عام</button>
+<button className={"chip"+(chatTab==="dm"?" on":"")} onClick={()=>setChatTab("dm")}>👤 خاص</button>
+</div>
+{chatTab==="dm"&&(<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>
+{[ownerName].concat(allUsersLive||[]).filter((v,i,a)=>v&&v!==ownerName&&a.indexOf(v)===i).map(nm=><button key={nm} onClick={()=>setDmWith(nm)} className={"chip"+(dmWith===nm?" on":"")}>{nm}</button>)}
+{(allUsersLive||[]).length===0&&<span style={{fontSize:12,color:theme.textDim}}>مفيش مستخدمين تانيين لسه</span>}
+</div>)}
+<div style={{flex:1,overflowY:"auto",marginBottom:10,padding:"4px 2px"}}>
+{(chatTab==="group"?groupMsgs:(dmWith?dmMsgs:[])).length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center",padding:16}}>{chatTab==="dm"&&!dmWith?"اختار حد تكلمه 👆":"مفيش رسايل لسه — ابدأ الكلام 👋"}</p>}
+{(chatTab==="group"?groupMsgs:dmMsgs).map(m=>(<div key={m.id} style={{display:"flex",flexDirection:"column",alignItems:m.by===ownerName?"flex-end":"flex-start",marginBottom:8}}>
+<div style={{maxWidth:"78%",padding:"8px 12px",borderRadius:14,background:m.by===ownerName?"linear-gradient(135deg,var(--vio),var(--blue))":theme.panelAlt,color:m.by===ownerName?"#fff":theme.text,fontSize:13}}>
+{chatTab==="group"&&m.by!==ownerName&&<div style={{fontSize:10.5,fontWeight:800,opacity:.8,marginBottom:2}}>{m.by}</div>}
+{m.text}
+</div>
+<span style={{fontSize:9,color:theme.textDim,marginTop:2}}>{fmtTime(m.time,lang)}</span>
+</div>))}
+</div>
+{(chatTab==="group"||dmWith)&&(<div style={{display:"flex",gap:6}}>
+<input className="inp" style={{flex:1,marginBottom:0}} placeholder="اكتب رسالة..." value={chatDraft} onChange={e=>setChatDraft(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendChat()}/>
+<button className="chip on" onClick={sendChat}>➤</button>
+</div>)}
+</div></div>)}
 {showBook&&(<div className="modal" onClick={()=>setShowBook(false)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:380}}><h3 style={{margin:"0 0 12px"}}>📚 بوكيمون الألوان</h3>{(factory.colorBook||[]).length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center"}}>لسه مفيش ألوان متسجلة — المالك يضيفها</p>}{(factory.colorBook||[]).map((b,i)=>(<div key={i} style={{padding:"8px 10px",borderRadius:10,background:theme.panelAlt,marginBottom:6,fontSize:13}}><div style={{display:"flex",justifyContent:"space-between"}}><b>🎨 {b.n}</b>{can&&<button onClick={()=>{if(confirm("حذف "+b.n+"؟"))saveFactory({colorBook:(factory.colorBook||[]).filter((x,j)=>j!==i)});}} className="chip">✕</button>}</div>{b.note&&<div style={{fontSize:11,color:theme.textDim,marginTop:2}}>{b.note}</div>}</div>))}{can&&<button className="chip on" onClick={()=>{const n=prompt("اسم اللون:");if(!n||!n.trim())return;const note=prompt("وصفة/ملاحظات اللون (اختياري):","")||"";saveFactory({colorBook:[...(factory.colorBook||[]),{n:n.trim(),note:note.trim()}]});}}>➕ لون جديد</button>}</div></div>)}
 {ownerName&&!showAsk&&(<button onClick={()=>setShowAsk(true)} aria-label="اسأل مصنعك" style={{position:"fixed",bottom:96,right:14,zIndex:400,width:56,height:56,borderRadius:"50%",border:"none",background:"linear-gradient(135deg,var(--vio),var(--blue))",color:"#fff",fontSize:26,cursor:"pointer",boxShadow:"0 8px 24px rgba(45,140,116,.55)",display:"flex",alignItems:"center",justifyContent:"center",animation:"floaty 2.5s infinite"}}>🤖</button>)}
 {showBlack&&(<div className="modal" onClick={()=>setShowBlack(false)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:420}}><h3 style={{margin:"0 0 10px"}}>⚫ الصندوق الأسود</h3><p style={{fontSize:11,color:theme.textDim,marginBottom:8}}>🎬 إعادة تشغيل اليوم حركة بحركة — كل نقله مين عملها وإمتى</p><div style={{display:"flex",gap:6,alignItems:"center",marginBottom:10}}><button className="btnG" style={{flex:1}} onClick={()=>{if(blackPlay){setBlackPlay(0);}else{setBlackIdx(0);setBlackPlay(1);}}}>{blackPlay?"⏸️ إيقاف":"▶️ تشغيل اليوم"}</button><span style={{fontSize:11,color:theme.textDim}}>{Math.min(blackIdx,blackList().length)}/{blackList().length}</span></div><div style={{maxHeight:320,overflow:"auto"}}>{blackList().slice(0,blackIdx).map((h,i)=>(<div key={i} className="anim" style={{padding:"6px 10px",marginBottom:4,borderInlineStart:"2px solid var(--vio)",background:theme.panelAlt,borderRadius:8,fontSize:12,color:theme.textDim}}><b style={{color:theme.text}}>{h.cust||"—"}</b> · 📍 {h.stage} · {h.by} · {fmtTime(h.at,lang)}</div>))}{blackIdx===0&&<p style={{textAlign:"center",color:theme.textDim,fontSize:12,padding:20}}>دوس ▶️ وشوف اليوم بيتفك قدامك</p>}</div></div></div>)}
@@ -1229,8 +1319,9 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div className="modal" onClick={()=>setShowStored(false)}>
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:400}}>
 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}><h3 style={{flex:1,margin:0}}>📦 المخزن المجهز ({storedCards.length})</h3><button className="chip on" onClick={()=>exportSheet(storedCards,"مخزن-مجهز")}>💾 تصدير</button></div>
+<input className="inp" placeholder="🔍 دور بالعميل أو الكود أو اللون..." value={storedSearch} onChange={e=>setStoredSearch(e.target.value)}/>
 {storedCards.length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center",padding:16}}>فاضي — انقل كروت له من زرار 📦</p>}
-{storedCards.slice().sort((a,b)=>toMs(b.updatedAt)-toMs(a.updatedAt)).map(c=>(<div key={c.id} onClick={()=>{setShowStored(false);setActionCard(c);}} className="card" style={{padding:"10px 12px",marginBottom:8,cursor:"pointer"}}><b style={{fontSize:13}}>{c.customer} · {c.code}</b><div style={{fontSize:11,color:theme.textDim}}>{c.color} — {c.quantity}</div></div>))}
+{(()=>{const q=(storedSearch||"").trim().toLowerCase();const list=storedCards.slice().sort((a,b)=>toMs(b.updatedAt)-toMs(a.updatedAt)).filter(c=>!q||[c.customer,c.code,c.color].some(v=>String(v||"").toLowerCase().includes(q)));if(storedCards.length>0&&q&&list.length===0)return<p style={{color:theme.textDim,fontSize:13,textAlign:"center",padding:16}}>مفيش نتائج لـ "{storedSearch}"</p>;return list.map((c,si)=>(<div key={c.id} onClick={()=>{setShowStored(false);setActionCard(c);}} className="card anim" style={{padding:"10px 12px",marginBottom:8,cursor:"pointer",animationDelay:(si*60)+"ms"}}><b style={{fontSize:13}}>{c.customer} · {c.code}</b><div style={{fontSize:11,color:theme.textDim}}>{c.color} — {c.quantity}</div></div>));})()}
 </div></div>)}
 {showSettings&&(
 <div className="modal" onClick={()=>setShowSettings(false)}>
@@ -1271,6 +1362,12 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 </div>)}
 {can&&(<>
 <div className="lbl">👤 {t.yourNameEdit}</div><div style={{display:"flex",gap:6,marginBottom:10}}><input className="inp" style={{marginBottom:0}} value={nameDraft} onChange={e=>setNameDraft(e.target.value)}/><button onClick={()=>{if(nameDraft.trim()){setOwnerName(nameDraft.trim());localStorage.setItem("owner_name_"+(localStorage.getItem("username")||userId),nameDraft.trim());showToast("✅");}}} className="chip on">{t.save}</button></div>
+<div className="lbl">🖼️ صورتك الشخصية</div>
+<div style={{display:"flex",gap:6,alignItems:"center",marginBottom:10}}>
+{avatars[ownerName]?<img src={avatars[ownerName]} style={{width:44,height:44,borderRadius:"50%",objectFit:"cover"}}/>:<div style={{width:44,height:44,borderRadius:"50%",background:"linear-gradient(135deg,var(--vio),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900}}>{(ownerName||"؟")[0]}</div>}
+<label className="chip on" style={{display:"inline-flex",alignItems:"center",gap:6,cursor:"pointer"}}>📤 رفع صورة<input type="file" accept="image/png,image/jpeg" style={{display:"none"}} onChange={e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const rd=new FileReader();rd.onerror=()=>alert("❌ فشل قراءة الملف");rd.onload=()=>{const img=new Image();img.onerror=()=>alert("❌ نوع الصورة مش مدعوم — اختار JPG أو PNG");img.onload=()=>{const m=Math.max(img.width,img.height);const sc=Math.min(1,200/m);const c=document.createElement("canvas");c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);c.getContext("2d").drawImage(img,0,0,c.width,c.height);const du=c.toDataURL("image/jpeg",0.85);const u=localStorage.getItem("username");if(u&&db)db.collection("users").doc(u).set({avatar:du},{merge:true});};img.src=rd.result;};rd.readAsDataURL(f);e.target.value="";}}/></label>
+{avatars[ownerName]&&<button className="chip" onClick={()=>{const u=localStorage.getItem("username");if(u&&db)db.collection("users").doc(u).set({avatar:firebase.firestore.FieldValue.delete()},{merge:true});}}>🗑️</button>}
+</div>
 {(localStorage.getItem("role")==="manager"||localStorage.getItem("role")==="assistant"||localStorage.getItem("role")==="master")&&<>
 <div style={grid2}>
 <div><div className="lbl">⚖️ {t.unit}</div><select className="inp" value={factory.unit} onChange={e=>saveFactory({unit:e.target.value})}>{["كيلو","قطعة","متر","دستة","طن"].map(u=><option key={u}>{u}</option>)}</select></div>
@@ -1348,7 +1445,10 @@ const pro=(w)=>{var nr=w.role==="assistant"?"worker":"assistant";db.collection("
 return <div className="card" style={{padding:14,marginTop:12}}>
 <div className="lbl">👥 إدارة العمال والمساعدين</div>
 {ws.filter(w=>w.role!=="manager").map(w=><div key={w.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:"1px solid #223038"}}>
+<div style={{display:"flex",alignItems:"center",gap:8}}>
+{w.avatar?<img src={w.avatar} style={{width:32,height:32,borderRadius:"50%",objectFit:"cover"}}/>:<div style={{width:32,height:32,borderRadius:"50%",background:"linear-gradient(135deg,var(--vio),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:900}}>{(w.name||w.id||"؟")[0]}</div>}
 <div><b style={{fontSize:13}}>{w.role==="assistant"?"🎖️":"👷"} {w.name||w.id}</b><div style={{fontSize:11,color:"#7FA79E"}}>رمز: {w.pin}</div><div style={{marginTop:3}}><LastSeen name={w.id}/></div></div>
+</div>
 <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
 <button className="chip" onClick={()=>tog(w)} style={{borderColor:w.locked?"#E2544C":"#1B8F82",color:w.locked?"#E2544C":"#1B8F82"}}>{w.locked?"🔒":"✅"}</button>
 <button className="chip" onClick={()=>edit(w)}>✏️</button>
