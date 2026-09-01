@@ -617,7 +617,7 @@ return(
 <div className="card anim" onClick={()=>setShowDelivered(true)} style={{animationDelay:"320ms",cursor:"pointer"}}><div className="lbl">✅ اتسلم</div><div style={{fontSize:26,fontWeight:900,color:"var(--teal)"}}>{nDel}</div></div>
 </div>
 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",margin:"10px 0",fontSize:12,color:theme.textDim}}><span style={{display:"flex",alignItems:"center",gap:6}}>{logoSrc&&<img src={logoSrc} style={{width:26,height:26,borderRadius:8,objectFit:"cover"}}/>}🕌 {(()=>{try{return new Intl.DateTimeFormat("ar-SA-u-ca-islamic",{day:"numeric",month:"long",year:"numeric"}).format(new Date());}catch(e){return "";}})()}</span><span>{(()=>{const h=new Date().getHours();return h>=5&&h<12?"☀️ صباح الخير":h>=12&&h<17?"🌤️ مساء الخير":"🌙 مساء الخير";})()} · {ownerName}</span></div>
-<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,width:"100%",alignItems:"center"}}>
+<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:8,width:"100%",alignItems:"center"}}>
 <div onClick={()=>setShowSched(true)} style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer"}}>
 <div style={{width:44,height:44,borderRadius:14,background:"linear-gradient(135deg,var(--teal),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,boxShadow:"0 6px 18px rgba(27,143,130,.35)"}}>📅</div>
 <div><div style={{fontSize:13,fontWeight:800}}>جدول الماكينات</div><div style={{fontSize:10.5,color:theme.textDim,marginTop:2}}>{schedCards().length} شغال · {machines.filter(m=>!schedCards().some(c=>String(c.machine)===String(m))).length} فاضية</div></div>
@@ -625,6 +625,10 @@ return(
 <div onClick={e=>{e.stopPropagation();setShowStored(true);}} style={{display:"flex",alignItems:"center",gap:8,background:"rgba(45,140,116,.10)",border:"1px solid rgba(45,140,116,.35)",borderRadius:14,padding:8,cursor:"pointer"}}>
 <div style={{width:44,height:44,borderRadius:14,background:"linear-gradient(135deg,var(--vio),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>📦</div>
 <div><div style={{fontSize:13,fontWeight:800}}>مخزن مجهز</div><div style={{fontSize:10.5,color:theme.textDim,marginTop:2}}>{storedCards.length} كرت جاهز</div></div>
+</div>
+<div onClick={e=>{e.stopPropagation();setShowDefects(true);}} style={{display:"flex",alignItems:"center",gap:8,background:"rgba(226,84,76,.10)",border:"1px solid rgba(226,84,76,.35)",borderRadius:14,padding:8,cursor:"pointer"}}>
+<div style={{width:44,height:44,borderRadius:14,background:"linear-gradient(135deg,var(--red),var(--warn))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>🧾</div>
+<div><div style={{fontSize:13,fontWeight:800}}>العيوب والمرتجعات</div><div style={{fontSize:10.5,color:theme.textDim,marginTop:2}}>{defects.length} مسجلة</div></div>
 </div>
 </div>
 <div className="card anim" style={{animationDelay:"360ms",margin:"12px 0"}}>
