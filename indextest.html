@@ -251,6 +251,7 @@ const [loadDraft,setLoadDraft]=useState({customer:"",total:"",date:"",notes:"",c
 const [showLateList,setShowLateList]=useState(false);const [showDelivered,setShowDelivered]=useState(false);const [heroEdit,setHeroEdit]=useState(false);
 const [showStored,setShowStored]=useState(false);
 const [defects,setDefects]=useState([]);const [showDefects,setShowDefects]=useState(false);const [defectFor,setDefectFor]=useState(null);const [defectDraft,setDefectDraft]=useState({reason:"",qty:"",notes:""});
+const [chatMsgs,setChatMsgs]=useState([]);const [showChat,setShowChat]=useState(false);const [chatInput,setChatInput]=useState("");const [chatUnread,setChatUnread]=useState(0);
 const [storedSearch,setStoredSearch]=useState("");const [defectSearch,setDefectSearch]=useState("");
 const [linkedFrom,setLinkedFrom]=useState(null);
 const [showFlags,setShowFlags]=useState(false);
@@ -312,8 +313,9 @@ const photoInputRef=useRef(null);const photoGalRef=useRef(null);const scanFileRe
 const importCamRef=useRef(null);const importGalRef=useRef(null);
 const scannerRef=useRef(null);const restoreRef=useRef(null);const scanMode=useRef("form");
 const gotoDone=useRef(false);
+const chatFirstLoad=useRef(true);const chatEndRef=useRef(null);
 const uiRef=useRef({});
-uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,showTopCust,photoView,appQr,importMenu,importDraft,showMic,showWarehouse,addLoad,loadDetail,showLateList,showDelivered,heroEdit,showDefects,defectFor,showAnnounce,linkedFrom,showAsk,showBook,showBlack,showFlags,showMyWork,showSched,showStored};
+uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,showTopCust,photoView,appQr,importMenu,importDraft,showMic,showWarehouse,addLoad,loadDetail,showLateList,showDelivered,heroEdit,showDefects,defectFor,showAnnounce,linkedFrom,showAsk,showBook,showBlack,showFlags,showMyWork,showSched,showStored,showChat};
 const t=DICT[lang];const dir=lang==="ar"?"rtl":"ltr";
 useEffect(()=>{document.documentElement.lang=lang;document.documentElement.dir=dir;},[lang,dir]);
 const can=true;unlocked;
@@ -329,7 +331,7 @@ const LD=+factory.lateDays||2;
 const allColors=PRESET_COLORS.concat(customColors);
 useEffect(()=>{setFnameDraft(factory.fname);setWaDraft(factory.wa);setLateDraft(factory.lateDays);setHeroTDraft(factory.heroT||"");setHeroSDraft(factory.heroS||"");},[factory.fname,factory.wa,factory.lateDays,factory.heroT,factory.heroS]);
 useEffect(()=>{history.pushState({guard:1},"");const iv=setInterval(()=>{try{if(!history.state||!history.state.guard)history.pushState({guard:1},"");}catch(e){}},800);const onPop=()=>{const u=uiRef.current;window.__navLock=Date.now();
-if(u.showAsk)setShowAsk(false);else if(u.showBook)setShowBook(false);else if(u.showBlack)setShowBlack(false);else if(u.showFlags)setShowFlags(false);else if(u.showMyWork)setShowMyWork(false);else if(u.showSched)setShowSched(false);else if(u.showStored)setShowStored(false);else if(u.showTopCust)setShowTopCust(false);else if(u.showLateList)setShowLateList(false);else if(u.showDelivered)setShowDelivered(false);else if(u.heroEdit)setHeroEdit(false);else if(u.showDefects)setShowDefects(false);else if(u.defectFor)setDefectFor(null);else if(u.showAnnounce)setShowAnnounce(false);else if(u.linkedFrom)setLinkedFrom(null);else if(u.addLoad)setAddLoad(false);else if(u.loadDetail)setLoadDetail(null);else if(u.showWarehouse)setShowWarehouse(false);else if(u.showMic)setShowMic(false);else if(u.importMenu)setImportMenu(false);else if(u.importDraft)setImportDraft(null);
+if(u.showChat)setShowChat(false);else if(u.showAsk)setShowAsk(false);else if(u.showBook)setShowBook(false);else if(u.showBlack)setShowBlack(false);else if(u.showFlags)setShowFlags(false);else if(u.showMyWork)setShowMyWork(false);else if(u.showSched)setShowSched(false);else if(u.showStored)setShowStored(false);else if(u.showTopCust)setShowTopCust(false);else if(u.showLateList)setShowLateList(false);else if(u.showDelivered)setShowDelivered(false);else if(u.heroEdit)setHeroEdit(false);else if(u.showDefects)setShowDefects(false);else if(u.defectFor)setDefectFor(null);else if(u.showAnnounce)setShowAnnounce(false);else if(u.linkedFrom)setLinkedFrom(null);else if(u.addLoad)setAddLoad(false);else if(u.loadDetail)setLoadDetail(null);else if(u.showWarehouse)setShowWarehouse(false);else if(u.showMic)setShowMic(false);else if(u.importMenu)setImportMenu(false);else if(u.importDraft)setImportDraft(null);
 else if(u.reportText)setReportText(null);else if(u.showScanner)setShowScanner(false);else if(u.bcCard)setBcCard(null);
 else if(u.statementFor)setStatementFor(null);else if(u.showWorkers)setShowWorkers(false);
 else if(u.photoView)setPhotoView(null);else if(u.appQr)setAppQr(false);else if(u.showMenu)setShowMenu(false);
@@ -356,6 +358,8 @@ if(cl)setCustomColors(cl.list||[]);
 const an=g("announce");if(an&&an.text)setAnnounce(an);else setAnnounce(null);});
 setFirebaseOk(true);setReady(true);}else{try{await auth.signInAnonymously();}catch(e){setReady(true);}}});return()=>un&&un();},[]);
 useEffect(()=>{if(!firebaseOk||!userId||!ownerName||!db)return;const beat=()=>{try{db.collection("presence").doc(userId).set({name:ownerName,last:Date.now()});}catch(e){}};beat();const iv=setInterval(beat,20000);const un=db.collection("presence").onSnapshot(sn=>{const n=Date.now();setOnlineUsers(sn.docs.map(d=>d.data()).filter(p=>n-(p.last||0)<60000));});return()=>{clearInterval(iv);un&&un();};},[firebaseOk,userId,ownerName]);
+useEffect(()=>{if(!firebaseOk||!db)return;const un=db.collection("chat").orderBy("atLocal","asc").limitToLast(200).onSnapshot(sn=>{const list=sn.docs.map(d=>({id:d.id,...d.data()}));setChatMsgs(list);const lastSeen=Number(localStorage.getItem("chat_seen")||0);const unread=list.filter(m=>m.by!==ownerName&&(m.atLocal||0)>lastSeen).length;setChatUnread(unread);if(!chatFirstLoad.current){const added=sn.docChanges().filter(c=>c.type==="added").map(c=>c.doc.data());const fromOthers=added.filter(m=>m.by!==ownerName);if(fromOthers.length){fx("ok");if(!showChat){const nm=fromOthers[fromOthers.length-1];showToast("💬 "+(nm.by||"")+": "+String(nm.text||"").slice(0,40),"ok");}}}chatFirstLoad.current=false;},()=>{});return()=>un&&un();},[firebaseOk,ownerName,showChat]);
+useEffect(()=>{if(showChat){localStorage.setItem("chat_seen",String(Date.now()));setChatUnread(0);if(chatEndRef.current)setTimeout(()=>chatEndRef.current&&chatEndRef.current.scrollIntoView({behavior:"smooth"}),60);}},[showChat,chatMsgs.length]);
 useEffect(()=>{if(!db||!ownerName||!announce||!announce.text||!announce.time)return;const u=localStorage.getItem("username");if(!u)return;const key=u+"_"+announce.time;if(annSeenMarked.current===key)return;annSeenMarked.current=key;try{db.collection("announceSeen").doc(u).set({name:ownerName,time:announce.time,seenAt:Date.now()});}catch(e){}},[announce,ownerName]);
 useEffect(()=>{if(!ready||gotoDone.current)return;const g=new URLSearchParams(window.location.search).get("goto");if(!g)return;let p=null;try{p=b64d(g);}catch(e){return;}if(!p||!p.c)return;
 const f=cards.find(c=>(c.barcode&&c.barcode===p.c)||c.code===p.c);
@@ -369,6 +373,8 @@ hq.start({facingMode:"environment"},Object.assign({fps:10,qrbox:{width:250,heigh
 })();
 return()=>{cancelled=true;done=true;if(hq){try{hq.stop();hq.clear();}catch(e){}}};},[showScanner]);
 const showToast=(m,k)=>{setToast({msg:m,kind:k||"ok"});setTimeout(()=>setToast(null),2600);};
+const sendChat=async()=>{const txt=chatInput.trim();if(!txt||!db)return;setChatInput("");try{await db.collection("chat").add({text:txt,by:ownerName||"—",role:localStorage.getItem("role")||"",at:firebase.firestore.FieldValue.serverTimestamp(),atLocal:Date.now()});}catch(e){showToast("❌ فشل إرسال الرسالة","danger");}};
+const chatFmtAgo=ms=>{if(!ms)return"";const mins=Math.floor((Date.now()-ms)/60000);return mins<1?"دلوقتي":mins<60?"من "+mins+" د":mins<1440?"من "+Math.floor(mins/60)+" س":"من "+Math.floor(mins/1440)+" يوم";};
 const confirmName=()=>{if(!nameInput.trim())return;setOwnerName(nameInput.trim());if(userId)localStorage.setItem("owner_name_"+(localStorage.getItem("username")||userId),nameInput.trim());};
 const jumpToCard=c=>{setActiveStage(c.stage);setScreen("stage");setEditingCard(c);};
 const repeatOrder=name=>{const cs=cards.filter(c=>c.customer===name).sort((a,b)=>toMs(b.updatedAt||b.createdAt)-toMs(a.updatedAt||a.createdAt));const L=cs[0]||{};setStatementFor(null);setEditingCard({customer:name,color:L.color||"",category:L.category||"",quantity:"",phone:L.phone||"",address:L.address||"",notes:"",stage:stages[0],code:"",machine:L.machine||"",prepare:L.prepare||"",dye:L.dye||""});};
@@ -604,6 +610,7 @@ return(
 <div style={{flex:1}}><div style={{fontSize:12,color:theme.textDim}}>👋 مرحباً يا {ownerName}</div><div style={{fontSize:20,fontWeight:900}}>{factory.fname}</div></div>
 <button onClick={()=>setShowSearch(true)} style={hdrBtn}>🔍</button>
 <button onClick={()=>setShowLateList(true)} style={{...hdrBtn,position:"relative"}}>🔔{(()=>{const n=liveCards.filter(c=>!c.delivered&&(c.urgent||adjDays(c)>=(factory.lateDays||2))).length;return n>0?<span style={{position:"absolute",top:4,left:4,background:"var(--red)",color:"#fff",borderRadius:10,fontSize:9,fontWeight:800,padding:"1px 5px",minWidth:16,textAlign:"center"}}>{n}</span>:null;})()}</button>
+<button onClick={()=>setShowChat(true)} style={{...hdrBtn,position:"relative"}}>💬{chatUnread>0?<span style={{position:"absolute",top:4,left:4,background:"var(--red)",color:"#fff",borderRadius:10,fontSize:9,fontWeight:800,padding:"1px 5px",minWidth:16,textAlign:"center"}}>{chatUnread}</span>:null}</button>
 <button onClick={()=>setShowMenu(true)} style={hdrBtn}>⋯</button>
 </div>
 <div className="card grad anim" style={{animationDelay:"80ms",marginBottom:12,position:"relative",overflow:"hidden"}}>
@@ -852,6 +859,7 @@ return(<div style={{padding:"8mm",fontFamily:"Arial",color:"#000",direction:"rtl
 <MenuBtn onClick={()=>{setReportText(buildReport());setShowMenu(false);}}>📊 {t.report}</MenuBtn>
 <MenuBtn onClick={()=>{setStatementFor(knownCustomers[0]?knownCustomers[0].name:"");setShowMenu(false);}}>👥 {t.statement}</MenuBtn>
 <MenuBtn onClick={()=>{setShowTopCust(true);setShowMenu(false);}}>🏅 أعلى العملاء</MenuBtn>
+<MenuBtn onClick={()=>{setShowChat(true);setShowMenu(false);}}>💬 الشات العام{chatUnread>0?" ("+chatUnread+")":""}</MenuBtn>
 <MenuBtn onClick={()=>{setShowWorkers(true);setShowMenu(false);}}>🏆 {t.workers}</MenuBtn>
 {can&&<MenuBtn onClick={()=>{setAnnounceDraft((announce&&announce.text)||"");setShowAnnounce(true);setShowMenu(false);}}>📢 إعلان للعمال</MenuBtn>}
 {(localStorage.getItem("role")==="worker"||localStorage.getItem("role")==="assistant")&&<MenuBtn onClick={()=>{setShowMyWork(true);setShowMenu(false);}}>👷 شغلي أنا</MenuBtn>}
@@ -1006,6 +1014,28 @@ return top?(<div className="card grad" style={{padding:12,marginBottom:12,textAl
 <div style={{fontSize:12,color:theme.textDim,marginTop:4}}>{d.qty?"كمية "+d.qty+" · ":""}{d.stage} · {d.date} · 👤 {d.by}</div>
 {d.notes&&<div style={{fontSize:12,marginTop:4}}>{d.notes}</div>}
 </div>));})()}
+</div></div>)}
+{showChat&&(
+<div className="modal" onClick={()=>setShowChat(false)}>
+<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:460,width:"100%",height:"78vh",display:"flex",flexDirection:"column",padding:0,overflow:"hidden"}}>
+<div style={{padding:"14px 16px",borderBottom:"1px solid "+theme.border,display:"flex",justifyContent:"space-between",alignItems:"center",flexShrink:0}}>
+<b style={{fontSize:15}}>💬 الشات العام {onlineUsers.length>0?<span style={{fontSize:11,fontWeight:400,color:theme.textDim}}>· {onlineUsers.length} أونلاين</span>:null}</b>
+<button onClick={()=>setShowChat(false)} className="chip">✕</button>
+</div>
+<div style={{flex:1,overflowY:"auto",padding:"12px 14px",display:"flex",flexDirection:"column",gap:10}}>
+{chatMsgs.length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center",marginTop:24}}>لسه مفيش رسايل — ابدأ الكلام مع الفريق 👋</p>}
+{chatMsgs.map((m,i)=>{const mine=m.by===ownerName;const prevSame=i>0&&chatMsgs[i-1].by===m.by;return(
+<div key={m.id} style={{alignSelf:mine?"flex-end":"flex-start",maxWidth:"78%",display:"flex",flexDirection:"column",alignItems:mine?"flex-end":"flex-start"}}>
+{!prevSame&&<div style={{fontSize:11,color:theme.textDim,marginBottom:3,padding:"0 4px"}}>{mine?"إنت":(m.role==="assistant"?"🎖️ ":m.role==="manager"||m.role==="master"?"👑 ":"👷 ")+(m.by||"—")}</div>}
+<div style={{background:mine?"var(--teal)":theme.panelAlt,color:mine?"#fff":theme.text,padding:"9px 13px",borderRadius:mine?"14px 14px 4px 14px":"14px 14px 14px 4px",fontSize:13.5,lineHeight:1.45,wordBreak:"break-word",whiteSpace:"pre-wrap"}}>{m.text}</div>
+<div style={{fontSize:9.5,color:theme.textDim,marginTop:3,padding:"0 4px"}}>{chatFmtAgo(m.atLocal)}</div>
+</div>);})}
+<div ref={chatEndRef}/>
+</div>
+<div style={{display:"flex",gap:8,padding:"10px 12px",borderTop:"1px solid "+theme.border,flexShrink:0}}>
+<input className="inp" style={{flex:1,margin:0}} placeholder="اكتب رسالة..." value={chatInput} onChange={e=>setChatInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChat();}}}/>
+<button onClick={sendChat} className="btnG" style={{padding:"0 18px",flexShrink:0}}>➤</button>
+</div>
 </div></div>)}
 {showMic&&(
 <div className="modal" onClick={()=>{setShowMic(false);stopMic();}}>
