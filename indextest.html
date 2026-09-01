@@ -1193,7 +1193,14 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 {editingCard&&(
 <div className="modal" onClick={()=>setEditingCard(null)}>
 <div className="mbox" onClick={e=>e.stopPropagation()}>
-<div style={{display:"flex",justifyContent:"space-between",marginBottom:14}}><h3 style={{margin:0,fontSize:17}}>{cards.some(c=>c.id===editingCard.id)?t.edit:t.newCard}{!can?" 👁️":""}</h3><button onClick={()=>setEditingCard(null)} style={{background:"none",border:"none",color:theme.textDim,fontSize:20}}>✕</button></div>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:8,marginBottom:14,position:"sticky",top:-20,zIndex:5,background:theme.panel,paddingTop:20,marginTop:-20,paddingBottom:10}}>
+<h3 style={{margin:0,fontSize:17}}>{cards.some(c=>c.id===editingCard.id)?t.edit:t.newCard}{!can?" 👁️":""}</h3>
+<div style={{display:"flex",gap:6,alignItems:"center",flexShrink:0}}>
+{can&&<button onClick={()=>saveCard({...editingCard,__dupWarning:undefined},!!editingCard.__dupWarning)} className="btnG" style={{padding:"8px 14px",fontSize:13}}>{editingCard.__dupWarning?t.saveAnyway:t.save}</button>}
+{can&&<button onClick={()=>setEditingCard(null)} className="btnO" style={{padding:"8px 14px",fontSize:13}}>{t.cancel}</button>}
+<button onClick={()=>setEditingCard(null)} style={{background:"none",border:"none",color:theme.textDim,fontSize:20}}>✕</button>
+</div>
+</div>
 <fieldset disabled={!can}>
 {editingCard.__dupWarning&&<div className="card" style={{borderColor:"var(--red)",padding:12,marginBottom:12,fontSize:13.5}}>⚠️ {t.duplicateWarning}</div>}
 {can&&cards.some(c=>c.id===editingCard.id)&&(<>
@@ -1219,7 +1226,6 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 {(()=>{const qp=queuePos(editingCard);if(!qp||editingCard.delivered)return null;return(<div style={{padding:"8px 12px",marginBottom:10,background:"rgba(27,143,130,.08)",border:"1px solid rgba(27,143,130,.35)",borderRadius:12,fontSize:12,color:theme.textDim}}>📍 ترتيبك في مرحلة <b>{editingCard.stage}</b>: <b style={{color:"var(--teal)"}}>{qp.pos} من {qp.total}</b> — الأقدم بيتشتغل الأول</div>);})()}
 {(()=>{if(!editingCard||editingCard.delivered)return null;const eta=etaOf(editingCard);if(!eta)return null;const d=Math.max(0,Math.round((eta-Date.now())/86400000));return(<div style={{padding:"8px 12px",marginBottom:12,background:"rgba(201,151,63,.10)",border:"1px solid rgba(201,151,63,.35)",borderRadius:12,fontSize:12,color:theme.textDim}}>🗓️ الجاهزية المتوقعة: <b style={{color:"var(--blue)"}}>{new Date(eta).toLocaleDateString(lang==="ar"?"ar-EG":"en-GB",{weekday:"long",day:"numeric",month:"long"})}</b> (بعد ~{d} يوم)</div>);})()}
 {Array.isArray(editingCard.history)&&editingCard.history.length>0&&(<div style={{marginBottom:14}}><div className="lbl">📜 {t.history}</div>{editingCard.history.slice().reverse().map((h,i)=>{const arr=editingCard.history;const idx=arr.indexOf(h);const nxt=arr[idx+1];const ms=(nxt?toMs(nxt.at):Date.now())-toMs(h.at);return(<div key={i} style={{display:"flex",gap:8,flexWrap:"wrap",fontSize:12,color:theme.textDim,padding:"6px 10px",marginBottom:4,borderInlineStart:"2px solid var(--vio)",background:theme.panelAlt,borderRadius:8}}><span>📍 {h.stage}</span><span>· {h.by}</span><span>· {fmtTime(h.at,lang)}</span><span style={{color:"var(--warn)",fontWeight:800}}>⏱️ {fmtDur(ms)}</span></div>);})}</div>)}
-{can&&<div style={{display:"flex",gap:8}}><button onClick={()=>saveCard({...editingCard,__dupWarning:undefined},!!editingCard.__dupWarning)} className="btnG">{editingCard.__dupWarning?t.saveAnyway:t.save}</button><button onClick={()=>setEditingCard(null)} className="btnO">{t.cancel}</button></div>}
 {can&&cards.some(c=>c.id===editingCard.id)&&nextStageOf(editingCard.stage)&&(<button onClick={()=>{const n=nextStageOf(editingCard.stage);const c=editingCard;setEditingCard(null);moveCardTo(c,n);}} className="btnO" style={{marginTop:8}}>⏭️ → {nextStageOf(editingCard.stage)}</button>)}
 </fieldset>
 </div></div>)}
