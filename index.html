@@ -59,6 +59,16 @@ fieldset{border:none;margin:0;padding:0;min-width:0}
 #bc-reader video{border-radius:12px}
 .modal{position:fixed;inset:0;background:rgba(10,16,21,.7);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:400;padding:16px;animation:pop .25s both}
 .mbox{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:24px;padding:20px;width:100%;max-width:460px;max-height:88vh;overflow-y:auto;animation:fadeUp .35s both}
+button{transition:transform .15s ease,opacity .15s ease}
+button:active:not(:disabled){transform:scale(.94)}
+.chip:active{transform:scale(.92)}
+.navi span{transition:transform .25s cubic-bezier(.34,1.56,.64,1)}
+.navi:active span{transform:scale(.85)}
+img,.badge,.chip.on{transition:transform .2s ease}
+select,.inp{transition:border .2s ease,box-shadow .2s ease}
+.inp:focus{box-shadow:0 0 0 3px rgba(45,140,116,.18)}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px}
 </style>
 </head>
 <body>
@@ -67,8 +77,9 @@ fieldset{border:none;margin:0;padding:0;min-width:0}
 <style>@media print{body *{visibility:hidden;}#printSheet,#printSheet *{visibility:visible;}#printSheet{display:block!important;position:absolute;top:0;left:0;right:0;}}</style>
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:16px"><div style="font-size:64px">🏭</div><div style="color:#7FA79E;font-size:14px">🕌 استغل الانتظار في الاستغفار</div></div></div>
 <script>
-window.onerror=function(m,u,l){if(m&&m!=="Script error."&&!window.__booted){var r=document.getElementById("root");if(r)r.innerHTML='<div style="padding:16px;color:#E2544C;font-size:12px;word-break:break-all;text-align:center">خطأ: '+m+'<br>سطر: '+l+'<br>📄 الملف: '+u+'</div>';}};
-window.addEventListener("unhandledrejection",function(e){e.preventDefault();console.warn(e.reason);});
+window.onerror=function(m,u,l){if(m&&m!=="Script error."){var r=document.getElementById("root");if(r)r.innerHTML='<div style="padding:16px;color:#E2544C;font-size:12px;word-break:break-all;text-align:center">خطأ: '+m+'<br>سطر: '+l+'<br>📄 الملف: '+u+'</div>';}};
+window.addEventListener("error",function(e){var t=e.target;if(t&&(t.tagName==="SCRIPT"||t.tagName==="LINK")){var src=t.src||t.href||"?";var r=document.getElementById("root");if(r)r.innerHTML='<div style="padding:16px;color:#E2544C;font-size:12px;word-break:break-all;text-align:center">⚠️ فشل تحميل ملف:<br>'+src+'<br><br><button onclick="location.reload()" style="margin-top:10px;background:#2D8C74;color:#fff;border:none;border-radius:10px;padding:9px 22px;font-size:13px;font-weight:700">🔄 إعادة المحاولة</button></div>';}},true);
+window.addEventListener("unhandledrejection",function(e){e.preventDefault();console.warn(e.reason);var msg=(e.reason&&(e.reason.message||e.reason))||"خطأ غير معروف";var r=document.getElementById("root");if(r)r.innerHTML='<div style="padding:16px;color:#E2544C;font-size:12px;word-break:break-all;text-align:center">⚠️ خطأ أثناء التحميل:<br>'+msg+'<br><br><button onclick="location.reload()" style="margin-top:10px;background:#2D8C74;color:#fff;border:none;border-radius:10px;padding:9px 22px;font-size:13px;font-weight:700">🔄 إعادة المحاولة</button></div>';});
 setTimeout(function(){if(!window.__booted){var r=document.getElementById("root");if(r&&r.innerHTML.indexOf("خطأ")===-1&&!document.getElementById("slowLoadMsg")){var d=document.createElement("div");d.id="slowLoadMsg";d.style.cssText="position:fixed;bottom:10px;left:10px;right:10px;background:#131F2B;color:#E2544C;border:1px solid #E2544C;border-radius:14px;padding:12px;font-size:12px;text-align:center;z-index:99999";d.innerHTML="⚠️ لسه بيحمّل، الاتصال شكله بطيء — دوس إعادة أو غيّر الشبكة<br><button onclick='location.reload()' style='margin-top:8px;background:#2D8C74;color:#fff;border:none;border-radius:10px;padding:9px 22px;font-size:13px;font-weight:700'>🔄 إعادة المحاولة</button>";r.appendChild(d);}}},120000);
 </script>
 <script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script>
@@ -119,11 +130,12 @@ const SUPPORT_WA="201044836450";
 function touchLastSeen(){var u=localStorage.getItem("username");if(!u)return;try{db.collection("users").doc(u).set({lastSeen:Date.now()},{merge:true});}catch(e){}}
 setInterval(touchLastSeen,20000);setTimeout(touchLastSeen,2000);setTimeout(touchLastSeen,6000);
 function compressImg(file,maxW,cb){var r=new FileReader();r.onload=function(){var img=new Image();img.onload=function(){var sc=Math.min(1,(maxW||800)/img.width);var cv=document.createElement("canvas");cv.width=Math.round(img.width*sc);cv.height=Math.round(img.height*sc);cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);cb(cv.toDataURL("image/jpeg",0.7));};img.src=r.result;};r.readAsDataURL(file);}
-function LastSeen(props){var _s=React.useState(0),ls=_s[0],setLs=_s[1];React.useEffect(()=>{if(!props.name)return 0;var key=(props.name||"").trim().toLowerCase();try{return db.collection("presence").onSnapshot(sn=>{var best=0;sn.forEach(d=>{var p=d.data()||{};var pn=(p.name||"").trim().toLowerCase();if((pn===key||(d.id||"").toLowerCase()===key)&&(p.last||0)>best)best=p.last||0;});setLs(best);});}catch(e){return 0;}},[props.name]);if(!ls)return(<span style={{fontSize:10,color:"#7FA79E"}}>—</span>);var mins=Math.floor((Date.now()-ls)/60000);var txt=mins<1?"دلوقتي":mins<60?"من "+mins+" د":mins<1440?"من "+Math.floor(mins/60)+" س":"من "+Math.floor(mins/1440)+" يوم";return(<span style={{fontSize:10,color:mins<5?"#1B8F82":"#7FA79E"}}>{mins<5?"🟢":"🕐"} {txt}</span>);}
+function LastSeen(props){var _s=React.useState(0),ls=_s[0],setLs=_s[1];React.useEffect(()=>{if(!props.name)return function(){};var key=(props.name||"").trim().toLowerCase();try{return db.collection("presence").onSnapshot(sn=>{var best=0;sn.forEach(d=>{var p=d.data()||{};var pn=(p.name||"").trim().toLowerCase();if((pn===key||(d.id||"").toLowerCase()===key)&&(p.last||0)>best)best=p.last||0;});setLs(best);});}catch(e){return function(){};}},[props.name]);if(!ls)return(<span style={{fontSize:10,color:"#7FA79E"}}>—</span>);var mins=Math.floor((Date.now()-ls)/60000);var txt=mins<1?"دلوقتي":mins<60?"من "+mins+" د":mins<1440?"من "+Math.floor(mins/60)+" س":"من "+Math.floor(mins/1440)+" يوم";return(<span style={{fontSize:10,color:mins<5?"#1B8F82":"#7FA79E"}}>{mins<5?"🟢":"🕐"} {txt}</span>);}
 function fmtDur(ms){const m=Math.max(0,Math.floor(ms/60000));if(m<60)return m+"د";const h=Math.floor(m/60);if(h<24)return (m%60)?h+"س "+(m%60)+"د":h+"س";const d=Math.floor(h/24);return (h%24)?d+"ي "+(h%24)+"س":d+"ي";}
 function daysSince(v){const m=toMs(v);if(!m)return 0;return(Date.now()-m)/86400000;}
 function localDate(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
-function printStatement(name){
+function printStatement(name,ctx){
+ctx=ctx||{};const cards=ctx.cards||[],loads=ctx.loads||[],knownCustomers=ctx.knownCustomers||[],qtySum=ctx.qtySum||(l=>l.reduce((a,c)=>a+(parseFloat(c.quantity)||0),0)),stages=ctx.stages||[],lang=ctx.lang||"ar",logoSrc=ctx.logoSrc||"",factory=ctx.factory||{};
 const cs=cards.filter(c=>c.customer===name);
 const lds=loads.filter(l=>l.customer===name);
 const inf=knownCustomers.find(k=>k.name===name)||{}
@@ -228,16 +240,71 @@ const [gemKeyDraft,setGemKeyDraft]=useState(localStorage.getItem("gemini_key")||
 const [showBlack,setShowBlack]=useState(false);const [blackIdx,setBlackIdx]=useState(0);const [blackPlay,setBlackPlay]=useState(0);
 const [printTarget,setPrintTarget]=useState(null);const [printSize,setPrintSize]=useState(localStorage.getItem("printSize")||"A5");const [printDesign,setPrintDesign]=useState(localStorage.getItem("printDesign")||"1");
 const blackList=()=>{const arr=[];(cards||[]).forEach(c=>{(c.history||[]).forEach(h=>arr.push({stage:h.stage,by:h.by,at:h.at,cust:c.customer}));});arr.sort((a,b)=>toMs(a.at)-toMs(b.at));return arr;};
-useEffect(()=>{if(!blackPlay)return 0;const iv=setInterval(()=>setBlackIdx(i=>i+1),400);return()=>clearInterval(iv);},[blackPlay]);
+useEffect(()=>{if(!blackPlay)return function(){};const iv=setInterval(()=>setBlackIdx(i=>i+1),400);return()=>clearInterval(iv);},[blackPlay]);
 useEffect(()=>{const L=blackList().length;if(blackIdx>L)setBlackIdx(L);if(blackPlay&&blackIdx>=L)setBlackPlay(0);},[blackIdx,blackPlay]);
 const askGemini=async()=>{const q=askQ.trim();if(!q||askBusy)return;setAskBusy(1);setAskA("");const key=String(factory.gkey||localStorage.getItem("gemini_key")||window.__masterGem||"").trim();if(!key){setAskA("❌ مفيش مفتاح Gemini");setAskBusy(0);return;}
-const cardsDump=liveCards.slice(0,300).map(c=>[c.customer,c.code,c.color,c.category,c.quantity,c.stage,c.delivered?"مسلّم":""].filter(Boolean).join("|")).join("\n");
+const cardsDump=liveCards.slice(0,300).map(c=>[c.id,c.customer,c.code,c.color,c.category,c.quantity,c.stage,c.delivered?"مسلّم":(c.stored?"في المخزن المجهز":"شغال"),c.urgent?"مستعجل":"",c.pinned?"مثبّت":""].filter(Boolean).join("|")).join("\n");
 const loadsDump=(loads||[]).map(l=>{const s=loadStats(l);return [l.name||l.category||l.title||"خامة","كلي:"+(l.total||0),"باقي:"+Math.max(0,Math.round(s.rem))].join("|");}).join("\n");
-const ctx="انت مساعد ذكي داخل تطبيق مصنع صباغة اسمه "+(factory.fname||"")+". عندك كل بيانات الموقع لحظياً — جاوب أي سؤال منها بالعامية المصرية وبأرقام حقيقية:\n\n🃏 كروت الشغل (عميل|كود|لون|خامة|وزن|مرحلة|حالة):\n"+cardsDump+"\n\n🧵 المخزن الرئيسي (خامة|إجمالي|باقي):\n"+loadsDump+"\n\n📊 ملخص: كروت حية="+liveCards.length+" · متأخرة="+lateCount+"\n🟢 المتصلين دلوقتي: "+(onlineUsers||[]).map(u=>u.name).join("، ")+"\n\n❓ سؤال صاحب المصنع: "+q;
-try{let models=["gemini-2.5-flash","gemini-2.0-flash"];try{const mj=await(await fetch("https://generativelanguage.googleapis.com/v1beta/models?key="+key)).json();if(mj&&mj.models){let av=mj.models.map(m=>String(m.name).replace("models/","")).filter(n=>/flash/.test(n)&&!/image|tts|embed|imagen|video/i.test(n));const nl=av.filter(n=>!n.includes("lite"));if(nl.length)av=nl;if(av.length)models=av.slice(0,3);}}catch(e){}let lastErr="";for(const md of models){try{const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+md+":generateContent?key="+key,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{parts:[{text:ctx}]}]})});const j=await r.json();if(j.error){lastErr=j.error.message||"err";continue;}const txt=j.candidates&&j.candidates[0]&&j.candidates[0].content.parts[0]&&j.candidates[0].content.parts[0].text;if(txt){setAskA(txt);setAskBusy(0);return;}}catch(e){}}setAskA("❌ معرفتش أوصل للنموذج"+(lastErr?" — "+lastErr:""));}catch(e){setAskA("❌ "+e.message);}setAskBusy(0);};
+const actionsHelp="لو رسالة المستخدم أمر تنفيذي رد بـ JSON صافي بس بدون أي كلام أو ```. الأوامر المتاحة:\n"
++"نقل مرحلة: {\"type\":\"action\",\"action\":\"move\",\"cardId\":\"<id>\",\"stage\":\"<مرحلة من: "+stages.join("، ")+">\"}\n"
++"تسليم كامل: {\"type\":\"action\",\"action\":\"deliver\",\"cardId\":\"<id>\"}\n"
++"تسليم جزئي: {\"type\":\"action\",\"action\":\"deliver_partial\",\"cardId\":\"<id>\",\"qty\":\"<رقم>\"}\n"
++"مخزن مجهز (نقل له أو رجوع منه): {\"type\":\"action\",\"action\":\"store\",\"cardId\":\"<id>\"}\n"
++"تسجيل عيب/مرتجع: {\"type\":\"action\",\"action\":\"defect\",\"cardId\":\"<id>\",\"reason\":\"<سبب>\",\"qty\":\"<كمية أو فاضي>\"}\n"
++"تثبيت/إلغاء تثبيت كرت: {\"type\":\"action\",\"action\":\"pin\",\"cardId\":\"<id>\"}\n"
++"أرشفة/رجوع من الأرشيف: {\"type\":\"action\",\"action\":\"archive\",\"cardId\":\"<id>\"}\n"
++"علامة مستعجل (تشغيل/إيقاف): {\"type\":\"action\",\"action\":\"urgent\",\"cardId\":\"<id>\"}\n"
++"إضافة ملاحظة لكرت: {\"type\":\"action\",\"action\":\"note\",\"cardId\":\"<id>\",\"text\":\"<الملاحظة>\"}\n"
++"حذف كرت: {\"type\":\"action\",\"action\":\"delete\",\"cardId\":\"<id>\"}\n"
++"إضافة كرت شغل جديد: {\"type\":\"action\",\"action\":\"add_card\",\"customer\":\"<اسم العميل>\",\"code\":\"<كود أو فاضي>\",\"color\":\"<لون أو فاضي>\",\"category\":\"<خامة أو فاضي>\",\"quantity\":\"<وزن أو فاضي>\",\"stage\":\"<مرحلة أو فاضي>\"}\n"
++"إضافة حمولة للمخزن الرئيسي: {\"type\":\"action\",\"action\":\"add_stock\",\"customer\":\"<اسم الخامة/المورد>\",\"total\":\"<رقم>\",\"category\":\"<فئة أو فاضي>\",\"color\":\"<لون أو فاضي>\"}\n"
++"لو مش قادر تحدد أي كرت بالظبط من كلام المستخدم أو ناقصك بيانات: {\"type\":\"clarify\",\"text\":\"<سؤال توضيح بالعامية>\"}\n"
++"لو الرسالة سؤال معلومة مش أمر تنفيذي: {\"type\":\"answer\",\"text\":\"<إجابة بالعامية المصرية بأرقام حقيقية>\"}\n"
++"لو الأمر يخص أكتر من كرت مرة واحدة (زي \"انقل كل كروت أحمد للمخزن\"): رد بمصفوفة JSON فيها أمر واحد لكل كرت، مثال: [{\"type\":\"action\",...},{\"type\":\"action\",...}]\n"
++"اختار cardId من أول عمود في كل سطر من ليستة الكروت تحت. رد JSON فقط من غير شرح.";
+const ctx="انت مساعد ذكي داخل تطبيق مصنع صباغة اسمه "+(factory.fname||"")+"، بيكلمك دلوقتي: "+(ownerName||"")+" ("+(localStorage.getItem("role")||"")+"). عندك كل بيانات الموقع لحظياً:\n\n🃏 كروت الشغل (id|عميل|كود|لون|خامة|وزن|مرحلة|حالة|أعلام):\n"+cardsDump+"\n\n🧵 المخزن الرئيسي (خامة|إجمالي|باقي):\n"+loadsDump+"\n\n📊 ملخص: كروت حية="+liveCards.length+" · متأخرة="+lateCount+"\n🟢 المتصلين دلوقتي: "+(onlineUsers||[]).map(u=>u.name).join("، ")+"\n\n"+actionsHelp+"\n\n❓ رسالة المستخدم: "+q;
+try{let models=["gemini-2.5-flash","gemini-2.0-flash"];try{const mj=await(await fetch("https://generativelanguage.googleapis.com/v1beta/models?key="+key)).json();if(mj&&mj.models){let av=mj.models.map(m=>String(m.name).replace("models/","")).filter(n=>/flash/.test(n)&&!/image|tts|embed|imagen|video/i.test(n));const nl=av.filter(n=>!n.includes("lite"));if(nl.length)av=nl;if(av.length)models=av.slice(0,3);}}catch(e){}
+let lastErr="",txt="";
+for(const md of models){try{const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+md+":generateContent?key="+key,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{parts:[{text:ctx}]}]})});const j=await r.json();if(j.error){lastErr=j.error.message||"err";continue;}txt=(j.candidates&&j.candidates[0]&&j.candidates[0].content.parts[0]&&j.candidates[0].content.parts[0].text)||"";if(txt)break;}catch(e){}}
+if(!txt){setAskA("❌ معرفتش أوصل للنموذج"+(lastErr?" — "+lastErr:""));setAskBusy(0);return;}
+let parsed=null;try{parsed=JSON.parse(txt.replace(/```json|```/g,"").trim());}catch(e){parsed=null;}
+if(!parsed){setAskA(txt);setAskBusy(0);return;}
+const execOne=async(p)=>{
+if(!p||typeof p!=="object")return "❌ أمر غير مفهوم";
+if(p.type==="answer")return p.text||"";
+if(p.type==="clarify")return "❓ "+(p.text||"محتاج توضيح أكتر");
+if(p.type!=="action")return "❌ أمر مش معروف";
+if(!can)return "🔒 مفيش عندك صلاحية تنفيذ أوامر دلوقتي";
+const cardless=["add_card","add_stock"];
+let card=null;
+if(!cardless.includes(p.action)){card=liveCards.find(c=>c.id===p.cardId);if(!card)return "❌ معرفتش ألاقي كرت بالـ id ده — "+(p.cardId||"");}
+try{
+if(p.action==="move"){const dst=stages.includes(p.stage)?p.stage:(stages.find(s=>s===p.stage)||p.stage);await moveCardTo(card,dst);return "✅ نقلت كرت "+(card.customer||card.code)+" لمرحلة "+dst;}
+if(p.action==="deliver"){await toggleDelivered(card);return "✅ اتعمل تسليم لكرت "+(card.customer||card.code);}
+if(p.action==="deliver_partial"){await partialDeliver(card,p.qty);return "✅ اتسجل تسليم جزئي "+(p.qty||"")+" لكرت "+(card.customer||card.code);}
+if(p.action==="store"){const wasStored=card.stored;await toggleStored(card);return "✅ كرت "+(card.customer||card.code)+(wasStored?" رجع من المخزن":" اتنقل للمخزن المجهز");}
+if(p.action==="defect"){await db.collection("defects").doc(uid()).set({cardId:card.id,customer:card.customer||"",code:card.code||"",stage:card.stage||"",reason:p.reason||"",qty:p.qty||"",notes:"عن طريق اسأل مصنعك",by:ownerName||"",time:Date.now(),date:localDate(new Date())});return "✅ اتسجل عيب على كرت "+(card.customer||card.code);}
+if(p.action==="pin"){const wasPinned=card.pinned;await togglePin(card);return "✅ "+(wasPinned?"شلت التثبيت من":"ثبّت")+" كرت "+(card.customer||card.code);}
+if(p.action==="archive"){const wasArchived=card.archived;await toggleArchive(card);return "✅ "+(wasArchived?"رجّعت":"أرشفت")+" كرت "+(card.customer||card.code);}
+if(p.action==="urgent"){const wasUrgent=card.urgent;await db.collection("cards").doc(card.id).set({urgent:!wasUrgent},{merge:true});return "✅ كرت "+(card.customer||card.code)+(wasUrgent?" مبقاش مستعجل":" اتعمله علامة مستعجل ⚠️");}
+if(p.action==="note"){await db.collection("cards").doc(card.id).set({notes:(card.notes?card.notes+" ":"")+(p.text||"")},{merge:true});return "✅ اتضافت ملاحظة لكرت "+(card.customer||card.code);}
+if(p.action==="delete"){if(confirm("متأكد تحذف كرت "+(card.customer||card.code)+"؟")){undoDelete(card);return "🗑️ اتحذف كرت "+(card.customer||card.code)+" — فيه زرار تراجع تحت لو غلط";}return "❌ اتلغى حذف "+(card.customer||card.code);}
+if(p.action==="add_card"){if(!p.customer)return "❓ محتاج اسم العميل عشان أضيف الكرت";const nc={id:uid(),stage:(stages.includes(p.stage)?p.stage:(activeStage||stages[0]||"")),code:p.code||"",customer:p.customer||"",category:p.category||"",color:p.color||"",quantity:p.quantity||"",machine:"",prepare:"",dye:"",time:"",notes:"",phone:"",address:"",urgent:false,pinned:false,due:"",photo:"",archived:false,loadId:"",delivered:false,deliveredQty:0};await saveCard(nc,true);return "✅ اتضاف كرت جديد لـ "+nc.customer+" في مرحلة "+nc.stage;}
+if(p.action==="add_stock"){if(!p.customer||!p.total)return "❓ محتاج اسم الخامة/المورد والكمية الكلية عشان أضيف حمولة";await db.collection("loads").doc(uid()).set({customer:String(p.customer).trim(),total:parseFloat(p.total)||0,date:localDate(new Date()),notes:"عن طريق اسأل مصنعك",category:p.category||"",color:p.color||"",barcode:"",machine:""});return "✅ اتضافت حمولة "+p.total+" "+(factory.unit||"")+" لـ "+p.customer;}
+return "❌ أمر مش معروف";
+}catch(e){return "❌ حصل خطأ أثناء التنفيذ: "+e.message;}
+};
+if(Array.isArray(parsed)){
+if(parsed.length===0){setAskA(txt);setAskBusy(0);return;}
+const results=[];
+for(const p of parsed){results.push(await execOne(p));}
+setAskA(results.join("\n"));setAskBusy(0);return;
+}
+setAskA(await execOne(parsed));setAskBusy(0);
+}catch(e){setAskA("❌ "+e.message);setAskBusy(0);}};
 const [companyMembers,setCompanyMembers]=useState([]);
 const [allUsersLive,setAllUsersLive]=useState([]);
-useEffect(()=>{if(!db)return 0;return db.collection("users").onSnapshot(s=>{const a=[];s.forEach(d=>a.push(d.data().name||d.id));a.sort();setAllUsersLive(a);});},[]);
+useEffect(()=>{if(!db)return function(){};return db.collection("users").onSnapshot(s=>{const a=[];s.forEach(d=>a.push(d.data().name||d.id));a.sort();setAllUsersLive(a);});},[]);
 {[ownerName].concat(allUsersLive||[]).filter((v,i,a)=>v&&a.indexOf(v)===i).map(w=><option key={w} value={w}>{w===ownerName?"👑 "+w:"👷 "+w}</option>)}
 const [factory,setFactory]=useState({fname:"متابعة المراحل",wa:"",unit:"كيلو",lateDays:2,printSize:"A5",heroT:"",heroS:""});
 const [fnameDraft,setFnameDraft]=useState("متابعة المراحل");const [waDraft,setWaDraft]=useState("");const [lateDraft,setLateDraft]=useState(2);
@@ -249,6 +316,8 @@ const [loadDraft,setLoadDraft]=useState({customer:"",total:"",date:"",notes:"",c
 const [showLateList,setShowLateList]=useState(false);const [showDelivered,setShowDelivered]=useState(false);const [heroEdit,setHeroEdit]=useState(false);
 const [showStored,setShowStored]=useState(false);
 const [defects,setDefects]=useState([]);const [showDefects,setShowDefects]=useState(false);const [defectFor,setDefectFor]=useState(null);const [defectDraft,setDefectDraft]=useState({reason:"",qty:"",notes:""});
+const [chatMsgs,setChatMsgs]=useState([]);const [showChat,setShowChat]=useState(false);const [chatInput,setChatInput]=useState("");const [chatUnread,setChatUnread]=useState(0);
+const [storedSearch,setStoredSearch]=useState("");const [defectSearch,setDefectSearch]=useState("");
 const [linkedFrom,setLinkedFrom]=useState(null);
 const [showFlags,setShowFlags]=useState(false);
 const [screen,setScreen]=useState("home");const [activeStage,setActiveStage]=useState(null);
@@ -309,8 +378,9 @@ const photoInputRef=useRef(null);const photoGalRef=useRef(null);const scanFileRe
 const importCamRef=useRef(null);const importGalRef=useRef(null);
 const scannerRef=useRef(null);const restoreRef=useRef(null);const scanMode=useRef("form");
 const gotoDone=useRef(false);
+const chatFirstLoad=useRef(true);const chatEndRef=useRef(null);
 const uiRef=useRef({});
-uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,showTopCust,photoView,appQr,importMenu,importDraft,showMic,showWarehouse,addLoad,loadDetail,showLateList,showDelivered,heroEdit,showDefects,defectFor,showAnnounce,linkedFrom,showAsk,showBook,showBlack,showFlags,showMyWork,showSched,showStored};
+uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,showTopCust,photoView,appQr,importMenu,importDraft,showMic,showWarehouse,addLoad,loadDetail,showLateList,showDelivered,heroEdit,showDefects,defectFor,showAnnounce,linkedFrom,showAsk,showBook,showBlack,showFlags,showMyWork,showSched,showStored,showChat};
 const t=DICT[lang];const dir=lang==="ar"?"rtl":"ltr";
 useEffect(()=>{document.documentElement.lang=lang;document.documentElement.dir=dir;},[lang,dir]);
 const can=true;unlocked;
@@ -326,7 +396,7 @@ const LD=+factory.lateDays||2;
 const allColors=PRESET_COLORS.concat(customColors);
 useEffect(()=>{setFnameDraft(factory.fname);setWaDraft(factory.wa);setLateDraft(factory.lateDays);setHeroTDraft(factory.heroT||"");setHeroSDraft(factory.heroS||"");},[factory.fname,factory.wa,factory.lateDays,factory.heroT,factory.heroS]);
 useEffect(()=>{history.pushState({guard:1},"");const iv=setInterval(()=>{try{if(!history.state||!history.state.guard)history.pushState({guard:1},"");}catch(e){}},800);const onPop=()=>{const u=uiRef.current;window.__navLock=Date.now();
-if(u.showAsk)setShowAsk(false);else if(u.showBook)setShowBook(false);else if(u.showBlack)setShowBlack(false);else if(u.showFlags)setShowFlags(false);else if(u.showMyWork)setShowMyWork(false);else if(u.showSched)setShowSched(false);else if(u.showStored)setShowStored(false);else if(u.showTopCust)setShowTopCust(false);else if(u.showLateList)setShowLateList(false);else if(u.showDelivered)setShowDelivered(false);else if(u.heroEdit)setHeroEdit(false);else if(u.showDefects)setShowDefects(false);else if(u.defectFor)setDefectFor(null);else if(u.showAnnounce)setShowAnnounce(false);else if(u.linkedFrom)setLinkedFrom(null);else if(u.addLoad)setAddLoad(false);else if(u.loadDetail)setLoadDetail(null);else if(u.showWarehouse)setShowWarehouse(false);else if(u.showMic)setShowMic(false);else if(u.importMenu)setImportMenu(false);else if(u.importDraft)setImportDraft(null);
+if(u.showChat)setShowChat(false);else if(u.showAsk)setShowAsk(false);else if(u.showBook)setShowBook(false);else if(u.showBlack)setShowBlack(false);else if(u.showFlags)setShowFlags(false);else if(u.showMyWork)setShowMyWork(false);else if(u.showSched)setShowSched(false);else if(u.showStored)setShowStored(false);else if(u.showTopCust)setShowTopCust(false);else if(u.showLateList)setShowLateList(false);else if(u.showDelivered)setShowDelivered(false);else if(u.heroEdit)setHeroEdit(false);else if(u.showDefects)setShowDefects(false);else if(u.defectFor)setDefectFor(null);else if(u.showAnnounce)setShowAnnounce(false);else if(u.linkedFrom)setLinkedFrom(null);else if(u.addLoad)setAddLoad(false);else if(u.loadDetail)setLoadDetail(null);else if(u.showWarehouse)setShowWarehouse(false);else if(u.showMic)setShowMic(false);else if(u.importMenu)setImportMenu(false);else if(u.importDraft)setImportDraft(null);
 else if(u.reportText)setReportText(null);else if(u.showScanner)setShowScanner(false);else if(u.bcCard)setBcCard(null);
 else if(u.statementFor)setStatementFor(null);else if(u.showWorkers)setShowWorkers(false);
 else if(u.photoView)setPhotoView(null);else if(u.appQr)setAppQr(false);else if(u.showMenu)setShowMenu(false);
@@ -353,6 +423,8 @@ if(cl)setCustomColors(cl.list||[]);
 const an=g("announce");if(an&&an.text)setAnnounce(an);else setAnnounce(null);});
 setFirebaseOk(true);setReady(true);}else{try{await auth.signInAnonymously();}catch(e){setReady(true);}}});return()=>un&&un();},[]);
 useEffect(()=>{if(!firebaseOk||!userId||!ownerName||!db)return;const beat=()=>{try{db.collection("presence").doc(userId).set({name:ownerName,last:Date.now()});}catch(e){}};beat();const iv=setInterval(beat,20000);const un=db.collection("presence").onSnapshot(sn=>{const n=Date.now();setOnlineUsers(sn.docs.map(d=>d.data()).filter(p=>n-(p.last||0)<60000));});return()=>{clearInterval(iv);un&&un();};},[firebaseOk,userId,ownerName]);
+useEffect(()=>{if(!firebaseOk||!db)return;const un=db.collection("chat").orderBy("atLocal","asc").limitToLast(200).onSnapshot(sn=>{const list=sn.docs.map(d=>({id:d.id,...d.data()}));setChatMsgs(list);const lastSeen=Number(localStorage.getItem("chat_seen")||0);const unread=list.filter(m=>m.by!==ownerName&&(m.atLocal||0)>lastSeen).length;setChatUnread(unread);if(!chatFirstLoad.current){const added=sn.docChanges().filter(c=>c.type==="added").map(c=>c.doc.data());const fromOthers=added.filter(m=>m.by!==ownerName);if(fromOthers.length){fx("ok");if(!showChat){const nm=fromOthers[fromOthers.length-1];showToast("💬 "+(nm.by||"")+": "+String(nm.text||"").slice(0,40),"ok");}}}chatFirstLoad.current=false;},()=>{});return()=>un&&un();},[firebaseOk,ownerName,showChat]);
+useEffect(()=>{if(showChat){localStorage.setItem("chat_seen",String(Date.now()));setChatUnread(0);if(chatEndRef.current)setTimeout(()=>chatEndRef.current&&chatEndRef.current.scrollIntoView({behavior:"smooth"}),60);}},[showChat,chatMsgs.length]);
 useEffect(()=>{if(!db||!ownerName||!announce||!announce.text||!announce.time)return;const u=localStorage.getItem("username");if(!u)return;const key=u+"_"+announce.time;if(annSeenMarked.current===key)return;annSeenMarked.current=key;try{db.collection("announceSeen").doc(u).set({name:ownerName,time:announce.time,seenAt:Date.now()});}catch(e){}},[announce,ownerName]);
 useEffect(()=>{if(!ready||gotoDone.current)return;const g=new URLSearchParams(window.location.search).get("goto");if(!g)return;let p=null;try{p=b64d(g);}catch(e){return;}if(!p||!p.c)return;
 const f=cards.find(c=>(c.barcode&&c.barcode===p.c)||c.code===p.c);
@@ -366,6 +438,8 @@ hq.start({facingMode:"environment"},Object.assign({fps:10,qrbox:{width:250,heigh
 })();
 return()=>{cancelled=true;done=true;if(hq){try{hq.stop();hq.clear();}catch(e){}}};},[showScanner]);
 const showToast=(m,k)=>{setToast({msg:m,kind:k||"ok"});setTimeout(()=>setToast(null),2600);};
+const sendChat=async()=>{const txt=chatInput.trim();if(!txt||!db)return;setChatInput("");try{await db.collection("chat").add({text:txt,by:ownerName||"—",role:localStorage.getItem("role")||"",at:firebase.firestore.FieldValue.serverTimestamp(),atLocal:Date.now()});}catch(e){showToast("❌ فشل إرسال الرسالة","danger");}};
+const chatFmtAgo=ms=>{if(!ms)return"";const mins=Math.floor((Date.now()-ms)/60000);return mins<1?"دلوقتي":mins<60?"من "+mins+" د":mins<1440?"من "+Math.floor(mins/60)+" س":"من "+Math.floor(mins/1440)+" يوم";};
 const confirmName=()=>{if(!nameInput.trim())return;setOwnerName(nameInput.trim());if(userId)localStorage.setItem("owner_name_"+(localStorage.getItem("username")||userId),nameInput.trim());};
 const jumpToCard=c=>{setActiveStage(c.stage);setScreen("stage");setEditingCard(c);};
 const repeatOrder=name=>{const cs=cards.filter(c=>c.customer===name).sort((a,b)=>toMs(b.updatedAt||b.createdAt)-toMs(a.updatedAt||a.createdAt));const L=cs[0]||{};setStatementFor(null);setEditingCard({customer:name,color:L.color||"",category:L.category||"",quantity:"",phone:L.phone||"",address:L.address||"",notes:"",stage:stages[0],code:"",machine:L.machine||"",prepare:L.prepare||"",dye:L.dye||""});};
@@ -541,7 +615,7 @@ const liveID=(()=>{try{return new URLSearchParams(window.location.search).get("l
 const liveCID=(()=>{try{return new URLSearchParams(window.location.search).get("c");}catch(e){return null;}})();
 const [liveCard,setLiveCard]=useState(null);
 const [liveErr,setLiveErr]=useState("");
-useEffect(()=>{if(!liveID||!db)return 0;const base=(liveCID&&liveCID!=="DEFAULT")?"companies/"+liveCID+"/cards":"cards";try{return db._raw(base).doc(liveID).onSnapshot(d=>{if(d.exists)setLiveCard(d.data());else setLiveErr("nf");},()=>setLiveErr("er"));}catch(e){setLiveErr("er");}return 0;},[liveID,liveCID]);
+useEffect(()=>{if(!liveID||!db)return function(){};const base=(liveCID&&liveCID!=="DEFAULT")?"companies/"+liveCID+"/cards":"cards";try{return db._raw(base).doc(liveID).onSnapshot(d=>{if(d.exists)setLiveCard(d.data());else setLiveErr("nf");},()=>setLiveErr("er"));}catch(e){setLiveErr("er");}return function(){};},[liveID,liveCID]);
 if(pubData&&!new URLSearchParams(window.location.search).get("goto")&&!liveID)return(<div dir="rtl" style={{minHeight:"100vh",background:"#fff",color:"#232016",display:"flex",alignItems:"center",justifyContent:"center",padding:20,fontFamily:"system-ui,sans-serif"}}>
 <div style={{width:"100%",maxWidth:380,border:"4px solid #2D8C74",borderRadius:20,padding:24}}>
 <div style={{fontSize:22,fontWeight:900,textAlign:"center",marginBottom:4}}>🏭 متابعة الصباغة</div>
@@ -601,6 +675,7 @@ return(
 <div style={{flex:1}}><div style={{fontSize:12,color:theme.textDim}}>👋 مرحباً يا {ownerName}</div><div style={{fontSize:20,fontWeight:900}}>{factory.fname}</div></div>
 <button onClick={()=>setShowSearch(true)} style={hdrBtn}>🔍</button>
 <button onClick={()=>setShowLateList(true)} style={{...hdrBtn,position:"relative"}}>🔔{(()=>{const n=liveCards.filter(c=>!c.delivered&&(c.urgent||adjDays(c)>=(factory.lateDays||2))).length;return n>0?<span style={{position:"absolute",top:4,left:4,background:"var(--red)",color:"#fff",borderRadius:10,fontSize:9,fontWeight:800,padding:"1px 5px",minWidth:16,textAlign:"center"}}>{n}</span>:null;})()}</button>
+<button onClick={()=>setShowChat(true)} style={{...hdrBtn,position:"relative"}}>💬{chatUnread>0?<span style={{position:"absolute",top:4,left:4,background:"var(--red)",color:"#fff",borderRadius:10,fontSize:9,fontWeight:800,padding:"1px 5px",minWidth:16,textAlign:"center"}}>{chatUnread}</span>:null}</button>
 <button onClick={()=>setShowMenu(true)} style={hdrBtn}>⋯</button>
 </div>
 <div className="card grad anim" style={{animationDelay:"80ms",marginBottom:12,position:"relative",overflow:"hidden"}}>
@@ -617,7 +692,7 @@ return(
 <div className="card anim" onClick={()=>setShowDelivered(true)} style={{animationDelay:"320ms",cursor:"pointer"}}><div className="lbl">✅ اتسلم</div><div style={{fontSize:26,fontWeight:900,color:"var(--teal)"}}>{nDel}</div></div>
 </div>
 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",margin:"10px 0",fontSize:12,color:theme.textDim}}><span style={{display:"flex",alignItems:"center",gap:6}}>{logoSrc&&<img src={logoSrc} style={{width:26,height:26,borderRadius:8,objectFit:"cover"}}/>}🕌 {(()=>{try{return new Intl.DateTimeFormat("ar-SA-u-ca-islamic",{day:"numeric",month:"long",year:"numeric"}).format(new Date());}catch(e){return "";}})()}</span><span>{(()=>{const h=new Date().getHours();return h>=5&&h<12?"☀️ صباح الخير":h>=12&&h<17?"🌤️ مساء الخير":"🌙 مساء الخير";})()} · {ownerName}</span></div>
-<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,width:"100%",alignItems:"center"}}>
+<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:8,width:"100%",alignItems:"center"}}>
 <div onClick={()=>setShowSched(true)} style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer"}}>
 <div style={{width:44,height:44,borderRadius:14,background:"linear-gradient(135deg,var(--teal),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,boxShadow:"0 6px 18px rgba(27,143,130,.35)"}}>📅</div>
 <div><div style={{fontSize:13,fontWeight:800}}>جدول الماكينات</div><div style={{fontSize:10.5,color:theme.textDim,marginTop:2}}>{schedCards().length} شغال · {machines.filter(m=>!schedCards().some(c=>String(c.machine)===String(m))).length} فاضية</div></div>
@@ -625,6 +700,14 @@ return(
 <div onClick={e=>{e.stopPropagation();setShowStored(true);}} style={{display:"flex",alignItems:"center",gap:8,background:"rgba(45,140,116,.10)",border:"1px solid rgba(45,140,116,.35)",borderRadius:14,padding:8,cursor:"pointer"}}>
 <div style={{width:44,height:44,borderRadius:14,background:"linear-gradient(135deg,var(--vio),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>📦</div>
 <div><div style={{fontSize:13,fontWeight:800}}>مخزن مجهز</div><div style={{fontSize:10.5,color:theme.textDim,marginTop:2}}>{storedCards.length} كرت جاهز</div></div>
+</div>
+<div onClick={e=>{e.stopPropagation();setShowDefects(true);}} style={{display:"flex",alignItems:"center",gap:8,background:"rgba(226,84,76,.10)",border:"1px solid rgba(226,84,76,.35)",borderRadius:14,padding:8,cursor:"pointer"}}>
+<div style={{width:44,height:44,borderRadius:14,background:"linear-gradient(135deg,var(--red),var(--warn))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>🧾</div>
+<div><div style={{fontSize:13,fontWeight:800}}>العيوب والمرتجعات</div><div style={{fontSize:10.5,color:theme.textDim,marginTop:2}}>{defects.length} مسجلة</div></div>
+</div>
+<div onClick={e=>{e.stopPropagation();setScreen("archive");}} style={{display:"flex",alignItems:"center",gap:8,background:"rgba(201,151,63,.10)",border:"1px solid rgba(201,151,63,.35)",borderRadius:14,padding:8,cursor:"pointer"}}>
+<div style={{width:44,height:44,borderRadius:14,background:"linear-gradient(135deg,var(--blue),var(--vio))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>🗄️</div>
+<div><div style={{fontSize:13,fontWeight:800}}>{t.archive}</div><div style={{fontSize:10.5,color:theme.textDim,marginTop:2}}>{archivedCards.length} كرت مؤرشف</div></div>
 </div>
 </div>
 <div className="card anim" style={{animationDelay:"360ms",margin:"12px 0"}}>
@@ -778,7 +861,7 @@ return(<div key={c.id} className="card" onClick={()=>selectMode?toggleSelect(c.i
 <button className={"chip"+(schedShift==="day"?" on":"")} onClick={()=>setSchedShift("day")}>☀️ صبح</button>
 <button className={"chip"+(schedShift==="night"?" on":"")} onClick={()=>setSchedShift("night")}>🌙 ليل</button>
 </div>
-{machines.map(m=>{const list=schedCards().filter(c=>String(c.machine)===String(m));return(<div key={m} className="card" style={{padding:10,marginBottom:8}}>
+{machines.map((m,i)=>{const list=schedCards().filter(c=>String(c.machine)===String(m));return(<div key={m} className="card anim" style={{padding:10,marginBottom:8,animationDelay:(i*60)+"ms"}}>
 <b>🔧 ماكينة {m}</b>{!list.length&&<span style={{color:theme.textDim,fontSize:11}}> · فاضية</span>}
 {list.map(c=><div key={c.id} style={{fontSize:12,marginTop:6,borderTop:"1px dashed "+theme.border,paddingTop:6}}>{c.customer} · {c.code} · {c.color} · {c.quantity} {factory.unit} {c.prepare&&<span style={{color:"var(--warn)"}}>· {c.prepare}</span>}</div>)}
 </div>);})}
@@ -840,16 +923,17 @@ return(<div style={{padding:"8mm",fontFamily:"Arial",color:"#000",direction:"rtl
 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:4}}>
 <MenuBtn onClick={()=>{setScreen("home");setShowMenu(false);}} active={screen==="home"}>🏠 {t.home}</MenuBtn>
 <MenuBtn onClick={()=>{setScreen("stages");setShowMenu(false);}} active={screen==="stages"}>🏭 {t.stagesLabel}</MenuBtn>
+<MenuBtn onClick={()=>{setScreen("archive");setShowMenu(false);}} active={screen==="archive"}>🗄️ {t.archive} ({archivedCards.length})</MenuBtn>
 <MenuBtn onClick={()=>{setShowWarehouse(true);setShowMenu(false);}}>📦 المخزن الرئيسي</MenuBtn>
 <div style={{gridColumn:"1 / -1",height:1,background:theme.border,margin:"8px 0"}}/>
 <MenuBtn onClick={()=>{setReportText(buildReport());setShowMenu(false);}}>📊 {t.report}</MenuBtn>
 <MenuBtn onClick={()=>{setStatementFor(knownCustomers[0]?knownCustomers[0].name:"");setShowMenu(false);}}>👥 {t.statement}</MenuBtn>
 <MenuBtn onClick={()=>{setShowTopCust(true);setShowMenu(false);}}>🏅 أعلى العملاء</MenuBtn>
+<MenuBtn onClick={()=>{setShowChat(true);setShowMenu(false);}}>💬 الشات العام{chatUnread>0?" ("+chatUnread+")":""}</MenuBtn>
 <MenuBtn onClick={()=>{setShowWorkers(true);setShowMenu(false);}}>🏆 {t.workers}</MenuBtn>
 {can&&<MenuBtn onClick={()=>{setAnnounceDraft((announce&&announce.text)||"");setShowAnnounce(true);setShowMenu(false);}}>📢 إعلان للعمال</MenuBtn>}
 {(localStorage.getItem("role")==="worker"||localStorage.getItem("role")==="assistant")&&<MenuBtn onClick={()=>{setShowMyWork(true);setShowMenu(false);}}>👷 شغلي أنا</MenuBtn>}
 <MenuBtn onClick={()=>{exportCSV();setShowMenu(false);}}>💾 {t.backup}</MenuBtn>
-<MenuBtn onClick={()=>{setScreen("archive");setShowMenu(false);}}>🗄️ {t.archive}</MenuBtn>
 <MenuBtn onClick={()=>{setScreen("log");setShowMenu(false);}}>📋 {t.dailyLog}</MenuBtn>
 <MenuBtn onClick={()=>{setShowAsk(true);setShowMenu(false);}}>🤖 اسأل مصنعك</MenuBtn>
 <MenuBtn onClick={()=>{setShowBlack(true);setShowMenu(false);}}>⚫ الصندوق الأسود</MenuBtn>
@@ -987,17 +1071,40 @@ return(<div key={c.id} className="card anim" onClick={()=>{setLinkedFrom(null);j
 <div style={{display:"flex",gap:8}}><button onClick={saveDefect} className="btnG">💾 تسجيل</button><button onClick={()=>setDefectFor(null)} className="btnO">{t.cancel}</button></div>
 </div></div>)}
 {showDefects&&(
-<div className="modal" onClick={()=>setShowDefects(false)}>
+<div className="modal" onClick={()=>{setShowDefects(false);setDefectSearch("");}}>
 <div className="mbox" onClick={e=>e.stopPropagation()}>
 <h3 style={{margin:"0 0 10px"}}>🧾 سجل العيوب والمرتجعات ({defects.length})</h3>
 {(()=>{const m={};defects.forEach(d=>{if(d.reason)m[d.reason]=(m[d.reason]||0)+1;});const top=Object.entries(m).sort((a,b)=>b[1]-a[1])[0];
 return top?(<div className="card grad" style={{padding:12,marginBottom:12,textAlign:"center"}}><div style={{fontSize:12,color:"#DFF7F2"}}>أكثر عيب متكرر</div><div style={{fontSize:18,fontWeight:900}}>{top[0]} ({top[1]})</div></div>):null;})()}
+{defects.length>0&&<input className="inp" placeholder="🔍 بحث بالاسم أو الكود أو نوع العيب..." value={defectSearch} onChange={e=>setDefectSearch(e.target.value)} style={{marginBottom:10}}/>}
 {defects.length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center"}}>مفيش عيوب مسجلة — شغل نضيف 🎉</p>}
-{defects.map((d,i)=>(<div key={d.id} className="card anim" style={{padding:"10px 12px",marginBottom:8,borderInlineStart:"4px solid var(--red)",animationDelay:(i*50)+"ms"}}>
+{(()=>{const q=defectSearch.trim().toLowerCase();const list=defects.filter(d=>!q||((d.customer||"")+(d.code||"")+(d.reason||"")).toLowerCase().includes(q));if(defects.length>0&&list.length===0)return<p style={{color:theme.textDim,fontSize:13,textAlign:"center",padding:16}}>مفيش نتايج مطابقة</p>;return list.map((d,i)=>(<div key={d.id} onClick={()=>{const c=cards.find(x=>x.id===d.cardId);if(c){setShowDefects(false);setDefectSearch("");jumpToCard(c);}else{showToast("❌ الكرت الأصلي محذوف","danger");}}} className="card anim" style={{padding:"10px 12px",marginBottom:8,borderInlineStart:"4px solid var(--red)",animationDelay:(i*50)+"ms",cursor:"pointer"}}>
 <div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:14}}>{d.customer} · {d.code}</b><span className="badge" style={{background:"var(--red)"}}>{d.reason}</span></div>
 <div style={{fontSize:12,color:theme.textDim,marginTop:4}}>{d.qty?"كمية "+d.qty+" · ":""}{d.stage} · {d.date} · 👤 {d.by}</div>
 {d.notes&&<div style={{fontSize:12,marginTop:4}}>{d.notes}</div>}
-</div>))}
+</div>));})()}
+</div></div>)}
+{showChat&&(
+<div className="modal" onClick={()=>setShowChat(false)}>
+<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:460,width:"100%",height:"78vh",display:"flex",flexDirection:"column",padding:0,overflow:"hidden"}}>
+<div style={{padding:"14px 16px",borderBottom:"1px solid "+theme.border,display:"flex",justifyContent:"space-between",alignItems:"center",flexShrink:0}}>
+<b style={{fontSize:15}}>💬 الشات العام {onlineUsers.length>0?<span style={{fontSize:11,fontWeight:400,color:theme.textDim}}>· {onlineUsers.length} أونلاين</span>:null}</b>
+<button onClick={()=>setShowChat(false)} className="chip">✕</button>
+</div>
+<div style={{flex:1,overflowY:"auto",padding:"12px 14px",display:"flex",flexDirection:"column",gap:10}}>
+{chatMsgs.length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center",marginTop:24}}>لسه مفيش رسايل — ابدأ الكلام مع الفريق 👋</p>}
+{chatMsgs.map((m,i)=>{const mine=m.by===ownerName;const prevSame=i>0&&chatMsgs[i-1].by===m.by;return(
+<div key={m.id} style={{alignSelf:mine?"flex-end":"flex-start",maxWidth:"78%",display:"flex",flexDirection:"column",alignItems:mine?"flex-end":"flex-start"}}>
+{!prevSame&&<div style={{fontSize:11,color:theme.textDim,marginBottom:3,padding:"0 4px"}}>{mine?"إنت":(m.role==="assistant"?"🎖️ ":m.role==="manager"||m.role==="master"?"👑 ":"👷 ")+(m.by||"—")}</div>}
+<div style={{background:mine?"var(--teal)":theme.panelAlt,color:mine?"#fff":theme.text,padding:"9px 13px",borderRadius:mine?"14px 14px 4px 14px":"14px 14px 14px 4px",fontSize:13.5,lineHeight:1.45,wordBreak:"break-word",whiteSpace:"pre-wrap"}}>{m.text}</div>
+<div style={{fontSize:9.5,color:theme.textDim,marginTop:3,padding:"0 4px"}}>{chatFmtAgo(m.atLocal)}</div>
+</div>);})}
+<div ref={chatEndRef}/>
+</div>
+<div style={{display:"flex",gap:8,padding:"10px 12px",borderTop:"1px solid "+theme.border,flexShrink:0}}>
+<input className="inp" style={{flex:"1 1 auto",minWidth:0,margin:0}} placeholder="اكتب رسالة..." value={chatInput} onChange={e=>setChatInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChat();}}}/>
+<button onClick={sendChat} className="btnG" style={{width:46,height:46,padding:0,flex:"0 0 auto",borderRadius:"50%",fontSize:17,display:"flex",alignItems:"center",justifyContent:"center"}}>➤</button>
+</div>
 </div></div>)}
 {showMic&&(
 <div className="modal" onClick={()=>{setShowMic(false);stopMic();}}>
@@ -1090,7 +1197,7 @@ return(<div key={c.id} className="card" onClick={()=>{setStatementFor(null);jump
 <pre style={{whiteSpace:"pre-wrap",background:theme.panelAlt,borderRadius:14,padding:12,fontSize:13,color:theme.text,fontFamily:"inherit"}}>{buildStatement(statementFor)}</pre>
 </div>);})()}
 </div>)}
-<div style={{display:"flex",gap:8,marginTop:12,flexWrap:"wrap"}}><button onClick={()=>repeatOrder(statementFor)} className="btnO" style={{flex:1}}>🔁 تكرار</button><button onClick={()=>printStatement(statementFor)} className="btnO" style={{flex:1}}>🖨️ طباعة</button><button onClick={()=>{try{navigator.clipboard.writeText(buildStatement(statementFor));showToast("✅");}catch(e){}}} className="btnO" style={{flex:1}}>{t.copy}</button><a href={waLink(buildStatement(statementFor||""))} target="_blank" rel="noreferrer" className="btnG" style={{textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center",flex:1}}>💬 واتساب</a></div>
+<div style={{display:"flex",gap:8,marginTop:12,flexWrap:"wrap"}}><button onClick={()=>repeatOrder(statementFor)} className="btnO" style={{flex:1}}>🔁 تكرار</button><button onClick={()=>printStatement(statementFor,{cards,loads,knownCustomers,qtySum,stages,lang,logoSrc,factory})} className="btnO" style={{flex:1}}>🖨️ طباعة</button><button onClick={()=>{try{navigator.clipboard.writeText(buildStatement(statementFor));showToast("✅");}catch(e){}}} className="btnO" style={{flex:1}}>{t.copy}</button><a href={waLink(buildStatement(statementFor||""))} target="_blank" rel="noreferrer" className="btnG" style={{textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center",flex:1}}>💬 واتساب</a></div>
 </div></div>)}
 {showTopCust&&(
 <div className="modal" onClick={()=>setShowTopCust(false)}>
@@ -1127,9 +1234,9 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div style={{padding:14,textAlign:"center"}}><button onClick={()=>scanFileRef.current&&scanFileRef.current.click()} className="btnG" style={{width:"auto",padding:"12px 22px"}}>📁 صورة من الجهاز</button></div>
 <input ref={scanFileRef} type="file" accept="image/*" style={{display:"none"}} onChange={scanFromFile}/>
 </div>)}
-{showAsk&&(<div className="modal" onClick={()=>setShowAsk(false)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:420}}><h3 style={{margin:"0 0 12px"}}>🤖 اسأل مصنعك</h3><textarea rows={2} className="inp" placeholder="مثال: إيه أهدأ مرحلة دلوقتي؟ مين أكبر عميل متأخر؟" value={askQ} onChange={e=>setAskQ(e.target.value)}/><button className="btnG" style={{marginTop:8}} onClick={askGemini}>{askBusy?"⏳ بيفكر...":"🤖 اسأل"}</button>{askA&&<div style={{marginTop:10,padding:"10px 12px",borderRadius:12,background:theme.panelAlt,fontSize:13,whiteSpace:"pre-wrap",lineHeight:1.8}}>{askA}</div>}</div></div>)}
+{showAsk&&(<div className="modal" onClick={()=>setShowAsk(false)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:420}}><h3 style={{margin:"0 0 6px"}}>🤖 اسأل مصنعك</h3><p style={{fontSize:11.5,color:theme.textDim,margin:"0 0 10px"}}>اسأل عن أي حاجة أو مُر بأمر تنفيذي: نقل مرحلة، تسليم كامل/جزئي، مخزن مجهز، تسجيل عيب، تثبيت، أرشفة، علامة مستعجل، ملاحظة، حذف، إضافة كرت جديد، أو إضافة حمولة مخزن</p><div style={{display:"flex",gap:6}}><textarea rows={2} className="inp" style={{flex:"1 1 auto",minWidth:0,marginBottom:0}} placeholder="مثال: إيه أهدأ مرحلة دلوقتي؟ / انقل كرت محمد للتجفيف" value={askQ} onChange={e=>setAskQ(e.target.value)}/><button onClick={()=>{if(micOn){stopMic();return;}const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){showToast("المتصفح مش داعم الإملاء","danger");return;}try{const rec=new SR();rec.lang=micLang;rec.interimResults=false;rec.onresult=e=>{let s="";for(let i=0;i<e.results.length;i++)s+=e.results[i][0].transcript;setAskQ(qv=>(qv?qv+" ":"")+s);};rec.onend=()=>setMicOn(false);rec.onerror=()=>setMicOn(false);rec.start();recRef.current=rec;setMicOn(true);}catch(e){}}} className={"chip"+(micOn?" on":"")} style={{flexShrink:0,height:"fit-content"}}>{micOn?"⏹️":"🎙️"}</button></div><button className="btnG" style={{marginTop:8}} onClick={askGemini}>{askBusy?"⏳ بيفكر...":"🤖 اسأل / نفّذ"}</button>{askA&&<div style={{marginTop:10,padding:"10px 12px",borderRadius:12,background:theme.panelAlt,fontSize:13,whiteSpace:"pre-wrap",lineHeight:1.8}}>{askA}</div>}</div></div>)}
 {showBook&&(<div className="modal" onClick={()=>setShowBook(false)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:380}}><h3 style={{margin:"0 0 12px"}}>📚 بوكيمون الألوان</h3>{(factory.colorBook||[]).length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center"}}>لسه مفيش ألوان متسجلة — المالك يضيفها</p>}{(factory.colorBook||[]).map((b,i)=>(<div key={i} style={{padding:"8px 10px",borderRadius:10,background:theme.panelAlt,marginBottom:6,fontSize:13}}><div style={{display:"flex",justifyContent:"space-between"}}><b>🎨 {b.n}</b>{can&&<button onClick={()=>{if(confirm("حذف "+b.n+"؟"))saveFactory({colorBook:(factory.colorBook||[]).filter((x,j)=>j!==i)});}} className="chip">✕</button>}</div>{b.note&&<div style={{fontSize:11,color:theme.textDim,marginTop:2}}>{b.note}</div>}</div>))}{can&&<button className="chip on" onClick={()=>{const n=prompt("اسم اللون:");if(!n||!n.trim())return;const note=prompt("وصفة/ملاحظات اللون (اختياري):","")||"";saveFactory({colorBook:[...(factory.colorBook||[]),{n:n.trim(),note:note.trim()}]});}}>➕ لون جديد</button>}</div></div>)}
-{ownerName&&!showAsk&&(<button onClick={()=>setShowAsk(true)} aria-label="اسأل مصنعك" style={{position:"fixed",bottom:96,right:14,zIndex:400,width:56,height:56,borderRadius:"50%",border:"none",background:"linear-gradient(135deg,var(--vio),var(--blue))",color:"#fff",fontSize:26,cursor:"pointer",boxShadow:"0 8px 24px rgba(45,140,116,.55)",display:"flex",alignItems:"center",justifyContent:"center",animation:"floaty 2.5s infinite"}}>🤖</button>)}
+{ownerName&&!showAsk&&!showChat&&(<button onClick={()=>setShowAsk(true)} aria-label="اسأل مصنعك" style={{position:"fixed",bottom:96,right:14,zIndex:400,width:56,height:56,borderRadius:"50%",border:"none",background:"linear-gradient(135deg,var(--vio),var(--blue))",color:"#fff",fontSize:26,cursor:"pointer",boxShadow:"0 8px 24px rgba(45,140,116,.55)",display:"flex",alignItems:"center",justifyContent:"center",animation:"floaty 2.5s infinite"}}>🤖</button>)}
 {showBlack&&(<div className="modal" onClick={()=>setShowBlack(false)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:420}}><h3 style={{margin:"0 0 10px"}}>⚫ الصندوق الأسود</h3><p style={{fontSize:11,color:theme.textDim,marginBottom:8}}>🎬 إعادة تشغيل اليوم حركة بحركة — كل نقله مين عملها وإمتى</p><div style={{display:"flex",gap:6,alignItems:"center",marginBottom:10}}><button className="btnG" style={{flex:1}} onClick={()=>{if(blackPlay){setBlackPlay(0);}else{setBlackIdx(0);setBlackPlay(1);}}}>{blackPlay?"⏸️ إيقاف":"▶️ تشغيل اليوم"}</button><span style={{fontSize:11,color:theme.textDim}}>{Math.min(blackIdx,blackList().length)}/{blackList().length}</span></div><div style={{maxHeight:320,overflow:"auto"}}>{blackList().slice(0,blackIdx).map((h,i)=>(<div key={i} className="anim" style={{padding:"6px 10px",marginBottom:4,borderInlineStart:"2px solid var(--vio)",background:theme.panelAlt,borderRadius:8,fontSize:12,color:theme.textDim}}><b style={{color:theme.text}}>{h.cust||"—"}</b> · 📍 {h.stage} · {h.by} · {fmtTime(h.at,lang)}</div>))}{blackIdx===0&&<p style={{textAlign:"center",color:theme.textDim,fontSize:12,padding:20}}>دوس ▶️ وشوف اليوم بيتفك قدامك</p>}</div></div></div>)}
 {photoView&&(
 <div className="modal" onClick={()=>setPhotoView(null)}>
@@ -1145,7 +1252,14 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 {editingCard&&(
 <div className="modal" onClick={()=>setEditingCard(null)}>
 <div className="mbox" onClick={e=>e.stopPropagation()}>
-<div style={{display:"flex",justifyContent:"space-between",marginBottom:14}}><h3 style={{margin:0,fontSize:17}}>{cards.some(c=>c.id===editingCard.id)?t.edit:t.newCard}{!can?" 👁️":""}</h3><button onClick={()=>setEditingCard(null)} style={{background:"none",border:"none",color:theme.textDim,fontSize:20}}>✕</button></div>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:8,marginBottom:14,position:"sticky",top:-20,zIndex:5,background:theme.panel,paddingTop:20,marginTop:-20,paddingBottom:10}}>
+<h3 style={{margin:0,fontSize:17}}>{cards.some(c=>c.id===editingCard.id)?t.edit:t.newCard}{!can?" 👁️":""}</h3>
+<div style={{display:"flex",gap:6,alignItems:"center",flexShrink:0}}>
+{can&&<button onClick={()=>saveCard({...editingCard,__dupWarning:undefined},!!editingCard.__dupWarning)} className="btnG" style={{padding:"8px 14px",fontSize:13}}>{editingCard.__dupWarning?t.saveAnyway:t.save}</button>}
+{can&&<button onClick={()=>setEditingCard(null)} className="btnO" style={{padding:"8px 14px",fontSize:13}}>{t.cancel}</button>}
+<button onClick={()=>setEditingCard(null)} style={{background:"none",border:"none",color:theme.textDim,fontSize:20}}>✕</button>
+</div>
+</div>
 <fieldset disabled={!can}>
 {editingCard.__dupWarning&&<div className="card" style={{borderColor:"var(--red)",padding:12,marginBottom:12,fontSize:13.5}}>⚠️ {t.duplicateWarning}</div>}
 {can&&cards.some(c=>c.id===editingCard.id)&&(<>
@@ -1171,7 +1285,6 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 {(()=>{const qp=queuePos(editingCard);if(!qp||editingCard.delivered)return null;return(<div style={{padding:"8px 12px",marginBottom:10,background:"rgba(27,143,130,.08)",border:"1px solid rgba(27,143,130,.35)",borderRadius:12,fontSize:12,color:theme.textDim}}>📍 ترتيبك في مرحلة <b>{editingCard.stage}</b>: <b style={{color:"var(--teal)"}}>{qp.pos} من {qp.total}</b> — الأقدم بيتشتغل الأول</div>);})()}
 {(()=>{if(!editingCard||editingCard.delivered)return null;const eta=etaOf(editingCard);if(!eta)return null;const d=Math.max(0,Math.round((eta-Date.now())/86400000));return(<div style={{padding:"8px 12px",marginBottom:12,background:"rgba(201,151,63,.10)",border:"1px solid rgba(201,151,63,.35)",borderRadius:12,fontSize:12,color:theme.textDim}}>🗓️ الجاهزية المتوقعة: <b style={{color:"var(--blue)"}}>{new Date(eta).toLocaleDateString(lang==="ar"?"ar-EG":"en-GB",{weekday:"long",day:"numeric",month:"long"})}</b> (بعد ~{d} يوم)</div>);})()}
 {Array.isArray(editingCard.history)&&editingCard.history.length>0&&(<div style={{marginBottom:14}}><div className="lbl">📜 {t.history}</div>{editingCard.history.slice().reverse().map((h,i)=>{const arr=editingCard.history;const idx=arr.indexOf(h);const nxt=arr[idx+1];const ms=(nxt?toMs(nxt.at):Date.now())-toMs(h.at);return(<div key={i} style={{display:"flex",gap:8,flexWrap:"wrap",fontSize:12,color:theme.textDim,padding:"6px 10px",marginBottom:4,borderInlineStart:"2px solid var(--vio)",background:theme.panelAlt,borderRadius:8}}><span>📍 {h.stage}</span><span>· {h.by}</span><span>· {fmtTime(h.at,lang)}</span><span style={{color:"var(--warn)",fontWeight:800}}>⏱️ {fmtDur(ms)}</span></div>);})}</div>)}
-{can&&<div style={{display:"flex",gap:8}}><button onClick={()=>saveCard({...editingCard,__dupWarning:undefined},!!editingCard.__dupWarning)} className="btnG">{editingCard.__dupWarning?t.saveAnyway:t.save}</button><button onClick={()=>setEditingCard(null)} className="btnO">{t.cancel}</button></div>}
 {can&&cards.some(c=>c.id===editingCard.id)&&nextStageOf(editingCard.stage)&&(<button onClick={()=>{const n=nextStageOf(editingCard.stage);const c=editingCard;setEditingCard(null);moveCardTo(c,n);}} className="btnO" style={{marginTop:8}}>⏭️ → {nextStageOf(editingCard.stage)}</button>)}
 </fieldset>
 </div></div>)}
@@ -1226,11 +1339,12 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <SearchModal t={t} cards={liveCards} onPick={c=>{setShowSearch(false);jumpToCard(c);}}/>
 </div></div>)}
 {showStored&&(
-<div className="modal" onClick={()=>setShowStored(false)}>
+<div className="modal" onClick={()=>{setShowStored(false);setStoredSearch("");}}>
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:400}}>
 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}><h3 style={{flex:1,margin:0}}>📦 المخزن المجهز ({storedCards.length})</h3><button className="chip on" onClick={()=>exportSheet(storedCards,"مخزن-مجهز")}>💾 تصدير</button></div>
+<input className="inp" placeholder="🔍 بحث بالاسم أو الكود..." value={storedSearch} onChange={e=>setStoredSearch(e.target.value)} style={{marginBottom:10}}/>
 {storedCards.length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center",padding:16}}>فاضي — انقل كروت له من زرار 📦</p>}
-{storedCards.slice().sort((a,b)=>toMs(b.updatedAt)-toMs(a.updatedAt)).map(c=>(<div key={c.id} onClick={()=>{setShowStored(false);setActionCard(c);}} className="card" style={{padding:"10px 12px",marginBottom:8,cursor:"pointer"}}><b style={{fontSize:13}}>{c.customer} · {c.code}</b><div style={{fontSize:11,color:theme.textDim}}>{c.color} — {c.quantity}</div></div>))}
+{(()=>{const q=storedSearch.trim().toLowerCase();const list=storedCards.slice().sort((a,b)=>toMs(b.updatedAt)-toMs(a.updatedAt)).filter(c=>!q||((c.customer||"")+(c.code||"")).toLowerCase().includes(q));if(storedCards.length>0&&list.length===0)return<p style={{color:theme.textDim,fontSize:13,textAlign:"center",padding:16}}>مفيش نتايج مطابقة</p>;return list.map((c,i)=>(<div key={c.id} onClick={()=>{setShowStored(false);setStoredSearch("");setActionCard(c);}} className="card anim" style={{padding:"10px 12px",marginBottom:8,cursor:"pointer",animationDelay:(i*50)+"ms"}}><b style={{fontSize:13}}>{c.customer} · {c.code}</b><div style={{fontSize:11,color:theme.textDim}}>{c.color} — {c.quantity}</div></div>));})()}
 </div></div>)}
 {showSettings&&(
 <div className="modal" onClick={()=>setShowSettings(false)}>
@@ -1838,7 +1952,7 @@ document.getElementById("lg_demo").onclick=function(){localStorage.setItem("comp
 }else{
 if(window.isMaster){location.replace("master.html");}else{
 (function(){var r=localStorage.getItem("role");if(r==="worker"||r==="assistant"){var u=localStorage.getItem("username");db.collection("users").doc(u).get().then(function(d){if(!d.exists||d.data().locked){localStorage.removeItem("companyID");localStorage.removeItem("username");localStorage.removeItem("pin");localStorage.removeItem("role");alert("\u0627\u0644\u062D\u0633\u0627\u0628 \u0645\u0648\u0642\u0648\u0641 \u0645\u0646 \u0627\u0644\u0645\u062F\u064A\u0631");location.reload();}}).catch(function(){});}})();
-class EB extends React.Component{constructor(p){super(p);this.state={err:0};}static getDerivedStateFromError(){return{err:1};}render(){if(this.state.err)return(<div dir="rtl" style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:12,background:"#0A1015",color:"#EAF2EF",textAlign:"center",padding:20}}><div style={{fontSize:56}}>🛠️</div><h2 style={{margin:0}}>حصلت مشكلة صغيرة</h2><div style={{color:"#7FA79E",fontSize:13}}>متقلقش بياناتك سليمة — دوس إعادة</div><button className="btnG" onClick={()=>location.reload()}>🔄 إعادة التشغيل</button></div>);return this.props.children;}}
+class EB extends React.Component{constructor(p){super(p);this.state={err:null,info:null};}static getDerivedStateFromError(e){return{err:e};}componentDidCatch(e,info){this.setState({info:info});console.error("React crash:",e,info);}render(){if(this.state.err){const e=this.state.err;return(<div dir="rtl" style={{minHeight:"100vh",background:"#0A1015",color:"#EAF2EF",textAlign:"center",padding:20,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:10}}><div style={{fontSize:56}}>🛠️</div><h2 style={{margin:0}}>حصلت مشكلة صغيرة</h2><div style={{padding:12,color:"#E2544C",fontSize:12,wordBreak:"break-all",textAlign:"start",background:"#131F2B",borderRadius:12,maxWidth:520,maxHeight:"50vh",overflow:"auto",whiteSpace:"pre-wrap"}}>{"خطأ: "+(e&&e.message?e.message:String(e))+(e&&e.stack?"\n\n"+e.stack:"")+(this.state.info&&this.state.info.componentStack?"\n\nمكان الخطأ:"+this.state.info.componentStack:"")}</div><button className="btnG" onClick={()=>location.reload()} style={{maxWidth:220}}>🔄 إعادة التشغيل</button></div>);}return this.props.children;}}
 ReactDOM.createRoot(document.getElementById("root")).render(<EB><App/></EB>);
 window.__booted=true;
 }
