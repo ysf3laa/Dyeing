@@ -67,8 +67,9 @@ fieldset{border:none;margin:0;padding:0;min-width:0}
 <style>@media print{body *{visibility:hidden;}#printSheet,#printSheet *{visibility:visible;}#printSheet{display:block!important;position:absolute;top:0;left:0;right:0;}}</style>
 <div id="root"><div style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:16px"><div style="font-size:64px">🏭</div><div style="color:#7FA79E;font-size:14px">🕌 استغل الانتظار في الاستغفار</div></div></div>
 <script>
-window.onerror=function(m,u,l){if(m&&m!=="Script error."&&!window.__booted){var r=document.getElementById("root");if(r)r.innerHTML='<div style="padding:16px;color:#E2544C;font-size:12px;word-break:break-all;text-align:center">خطأ: '+m+'<br>سطر: '+l+'<br>📄 الملف: '+u+'</div>';}};
-window.addEventListener("unhandledrejection",function(e){e.preventDefault();console.warn(e.reason);});
+window.onerror=function(m,u,l){if(m&&m!=="Script error."){var r=document.getElementById("root");if(r)r.innerHTML='<div style="padding:16px;color:#E2544C;font-size:12px;word-break:break-all;text-align:center">خطأ: '+m+'<br>سطر: '+l+'<br>📄 الملف: '+u+'</div>';}};
+window.addEventListener("error",function(e){var t=e.target;if(t&&(t.tagName==="SCRIPT"||t.tagName==="LINK")){var src=t.src||t.href||"?";var r=document.getElementById("root");if(r)r.innerHTML='<div style="padding:16px;color:#E2544C;font-size:12px;word-break:break-all;text-align:center">⚠️ فشل تحميل ملف:<br>'+src+'<br><br><button onclick="location.reload()" style="margin-top:10px;background:#2D8C74;color:#fff;border:none;border-radius:10px;padding:9px 22px;font-size:13px;font-weight:700">🔄 إعادة المحاولة</button></div>';}},true);
+window.addEventListener("unhandledrejection",function(e){e.preventDefault();console.warn(e.reason);var msg=(e.reason&&(e.reason.message||e.reason))||"خطأ غير معروف";var r=document.getElementById("root");if(r)r.innerHTML='<div style="padding:16px;color:#E2544C;font-size:12px;word-break:break-all;text-align:center">⚠️ خطأ أثناء التحميل:<br>'+msg+'<br><br><button onclick="location.reload()" style="margin-top:10px;background:#2D8C74;color:#fff;border:none;border-radius:10px;padding:9px 22px;font-size:13px;font-weight:700">🔄 إعادة المحاولة</button></div>';});
 setTimeout(function(){if(!window.__booted){var r=document.getElementById("root");if(r&&r.innerHTML.indexOf("خطأ")===-1&&!document.getElementById("slowLoadMsg")){var d=document.createElement("div");d.id="slowLoadMsg";d.style.cssText="position:fixed;bottom:10px;left:10px;right:10px;background:#131F2B;color:#E2544C;border:1px solid #E2544C;border-radius:14px;padding:12px;font-size:12px;text-align:center;z-index:99999";d.innerHTML="⚠️ لسه بيحمّل، الاتصال شكله بطيء — دوس إعادة أو غيّر الشبكة<br><button onclick='location.reload()' style='margin-top:8px;background:#2D8C74;color:#fff;border:none;border-radius:10px;padding:9px 22px;font-size:13px;font-weight:700'>🔄 إعادة المحاولة</button>";r.appendChild(d);}}},120000);
 </script>
 <script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script>
@@ -123,7 +124,8 @@ function LastSeen(props){var _s=React.useState(0),ls=_s[0],setLs=_s[1];React.use
 function fmtDur(ms){const m=Math.max(0,Math.floor(ms/60000));if(m<60)return m+"د";const h=Math.floor(m/60);if(h<24)return (m%60)?h+"س "+(m%60)+"د":h+"س";const d=Math.floor(h/24);return (h%24)?d+"ي "+(h%24)+"س":d+"ي";}
 function daysSince(v){const m=toMs(v);if(!m)return 0;return(Date.now()-m)/86400000;}
 function localDate(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
-function printStatement(name){
+function printStatement(name,ctx){
+ctx=ctx||{};const cards=ctx.cards||[],loads=ctx.loads||[],knownCustomers=ctx.knownCustomers||[],qtySum=ctx.qtySum||(l=>l.reduce((a,c)=>a+(parseFloat(c.quantity)||0),0)),stages=ctx.stages||[],lang=ctx.lang||"ar",logoSrc=ctx.logoSrc||"",factory=ctx.factory||{};
 const cs=cards.filter(c=>c.customer===name);
 const lds=loads.filter(l=>l.customer===name);
 const inf=knownCustomers.find(k=>k.name===name)||{}
@@ -249,6 +251,7 @@ const [loadDraft,setLoadDraft]=useState({customer:"",total:"",date:"",notes:"",c
 const [showLateList,setShowLateList]=useState(false);const [showDelivered,setShowDelivered]=useState(false);const [heroEdit,setHeroEdit]=useState(false);
 const [showStored,setShowStored]=useState(false);
 const [defects,setDefects]=useState([]);const [showDefects,setShowDefects]=useState(false);const [defectFor,setDefectFor]=useState(null);const [defectDraft,setDefectDraft]=useState({reason:"",qty:"",notes:""});
+const [storedSearch,setStoredSearch]=useState("");const [defectSearch,setDefectSearch]=useState("");
 const [linkedFrom,setLinkedFrom]=useState(null);
 const [showFlags,setShowFlags]=useState(false);
 const [screen,setScreen]=useState("home");const [activeStage,setActiveStage]=useState(null);
@@ -782,7 +785,7 @@ return(<div key={c.id} className="card" onClick={()=>selectMode?toggleSelect(c.i
 <button className={"chip"+(schedShift==="day"?" on":"")} onClick={()=>setSchedShift("day")}>☀️ صبح</button>
 <button className={"chip"+(schedShift==="night"?" on":"")} onClick={()=>setSchedShift("night")}>🌙 ليل</button>
 </div>
-{machines.map(m=>{const list=schedCards().filter(c=>String(c.machine)===String(m));return(<div key={m} className="card" style={{padding:10,marginBottom:8}}>
+{machines.map((m,i)=>{const list=schedCards().filter(c=>String(c.machine)===String(m));return(<div key={m} className="card anim" style={{padding:10,marginBottom:8,animationDelay:(i*60)+"ms"}}>
 <b>🔧 ماكينة {m}</b>{!list.length&&<span style={{color:theme.textDim,fontSize:11}}> · فاضية</span>}
 {list.map(c=><div key={c.id} style={{fontSize:12,marginTop:6,borderTop:"1px dashed "+theme.border,paddingTop:6}}>{c.customer} · {c.code} · {c.color} · {c.quantity} {factory.unit} {c.prepare&&<span style={{color:"var(--warn)"}}>· {c.prepare}</span>}</div>)}
 </div>);})}
@@ -991,17 +994,18 @@ return(<div key={c.id} className="card anim" onClick={()=>{setLinkedFrom(null);j
 <div style={{display:"flex",gap:8}}><button onClick={saveDefect} className="btnG">💾 تسجيل</button><button onClick={()=>setDefectFor(null)} className="btnO">{t.cancel}</button></div>
 </div></div>)}
 {showDefects&&(
-<div className="modal" onClick={()=>setShowDefects(false)}>
+<div className="modal" onClick={()=>{setShowDefects(false);setDefectSearch("");}}>
 <div className="mbox" onClick={e=>e.stopPropagation()}>
 <h3 style={{margin:"0 0 10px"}}>🧾 سجل العيوب والمرتجعات ({defects.length})</h3>
 {(()=>{const m={};defects.forEach(d=>{if(d.reason)m[d.reason]=(m[d.reason]||0)+1;});const top=Object.entries(m).sort((a,b)=>b[1]-a[1])[0];
 return top?(<div className="card grad" style={{padding:12,marginBottom:12,textAlign:"center"}}><div style={{fontSize:12,color:"#DFF7F2"}}>أكثر عيب متكرر</div><div style={{fontSize:18,fontWeight:900}}>{top[0]} ({top[1]})</div></div>):null;})()}
+{defects.length>0&&<input className="inp" placeholder="🔍 بحث بالاسم أو الكود أو نوع العيب..." value={defectSearch} onChange={e=>setDefectSearch(e.target.value)} style={{marginBottom:10}}/>}
 {defects.length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center"}}>مفيش عيوب مسجلة — شغل نضيف 🎉</p>}
-{defects.map((d,i)=>(<div key={d.id} className="card anim" style={{padding:"10px 12px",marginBottom:8,borderInlineStart:"4px solid var(--red)",animationDelay:(i*50)+"ms"}}>
+{(()=>{const q=defectSearch.trim().toLowerCase();const list=defects.filter(d=>!q||((d.customer||"")+(d.code||"")+(d.reason||"")).toLowerCase().includes(q));if(defects.length>0&&list.length===0)return<p style={{color:theme.textDim,fontSize:13,textAlign:"center",padding:16}}>مفيش نتايج مطابقة</p>;return list.map((d,i)=>(<div key={d.id} onClick={()=>{const c=cards.find(x=>x.id===d.cardId);if(c){setShowDefects(false);setDefectSearch("");jumpToCard(c);}else{showToast("❌ الكرت الأصلي محذوف","danger");}}} className="card anim" style={{padding:"10px 12px",marginBottom:8,borderInlineStart:"4px solid var(--red)",animationDelay:(i*50)+"ms",cursor:"pointer"}}>
 <div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:14}}>{d.customer} · {d.code}</b><span className="badge" style={{background:"var(--red)"}}>{d.reason}</span></div>
 <div style={{fontSize:12,color:theme.textDim,marginTop:4}}>{d.qty?"كمية "+d.qty+" · ":""}{d.stage} · {d.date} · 👤 {d.by}</div>
 {d.notes&&<div style={{fontSize:12,marginTop:4}}>{d.notes}</div>}
-</div>))}
+</div>));})()}
 </div></div>)}
 {showMic&&(
 <div className="modal" onClick={()=>{setShowMic(false);stopMic();}}>
@@ -1094,7 +1098,7 @@ return(<div key={c.id} className="card" onClick={()=>{setStatementFor(null);jump
 <pre style={{whiteSpace:"pre-wrap",background:theme.panelAlt,borderRadius:14,padding:12,fontSize:13,color:theme.text,fontFamily:"inherit"}}>{buildStatement(statementFor)}</pre>
 </div>);})()}
 </div>)}
-<div style={{display:"flex",gap:8,marginTop:12,flexWrap:"wrap"}}><button onClick={()=>repeatOrder(statementFor)} className="btnO" style={{flex:1}}>🔁 تكرار</button><button onClick={()=>printStatement(statementFor)} className="btnO" style={{flex:1}}>🖨️ طباعة</button><button onClick={()=>{try{navigator.clipboard.writeText(buildStatement(statementFor));showToast("✅");}catch(e){}}} className="btnO" style={{flex:1}}>{t.copy}</button><a href={waLink(buildStatement(statementFor||""))} target="_blank" rel="noreferrer" className="btnG" style={{textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center",flex:1}}>💬 واتساب</a></div>
+<div style={{display:"flex",gap:8,marginTop:12,flexWrap:"wrap"}}><button onClick={()=>repeatOrder(statementFor)} className="btnO" style={{flex:1}}>🔁 تكرار</button><button onClick={()=>printStatement(statementFor,{cards,loads,knownCustomers,qtySum,stages,lang,logoSrc,factory})} className="btnO" style={{flex:1}}>🖨️ طباعة</button><button onClick={()=>{try{navigator.clipboard.writeText(buildStatement(statementFor));showToast("✅");}catch(e){}}} className="btnO" style={{flex:1}}>{t.copy}</button><a href={waLink(buildStatement(statementFor||""))} target="_blank" rel="noreferrer" className="btnG" style={{textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center",flex:1}}>💬 واتساب</a></div>
 </div></div>)}
 {showTopCust&&(
 <div className="modal" onClick={()=>setShowTopCust(false)}>
@@ -1230,11 +1234,12 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <SearchModal t={t} cards={liveCards} onPick={c=>{setShowSearch(false);jumpToCard(c);}}/>
 </div></div>)}
 {showStored&&(
-<div className="modal" onClick={()=>setShowStored(false)}>
+<div className="modal" onClick={()=>{setShowStored(false);setStoredSearch("");}}>
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:400}}>
 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}><h3 style={{flex:1,margin:0}}>📦 المخزن المجهز ({storedCards.length})</h3><button className="chip on" onClick={()=>exportSheet(storedCards,"مخزن-مجهز")}>💾 تصدير</button></div>
+<input className="inp" placeholder="🔍 بحث بالاسم أو الكود..." value={storedSearch} onChange={e=>setStoredSearch(e.target.value)} style={{marginBottom:10}}/>
 {storedCards.length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center",padding:16}}>فاضي — انقل كروت له من زرار 📦</p>}
-{storedCards.slice().sort((a,b)=>toMs(b.updatedAt)-toMs(a.updatedAt)).map(c=>(<div key={c.id} onClick={()=>{setShowStored(false);setActionCard(c);}} className="card" style={{padding:"10px 12px",marginBottom:8,cursor:"pointer"}}><b style={{fontSize:13}}>{c.customer} · {c.code}</b><div style={{fontSize:11,color:theme.textDim}}>{c.color} — {c.quantity}</div></div>))}
+{(()=>{const q=storedSearch.trim().toLowerCase();const list=storedCards.slice().sort((a,b)=>toMs(b.updatedAt)-toMs(a.updatedAt)).filter(c=>!q||((c.customer||"")+(c.code||"")).toLowerCase().includes(q));if(storedCards.length>0&&list.length===0)return<p style={{color:theme.textDim,fontSize:13,textAlign:"center",padding:16}}>مفيش نتايج مطابقة</p>;return list.map((c,i)=>(<div key={c.id} onClick={()=>{setShowStored(false);setStoredSearch("");setActionCard(c);}} className="card anim" style={{padding:"10px 12px",marginBottom:8,cursor:"pointer",animationDelay:(i*50)+"ms"}}><b style={{fontSize:13}}>{c.customer} · {c.code}</b><div style={{fontSize:11,color:theme.textDim}}>{c.color} — {c.quantity}</div></div>));})()}
 </div></div>)}
 {showSettings&&(
 <div className="modal" onClick={()=>setShowSettings(false)}>
@@ -1842,7 +1847,7 @@ document.getElementById("lg_demo").onclick=function(){localStorage.setItem("comp
 }else{
 if(window.isMaster){location.replace("master.html");}else{
 (function(){var r=localStorage.getItem("role");if(r==="worker"||r==="assistant"){var u=localStorage.getItem("username");db.collection("users").doc(u).get().then(function(d){if(!d.exists||d.data().locked){localStorage.removeItem("companyID");localStorage.removeItem("username");localStorage.removeItem("pin");localStorage.removeItem("role");alert("\u0627\u0644\u062D\u0633\u0627\u0628 \u0645\u0648\u0642\u0648\u0641 \u0645\u0646 \u0627\u0644\u0645\u062F\u064A\u0631");location.reload();}}).catch(function(){});}})();
-class EB extends React.Component{constructor(p){super(p);this.state={err:0};}static getDerivedStateFromError(){return{err:1};}render(){if(this.state.err)return(<div dir="rtl" style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:12,background:"#0A1015",color:"#EAF2EF",textAlign:"center",padding:20}}><div style={{fontSize:56}}>🛠️</div><h2 style={{margin:0}}>حصلت مشكلة صغيرة</h2><div style={{color:"#7FA79E",fontSize:13}}>متقلقش بياناتك سليمة — دوس إعادة</div><button className="btnG" onClick={()=>location.reload()}>🔄 إعادة التشغيل</button></div>);return this.props.children;}}
+class EB extends React.Component{constructor(p){super(p);this.state={err:null,info:null};}static getDerivedStateFromError(e){return{err:e};}componentDidCatch(e,info){this.setState({info:info});console.error("React crash:",e,info);}render(){if(this.state.err){const e=this.state.err;return(<div dir="rtl" style={{minHeight:"100vh",background:"#0A1015",color:"#EAF2EF",textAlign:"center",padding:20,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:10}}><div style={{fontSize:56}}>🛠️</div><h2 style={{margin:0}}>حصلت مشكلة صغيرة</h2><div style={{padding:12,color:"#E2544C",fontSize:12,wordBreak:"break-all",textAlign:"start",background:"#131F2B",borderRadius:12,maxWidth:520,maxHeight:"50vh",overflow:"auto",whiteSpace:"pre-wrap"}}>{"خطأ: "+(e&&e.message?e.message:String(e))+(e&&e.stack?"\n\n"+e.stack:"")+(this.state.info&&this.state.info.componentStack?"\n\nمكان الخطأ:"+this.state.info.componentStack:"")}</div><button className="btnG" onClick={()=>location.reload()} style={{maxWidth:220}}>🔄 إعادة التشغيل</button></div>);}return this.props.children;}}
 ReactDOM.createRoot(document.getElementById("root")).render(<EB><App/></EB>);
 window.__booted=true;
 }
