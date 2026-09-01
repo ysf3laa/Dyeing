@@ -59,6 +59,16 @@ fieldset{border:none;margin:0;padding:0;min-width:0}
 #bc-reader video{border-radius:12px}
 .modal{position:fixed;inset:0;background:rgba(10,16,21,.7);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:400;padding:16px;animation:pop .25s both}
 .mbox{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:24px;padding:20px;width:100%;max-width:460px;max-height:88vh;overflow-y:auto;animation:fadeUp .35s both}
+button{transition:transform .15s ease,opacity .15s ease}
+button:active:not(:disabled){transform:scale(.94)}
+.chip:active{transform:scale(.92)}
+.navi span{transition:transform .25s cubic-bezier(.34,1.56,.64,1)}
+.navi:active span{transform:scale(.85)}
+img,.badge,.chip.on{transition:transform .2s ease}
+select,.inp{transition:border .2s ease,box-shadow .2s ease}
+.inp:focus{box-shadow:0 0 0 3px rgba(45,140,116,.18)}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px}
 </style>
 </head>
 <body>
@@ -1033,8 +1043,8 @@ return top?(<div className="card grad" style={{padding:12,marginBottom:12,textAl
 <div ref={chatEndRef}/>
 </div>
 <div style={{display:"flex",gap:8,padding:"10px 12px",borderTop:"1px solid "+theme.border,flexShrink:0}}>
-<input className="inp" style={{flex:1,margin:0}} placeholder="اكتب رسالة..." value={chatInput} onChange={e=>setChatInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChat();}}}/>
-<button onClick={sendChat} className="btnG" style={{padding:"0 18px",flexShrink:0}}>➤</button>
+<input className="inp" style={{flex:"1 1 auto",minWidth:0,margin:0}} placeholder="اكتب رسالة..." value={chatInput} onChange={e=>setChatInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChat();}}}/>
+<button onClick={sendChat} className="btnG" style={{width:46,height:46,padding:0,flex:"0 0 auto",borderRadius:"50%",fontSize:17,display:"flex",alignItems:"center",justifyContent:"center"}}>➤</button>
 </div>
 </div></div>)}
 {showMic&&(
@@ -1167,7 +1177,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 </div>)}
 {showAsk&&(<div className="modal" onClick={()=>setShowAsk(false)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:420}}><h3 style={{margin:"0 0 12px"}}>🤖 اسأل مصنعك</h3><textarea rows={2} className="inp" placeholder="مثال: إيه أهدأ مرحلة دلوقتي؟ مين أكبر عميل متأخر؟" value={askQ} onChange={e=>setAskQ(e.target.value)}/><button className="btnG" style={{marginTop:8}} onClick={askGemini}>{askBusy?"⏳ بيفكر...":"🤖 اسأل"}</button>{askA&&<div style={{marginTop:10,padding:"10px 12px",borderRadius:12,background:theme.panelAlt,fontSize:13,whiteSpace:"pre-wrap",lineHeight:1.8}}>{askA}</div>}</div></div>)}
 {showBook&&(<div className="modal" onClick={()=>setShowBook(false)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:380}}><h3 style={{margin:"0 0 12px"}}>📚 بوكيمون الألوان</h3>{(factory.colorBook||[]).length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center"}}>لسه مفيش ألوان متسجلة — المالك يضيفها</p>}{(factory.colorBook||[]).map((b,i)=>(<div key={i} style={{padding:"8px 10px",borderRadius:10,background:theme.panelAlt,marginBottom:6,fontSize:13}}><div style={{display:"flex",justifyContent:"space-between"}}><b>🎨 {b.n}</b>{can&&<button onClick={()=>{if(confirm("حذف "+b.n+"؟"))saveFactory({colorBook:(factory.colorBook||[]).filter((x,j)=>j!==i)});}} className="chip">✕</button>}</div>{b.note&&<div style={{fontSize:11,color:theme.textDim,marginTop:2}}>{b.note}</div>}</div>))}{can&&<button className="chip on" onClick={()=>{const n=prompt("اسم اللون:");if(!n||!n.trim())return;const note=prompt("وصفة/ملاحظات اللون (اختياري):","")||"";saveFactory({colorBook:[...(factory.colorBook||[]),{n:n.trim(),note:note.trim()}]});}}>➕ لون جديد</button>}</div></div>)}
-{ownerName&&!showAsk&&(<button onClick={()=>setShowAsk(true)} aria-label="اسأل مصنعك" style={{position:"fixed",bottom:96,right:14,zIndex:400,width:56,height:56,borderRadius:"50%",border:"none",background:"linear-gradient(135deg,var(--vio),var(--blue))",color:"#fff",fontSize:26,cursor:"pointer",boxShadow:"0 8px 24px rgba(45,140,116,.55)",display:"flex",alignItems:"center",justifyContent:"center",animation:"floaty 2.5s infinite"}}>🤖</button>)}
+{ownerName&&!showAsk&&!showChat&&(<button onClick={()=>setShowAsk(true)} aria-label="اسأل مصنعك" style={{position:"fixed",bottom:96,right:14,zIndex:400,width:56,height:56,borderRadius:"50%",border:"none",background:"linear-gradient(135deg,var(--vio),var(--blue))",color:"#fff",fontSize:26,cursor:"pointer",boxShadow:"0 8px 24px rgba(45,140,116,.55)",display:"flex",alignItems:"center",justifyContent:"center",animation:"floaty 2.5s infinite"}}>🤖</button>)}
 {showBlack&&(<div className="modal" onClick={()=>setShowBlack(false)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:420}}><h3 style={{margin:"0 0 10px"}}>⚫ الصندوق الأسود</h3><p style={{fontSize:11,color:theme.textDim,marginBottom:8}}>🎬 إعادة تشغيل اليوم حركة بحركة — كل نقله مين عملها وإمتى</p><div style={{display:"flex",gap:6,alignItems:"center",marginBottom:10}}><button className="btnG" style={{flex:1}} onClick={()=>{if(blackPlay){setBlackPlay(0);}else{setBlackIdx(0);setBlackPlay(1);}}}>{blackPlay?"⏸️ إيقاف":"▶️ تشغيل اليوم"}</button><span style={{fontSize:11,color:theme.textDim}}>{Math.min(blackIdx,blackList().length)}/{blackList().length}</span></div><div style={{maxHeight:320,overflow:"auto"}}>{blackList().slice(0,blackIdx).map((h,i)=>(<div key={i} className="anim" style={{padding:"6px 10px",marginBottom:4,borderInlineStart:"2px solid var(--vio)",background:theme.panelAlt,borderRadius:8,fontSize:12,color:theme.textDim}}><b style={{color:theme.text}}>{h.cust||"—"}</b> · 📍 {h.stage} · {h.by} · {fmtTime(h.at,lang)}</div>))}{blackIdx===0&&<p style={{textAlign:"center",color:theme.textDim,fontSize:12,padding:20}}>دوس ▶️ وشوف اليوم بيتفك قدامك</p>}</div></div></div>)}
 {photoView&&(
 <div className="modal" onClick={()=>setPhotoView(null)}>
