@@ -312,7 +312,7 @@ const [companyMembers,setCompanyMembers]=useState([]);
 const [allUsersLive,setAllUsersLive]=useState([]);
 useEffect(()=>{if(!db)return function(){};return db.collection("users").onSnapshot(s=>{const a=[];s.forEach(d=>a.push(d.data().name||d.id));a.sort();setAllUsersLive(a);});},[]);
 {[ownerName].concat(allUsersLive||[]).filter((v,i,a)=>v&&a.indexOf(v)===i).map(w=><option key={w} value={w}>{w===ownerName?"👑 "+w:"👷 "+w}</option>)}
-const [factory,setFactory]=useState({fname:"متابعة المراحل",wa:"",unit:"كيلو",lateDays:2,printSize:"A5",heroT:"",heroS:"",visibleTiles:["sched","stored","archive","defects","outsourced"]});
+const [factory,setFactory]=useState({fname:"متابعة المراحل",wa:"",unit:"كيلو",lateDays:2,printSize:"A5",heroT:"",heroS:""});
 const [fnameDraft,setFnameDraft]=useState("متابعة المراحل");const [waDraft,setWaDraft]=useState("");const [lateDraft,setLateDraft]=useState(2);
 const [heroTDraft,setHeroTDraft]=useState("");const [heroSDraft,setHeroSDraft]=useState("");
 const [customColors,setCustomColors]=useState([]);
@@ -326,7 +326,7 @@ const [chatMsgs,setChatMsgs]=useState([]);const [showChat,setShowChat]=useState(
 const [storedSearch,setStoredSearch]=useState("");const [outsourcedSearch,setOutsourcedSearch]=useState("");const [defectSearch,setDefectSearch]=useState("");
 const [linkedFrom,setLinkedFrom]=useState(null);
 const [showFlags,setShowFlags]=useState(false);
-const [screen,setScreen]=useState("home");const [activeStage,setActiveStage]=useState(null);const [lastLateNotif,setLastLateNotif]=useState({});const [tilesEdit,setTilesEdit]=useState(false);
+const [screen,setScreen]=useState("home");const [activeStage,setActiveStage]=useState(null);
 const [lateOnly,setLateOnly]=useState(false);
 const [selectMode,setSelectMode]=useState(false);const [selected,setSelected]=useState([]);const [bulkMoveTo,setBulkMoveTo]=useState("");
 const toggleSelect=id=>{setSelected(s=>s.includes(id)?s.filter(x=>x!==id):s.concat([id]));};
@@ -424,7 +424,7 @@ db.collection("config").onSnapshot(sn=>{const g=id=>{const d=sn.docs.find(x=>x.i
 const s=g("stages"),m=g("machines"),f=g("factory"),cl=g("colors"),cf=g("fields");
 if(s)setStages(s.list||DEFAULT_STAGES);if(m)setMachines(m.list||DEFAULT_MACHINES);
 if(cf)setCardFields(cf.list&&cf.list.length?cf.list:DEFAULT_FIELDS);
-if(f)setFactory({fname:(f.fname&&f.fname!=="متابعة الصباغة"?f.fname:"متابعة المراحل"),wa:f.wa||"",unit:f.unit||"كيلو",lateDays:f.lateDays||2,printSize:f.printSize||"A5",gkey:f.gkey||"",heroT:f.heroT||"",heroS:f.heroS||"",logo:f.logo||"",closed:!!f.closed,holidays:f.holidays||[],flags:f.flags||[],colorBook:f.colorBook||[],stageLocks:f.stageLocks||{},visibleTiles:f.visibleTiles||["sched","stored","archive","defects","outsourced"]});
+if(f)setFactory({fname:(f.fname&&f.fname!=="متابعة الصباغة"?f.fname:"متابعة المراحل"),wa:f.wa||"",unit:f.unit||"كيلو",lateDays:f.lateDays||2,printSize:f.printSize||"A5",gkey:f.gkey||"",heroT:f.heroT||"",heroS:f.heroS||"",logo:f.logo||"",closed:!!f.closed,holidays:f.holidays||[],flags:f.flags||[],colorBook:f.colorBook||[],stageLocks:f.stageLocks||{}});
 if(cl)setCustomColors(cl.list||[]);
 const an=g("announce");if(an&&an.text)setAnnounce(an);else setAnnounce(null);});
 setFirebaseOk(true);setReady(true);}else{try{await auth.signInAnonymously();}catch(e){setReady(true);}}});return()=>un&&un();},[]);
@@ -481,7 +481,7 @@ const loadStats=ld=>{const linked=cards.filter(c=>c.loadId===ld.id);const pulled
 const saveLoad=async()=>{if(!can||!db||!loadDraft.customer||!loadDraft.total)return;await db.collection("loads").doc(uid()).set({customer:loadDraft.customer.trim(),total:parseFloat(loadDraft.total)||0,date:loadDraft.date||localDate(new Date()),notes:loadDraft.notes||"",category:loadDraft.category||"",color:loadDraft.color||"",barcode:loadDraft.barcode||"",machine:loadDraft.machine||""});setAddLoad(false);setLoadDraft({customer:"",total:"",date:"",notes:"",category:"",color:"",barcode:"",machine:""});showToast("📦 ✅");};
 const toggleDelivered=async c=>{if(!can||!db)return;await db.collection("cards").doc(c.id).set({delivered:!c.delivered},{merge:true});await addLog(!c.delivered?"تسليم":"إلغاء تسليم",c);setActionCard(null);};
 const toggleStored=async c=>{if(!can||!db)return;await db.collection("cards").doc(c.id).set({stored:!c.stored},{merge:true});await addLog(!c.stored?"📦 نقل للمخزن المجهز":"↩️ رجوع من المخزن",c);setActionCard(null);};
-const toggleOutsourced=async c=>{if(!can||!db)return;if(!c.outsourced){const f=prompt("🚚 اسم المصنع اللي هيتبعتله الشغل (اختياري):",c.outsourcedTo||"");if(f===null)return;await db.collection("cards").doc(c.id).set({outsourced:true,outsourcedTo:f.trim()},{merge:true});await addLog("🚚 اتبعت كسترة خارجي"+(f.trim()?" — "+f.trim():""),c);}else{await db.collection("cards").doc(c.id).set({outsourced:false,outsourcedTo:""},{merge:true});await addLog("↩️ رجع من الكسترة الخارجي",c);}setActionCard(null);};
+const toggleOutsourced=async c=>{if(!can||!db)return;if(!c.outsourced){const f=prompt("🚚 اسم المصنع اللي هيتبعتله الشغل (اختياري):",c.outsourcedTo||"");if(f===null)return;await db.collection("cards").doc(c.id).set({outsourced:true,outsourcedTo:f.trim()},{merge:true});await addLog("🚚 اتبعت تكستير خارجي"+(f.trim()?" — "+f.trim():""),c);}else{await db.collection("cards").doc(c.id).set({outsourced:false,outsourcedTo:""},{merge:true});await addLog("↩️ رجع من التكستير الخارجي",c);}setActionCard(null);};
 const partialDeliver=async(c,q)=>{if(!can||!db)return;const v=Math.min(parseFloat(q)||0,parseFloat(c.quantity)||0);await db.collection("cards").doc(c.id).set({deliveredQty:v,delivered:v>=(parseFloat(c.quantity)||0)},{merge:true});await addLog("تسليم جزئي",c,String(v));setActionCard(null);};
 const saveHero=()=>{if(!can||!db)return;saveFactory({heroT:heroTDraft.trim(),heroS:heroSDraft.trim()});setHeroEdit(false);showToast("🎨 ✅");};
 const saveAnnounce=()=>{if(!can||!db)return;const el=document.getElementById("annBox");const txt=el?el.value:"";db.collection("config").doc("announce").set({text:txt.trim(),by:ownerName||"",time:Date.now()});setShowAnnounce(false);showToast("📢 اتنشر");};
@@ -591,7 +591,7 @@ const holCount=ms=>{const hs=factory.holidays||[];let n=0;hs.forEach(d=>{const m
 const adjDays=c=>Math.max(0,daysSince(c.updatedAt||c.createdAt)-holCount(toMs(c.updatedAt||c.createdAt)));
 const isLate=c=>adjDays(c)>=1;
 const dueInfo=c=>{if(!c.due)return null;const today=localDate(new Date());if(c.due<today)return{txt:t.overdue,col:theme.danger};if((new Date(c.due).getTime()-new Date(today).getTime())/86400000<=1)return{txt:t.dueSoon,col:theme.warn};return null;};
-const liveCards=cards.filter(c=>!c.archived&&!c.stored&&!c.outsourced);
+const liveCards=cards.filter(c=>!c.archived&&!c.stored);
 const storedCards=cards.filter(c=>!!c.stored&&!c.archived);const outsourcedCards=cards.filter(c=>!!c.outsourced&&!c.archived);
 const stageAvgMemo=(()=>{const tot={},cnt={};cards.forEach(c=>{const h=c.history||[];for(let i=0;i<h.length;i++){const st=toMs(h[i].at);const end=i+1<h.length?toMs(h[i+1].at):0;if(st&&end){const d=end-st;if(d>0&&d<30*86400000){const s=h[i].stage;tot[s]=(tot[s]||0)+d;cnt[s]=(cnt[s]||0)+1;}}}});const a={};Object.keys(tot).forEach(s=>{a[s]=tot[s]/cnt[s];});return a;})();
 const etaOf=c=>{if(!c||c.delivered)return null;const idx=stages.indexOf(c.stage);if(idx===-1)return null;const h=c.history||[];const lastE=h[h.length-1];const elapsed=(lastE&&lastE.stage===c.stage)?Date.now()-toMs(lastE.at):0;const cur=stageAvgMemo[c.stage]||4*3600000;let ms=Math.max(0,cur-elapsed);for(let i=idx+1;i<stages.length;i++){ms+=stageAvgMemo[stages[i]]||cur;}return Date.now()+ms;};
@@ -601,8 +601,8 @@ const cardsToShow=activeStage?liveCards.filter(c=>c.stage===activeStage).filter(
 const statusMsg=syncStatus==="syncing"?t.syncing:syncStatus==="synced"?t.synced:(isOnline?t.online:t.offline);
 const statusColor=syncStatus==="syncing"?theme.warn:syncStatus==="synced"?theme.accent2:(isOnline?theme.accent2:theme.danger);
 const onlineNames=[...new Set(onlineUsers.map(u=>u.name))];
-const lateCount=(()=>{const lastView=lastLateNotif["_all"]||0;const day24h=24*3600000;const shouldShow=Date.now()-lastView>=day24h||lastView===0;return shouldShow?liveCards.filter(c=>adjDays(c)>=LD).length:0;})();
-useEffect(()=>{if(showLateList){setLastLateNotif(prev=>({...prev,"_all":Date.now()}));}},[showLateList]);
+const lateCount=liveCards.filter(c=>adjDays(c)>=LD).length;
+useEffect(()=>{const iv=setInterval(()=>{try{if(!("Notification" in window)||Notification.permission!=="granted")return;const late=liveCards.filter(c=>!c.delivered&&adjDays(c)>=LD);const done=(localStorage.getItem("notifiedLate")||"").split(",").filter(Boolean);const fresh=late.filter(c=>!done.includes(c.id));if(!fresh.length)return;fresh.slice(0,3).forEach(c=>{try{new Notification("⏰ كرت متأخر — "+(c.stage||""),{body:(c.customer||"")+" · "+(c.code||"")+" · "+(c.color||"")});}catch(e){}});localStorage.setItem("notifiedLate",[...done,...fresh.map(c=>c.id)].join(","));fx("danger");}catch(e){}},60000);return()=>clearInterval(iv);},[cards]);
 const lateAll=liveCards.filter(c=>adjDays(c)>=LD);
 const delAll=liveCards.filter(c=>c.delivered||(parseFloat(c.deliveredQty)||0)>0);
 const todayLogCount=log.filter(e=>localDate(new Date(toMs(e.time||e.timeLocal)))===localDate(new Date())).length;
@@ -700,27 +700,27 @@ return(
 </div>
 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",margin:"10px 0",fontSize:12,color:theme.textDim}}><span style={{display:"flex",alignItems:"center",gap:6}}>{logoSrc&&<img src={logoSrc} style={{width:26,height:26,borderRadius:8,objectFit:"cover"}}/>}🕌 {(()=>{try{return new Intl.DateTimeFormat("ar-SA-u-ca-islamic",{day:"numeric",month:"long",year:"numeric"}).format(new Date());}catch(e){return "";}})()}</span><span>{(()=>{const h=new Date().getHours();return h>=5&&h<12?"☀️ صباح الخير":h>=12&&h<17?"🌤️ مساء الخير":"🌙 مساء الخير";})()} · {ownerName}</span></div>
 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:8,width:"100%",alignItems:"center"}}>
-{factory.visibleTiles.includes("sched")&&<div onClick={()=>setShowSched(true)} style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer"}}>
+<div onClick={()=>setShowSched(true)} style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer"}}>
 <div style={{width:44,height:44,borderRadius:14,background:"linear-gradient(135deg,var(--teal),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,boxShadow:"0 6px 18px rgba(27,143,130,.35)"}}>📅</div>
 <div><div style={{fontSize:13,fontWeight:800}}>جدول الماكينات</div><div style={{fontSize:10.5,color:theme.textDim,marginTop:2}}>{schedCards().length} شغال · {machines.filter(m=>!schedCards().some(c=>String(c.machine)===String(m))).length} فاضية</div></div>
-</div>}
-{factory.visibleTiles.includes("stored")&&<div onClick={e=>{e.stopPropagation();setShowStored(true);}} style={{display:"flex",alignItems:"center",gap:8,background:"rgba(45,140,116,.10)",border:"1px solid rgba(45,140,116,.35)",borderRadius:14,padding:8,cursor:"pointer"}}>
+</div>
+<div onClick={e=>{e.stopPropagation();setShowStored(true);}} style={{display:"flex",alignItems:"center",gap:8,background:"rgba(45,140,116,.10)",border:"1px solid rgba(45,140,116,.35)",borderRadius:14,padding:8,cursor:"pointer"}}>
 <div style={{width:44,height:44,borderRadius:14,background:"linear-gradient(135deg,var(--vio),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>📦</div>
 <div><div style={{fontSize:13,fontWeight:800}}>مخزن مجهز</div><div style={{fontSize:10.5,color:theme.textDim,marginTop:2}}>{storedCards.length} كرت جاهز</div></div>
-</div>}
-{factory.visibleTiles.includes("outsourced")&&<div onClick={e=>{e.stopPropagation();setShowOutsourced(true);}} style={{display:"flex",alignItems:"center",gap:8,background:"rgba(230,140,50,.10)",border:"1px solid rgba(230,140,50,.35)",borderRadius:14,padding:8,cursor:"pointer"}}>
+</div>
+<div onClick={e=>{e.stopPropagation();setShowOutsourced(true);}} style={{display:"flex",alignItems:"center",gap:8,background:"rgba(230,140,50,.10)",border:"1px solid rgba(230,140,50,.35)",borderRadius:14,padding:8,cursor:"pointer"}}>
 <div style={{width:44,height:44,borderRadius:14,background:"linear-gradient(135deg,var(--warn),var(--red))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>🚚</div>
-<div><div style={{fontSize:13,fontWeight:800}}>كسترة خارجي</div><div style={{fontSize:10.5,color:theme.textDim,marginTop:2}}>{outsourcedCards.length} كرت برا</div></div>
-</div>}
-{factory.visibleTiles.includes("defects")&&<div onClick={e=>{e.stopPropagation();setShowDefects(true);}} style={{display:"flex",alignItems:"center",gap:8,background:"rgba(226,84,76,.10)",border:"1px solid rgba(226,84,76,.35)",borderRadius:14,padding:8,cursor:"pointer"}}>
+<div><div style={{fontSize:13,fontWeight:800}}>تكستير خارجي</div><div style={{fontSize:10.5,color:theme.textDim,marginTop:2}}>{outsourcedCards.length} كرت برا</div></div>
+</div>
+<div onClick={e=>{e.stopPropagation();setShowDefects(true);}} style={{display:"flex",alignItems:"center",gap:8,background:"rgba(226,84,76,.10)",border:"1px solid rgba(226,84,76,.35)",borderRadius:14,padding:8,cursor:"pointer"}}>
 <div style={{width:44,height:44,borderRadius:14,background:"linear-gradient(135deg,var(--red),var(--warn))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>🧾</div>
 <div><div style={{fontSize:13,fontWeight:800}}>العيوب والمرتجعات</div><div style={{fontSize:10.5,color:theme.textDim,marginTop:2}}>{defects.length} مسجلة</div></div>
-</div>}
-{factory.visibleTiles.includes("archive")&&<div onClick={e=>{e.stopPropagation();setScreen("archive");}} style={{display:"flex",alignItems:"center",gap:8,background:"rgba(201,151,63,.10)",border:"1px solid rgba(201,151,63,.35)",borderRadius:14,padding:8,cursor:"pointer"}}>
+</div>
+<div onClick={e=>{e.stopPropagation();setScreen("archive");}} style={{display:"flex",alignItems:"center",gap:8,background:"rgba(201,151,63,.10)",border:"1px solid rgba(201,151,63,.35)",borderRadius:14,padding:8,cursor:"pointer"}}>
 <div style={{width:44,height:44,borderRadius:14,background:"linear-gradient(135deg,var(--blue),var(--vio))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>🗄️</div>
 <div><div style={{fontSize:13,fontWeight:800}}>{t.archive}</div><div style={{fontSize:10.5,color:theme.textDim,marginTop:2}}>{archivedCards.length} كرت مؤرشف</div></div>
-</div>}
-{canEditFields&&<button onClick={()=>setTilesEdit(!tilesEdit)} style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",background:"transparent",border:"none",padding:0}}><div style={{width:44,height:44,borderRadius:14,background:"rgba(255,255,255,.1)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>⚙️</div><div style={{fontSize:12,color:theme.textDim}}>تخصيص</div></button>}
+</div>
+</div>
 <div className="card anim" style={{animationDelay:"360ms",margin:"12px 0"}}>
 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><span style={{fontSize:20}}>🏆</span><b style={{fontSize:15}}>الانجازات</b></div>
 {(()=>{const cut=Date.now()-7*86400000;const wk=log.filter(e=>toMs(e.time||e.timeLocal)>=cut);const per={};wk.forEach(e=>{if(e.person)per[e.person]=(per[e.person]||0)+1;});const arr=Object.entries(per).sort((a,b)=>b[1]-a[1]);const best=arr[0];
@@ -1310,7 +1310,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 ...(can?[{icon:actionCard.delivered?"↩️":"✅",label:actionCard.delivered?"إلغاء التسليم":"تم التسليم",fn:()=>toggleDelivered(actionCard)},
 {icon:"⚖️",label:"تسليم جزئي",fn:()=>{const q=prompt("الكمية المسلّمة من الكرت:",actionCard.quantity||"");if(q!==null)partialDeliver(actionCard,q);}}]:[]),
 ...(can?[{icon:"📦",label:actionCard.stored?"↩️ رجوع من المخزن المجهز":"📦 نقل للمخزن المجهز",fn:()=>toggleStored(actionCard)}]:[]),
-...(can?[{icon:"🚚",label:actionCard.outsourced?"↩️ رجوع من الكسترة الخارجي":"🚚 إرسال للكسترة الخارجي",fn:()=>toggleOutsourced(actionCard)}]:[]),
+...(can?[{icon:"🚚",label:actionCard.outsourced?"↩️ رجوع من التكستير الخارجي":"🚚 إرسال للتكستير الخارجي",fn:()=>toggleOutsourced(actionCard)}]:[]),
 {icon:"💬",label:t.shareCard,fn:()=>{window.open(waLink(shareCardText(actionCard)),"_blank");setActionCard(null);}},
 {icon:"📢",label:"بلّغ العميل بالحركة",fn:()=>{window.open(waLink("أهلاً "+(actionCard.customer||"")+" 👋\n📦 أمرك "+(actionCard.code||"")+" تحرّك لمرحلة: "+(actionCard.stage||"")+"\n🏭 "+(factory.fname||"")),"_blank");setActionCard(null);}},
 ...(can?[{icon:"⚠️",label:"تسجيل عيب / مرتجع",fn:()=>{setDefectFor(actionCard);setActionCard(null);}}]:[]),
@@ -1362,19 +1362,10 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 {showOutsourced&&(
 <div className="modal" onClick={()=>{setShowOutsourced(false);setOutsourcedSearch("");}}>
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:400}}>
-<div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}><h3 style={{flex:1,margin:0}}>🚚 كسترة خارجي ({outsourcedCards.length})</h3><button className="chip on" onClick={()=>exportSheet(outsourcedCards,"تكستير-خارجي")}>💾 تصدير</button></div>
+<div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}><h3 style={{flex:1,margin:0}}>🚚 تكستير خارجي ({outsourcedCards.length})</h3><button className="chip on" onClick={()=>exportSheet(outsourcedCards,"تكستير-خارجي")}>💾 تصدير</button></div>
 <input className="inp" placeholder="🔍 بحث بالاسم أو الكود..." value={outsourcedSearch} onChange={e=>setOutsourcedSearch(e.target.value)} style={{marginBottom:10}}/>
-{outsourcedCards.length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center",padding:16}}>فاضي — ابعت كروت للكسترة من زرار 🚚 في الكرت</p>}
+{outsourcedCards.length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center",padding:16}}>فاضي — ابعت كروت للتكستير من زرار 🚚 في الكرت</p>}
 {(()=>{const q=outsourcedSearch.trim().toLowerCase();const list=outsourcedCards.slice().sort((a,b)=>toMs(b.updatedAt)-toMs(a.updatedAt)).filter(c=>!q||((c.customer||"")+(c.code||"")+(c.outsourcedTo||"")).toLowerCase().includes(q));if(outsourcedCards.length>0&&list.length===0)return<p style={{color:theme.textDim,fontSize:13,textAlign:"center",padding:16}}>مفيش نتايج مطابقة</p>;return list.map((c,i)=>(<div key={c.id} onClick={()=>{setShowOutsourced(false);setOutsourcedSearch("");setActionCard(c);}} className="card anim" style={{padding:"10px 12px",marginBottom:8,cursor:"pointer",animationDelay:(i*50)+"ms"}}><b style={{fontSize:13}}>{c.customer} · {c.code}</b><div style={{fontSize:11,color:theme.textDim}}>{c.color} — {c.quantity}{c.outsourcedTo?" · 🏭 "+c.outsourcedTo:""}</div></div>));})()}
-</div></div>)}
-{tilesEdit&&canEditFields&&(
-<div className="modal" onClick={()=>setTilesEdit(false)}>
-<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:400}}>
-<h3 style={{margin:"0 0 12px"}}>⚙️ تخصيص الخانات الرئيسية</h3>
-<div style={{display:"flex",flexDirection:"column",gap:8}}>
-{[{id:"sched",name:"📅 جدول الماكينات"},{id:"stored",name:"📦 مخزن مجهز"},{id:"outsourced",name:"🚚 كسترة خارجي"},{id:"defects",name:"🧾 العيوب والمرتجعات"},{id:"archive",name:"🗄️ الأرشيف"}].map(t=>(<button key={t.id} onClick={()=>{const vis=factory.visibleTiles||[];const newVis=vis.includes(t.id)?vis.filter(x=>x!==t.id):[...vis,t.id];saveFactory({visibleTiles:newVis});}} className="chip" style={{justifyContent:"space-between",padding:"12px 14px",borderRadius:10,border:factory.visibleTiles.includes(t.id)?"2px solid var(--teal)":"1px solid "+theme.border,background:factory.visibleTiles.includes(t.id)?"rgba(45,140,116,.15)":"transparent",color:"inherit",cursor:"pointer",fontWeight:factory.visibleTiles.includes(t.id)?800:400}}>{t.name}<span>{factory.visibleTiles.includes(t.id)?"✅":"☐"}</span></button>))}
-</div>
-<p style={{fontSize:11,color:theme.textDim,marginTop:12,textAlign:"center"}}>الخانات المفعّلة بتظهر في الرئيسية</p>
 </div></div>)}
 {showSettings&&(
 <div className="modal" onClick={()=>setShowSettings(false)}>
@@ -1429,7 +1420,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 {canEditFields&&(<>
 <div className="lbl">🎴 شكل الكرت (بيانات الكرت)</div>
 <div style={{marginBottom:10}}>{cardFields.map((f,i)=>(<div key={f.key} style={{display:"flex",gap:6,alignItems:"center",marginBottom:6}}>
-<span style={{flex:1,fontSize:13,opacity:f.visible===false?.45:1}}>{fldLabel(f)}</span>
+<span style={{flex:1,fontSize:13,opacity:f.visible===false?0.45:1}}>{fldLabel(f)}</span>
 <button onClick={()=>fldOrder(f.key,-1)} className="chip" disabled={i===0}>⬆️</button>
 <button onClick={()=>fldOrder(f.key,1)} className="chip" disabled={i===cardFields.length-1}>⬇️</button>
 <button onClick={()=>fldToggle(f.key)} className={"chip"+(f.visible===false?"":" on")}>{f.visible===false?"🙈":"👁️"}</button>
@@ -1528,7 +1519,7 @@ return <div>
 function SearchModal({t,cards,onPick}){
 const [q,setQ]=useState("");
 const r=q.trim()?cards.filter(c=>FIELD_KEYS.some(k=>(c[k]||"").toString().toLowerCase().includes(q.toLowerCase()))).slice(0,30):[];
-const statusOf=c=>c.archived?"🗄️ مؤرشف":c.outsourced?"🚚 كسترة خارجي"+(c.outsourcedTo?" — "+c.outsourcedTo:""):c.stored?"📦 مخزن مجهز":c.delivered?"✅ مسلّم":("⚙️ "+(c.stage||"—"));
+const statusOf=c=>c.archived?"🗄️ مؤرشف":c.outsourced?"🚚 تكستير خارجي"+(c.outsourcedTo?" — "+c.outsourcedTo:""):c.stored?"📦 مخزن مجهز":c.delivered?"✅ مسلّم":("⚙️ "+(c.stage||"—"));
 return(<div><input autoFocus value={q} onChange={e=>setQ(e.target.value)} placeholder={t.search} className="inp"/>
 {q.trim()&&r.length===0&&<p style={{color:"var(--dim)",fontSize:13,textAlign:"center"}}>{t.noResults}</p>}
 <div>{r.map((c,i)=>(<div key={c.id} onClick={()=>onPick(c)} className="card anim" style={{cursor:"pointer",padding:"10px 12px",marginBottom:8,animationDelay:(i*40)+"ms"}}><b style={{fontSize:14}}>{c.customer} · {c.code}</b><div style={{fontSize:12,color:"var(--dim)"}}>{statusOf(c)} — {c.color}</div></div>))}</div></div>);
