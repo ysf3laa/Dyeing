@@ -601,7 +601,7 @@ const cardsToShow=activeStage?liveCards.filter(c=>c.stage===activeStage).filter(
 const statusMsg=syncStatus==="syncing"?t.syncing:syncStatus==="synced"?t.synced:(isOnline?t.online:t.offline);
 const statusColor=syncStatus==="syncing"?theme.warn:syncStatus==="synced"?theme.accent2:(isOnline?theme.accent2:theme.danger);
 const onlineNames=[...new Set(onlineUsers.map(u=>u.name))];
-const lateCount=(()=>{const lastView=lastLateNotif["_all"]||0;const 24h=24*3600000;const shouldShow=Date.now()-lastView>=24h||lastView===0;return shouldShow?liveCards.filter(c=>adjDays(c)>=LD).length:0;})();
+const lateCount=(()=>{const lastView=lastLateNotif["_all"]||0;const day24h=24*3600000;const shouldShow=Date.now()-lastView>=day24h||lastView===0;return shouldShow?liveCards.filter(c=>adjDays(c)>=LD).length:0;})();
 useEffect(()=>{if(showLateList){setLastLateNotif(prev=>({...prev,"_all":Date.now()}));}},[showLateList]);
 const lateAll=liveCards.filter(c=>adjDays(c)>=LD);
 const delAll=liveCards.filter(c=>c.delivered||(parseFloat(c.deliveredQty)||0)>0);
