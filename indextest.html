@@ -503,6 +503,9 @@ const fldOrder=(k,dir)=>{const i2=cardFields.findIndex(x=>x.key===k);const j=i2+
 const fldToggle=k=>{const l=cardFields.map(f=>f.key===k?{...f,visible:f.visible===false?true:false}:f);saveFields(l);};
 const fldAdd=()=>{const lbl=prompt("اسم الخانة الجديدة:");if(!lbl||!lbl.trim())return;const key="custom_"+uid();saveFields([...cardFields,{key,label:lbl.trim(),custom:true,visible:true}]);};
 const fldDel=k=>{if(!confirm(t.delete+"؟"))return;saveFields(cardFields.filter(f=>f.key!==k));};
+const addSection=()=>{const emoji=prompt("اختر emoji (مثال: 📊):");if(!emoji||!emoji.trim())return;const name=prompt("اسم الخانة:");if(!name||!name.trim())return;const sections=(factory.customSections||[]);if(sections.find(s=>s.emoji===emoji.trim())){alert("الـ emoji ده موجود بالفعل!");return;}saveFactory({customSections:[...sections,{emoji:emoji.trim(),name:name.trim(),key:"custom_"+uid()}]});};
+const deleteSection=key=>{if(!confirm("حذف الخانة؟"))return;const sections=(factory.customSections||[]);saveFactory({customSections:sections.filter(s=>s.key!==key)});};
+const clearLateNotif=cardIds=>{if(!ownerName)return;const notifLogKey="notifiedLate_"+ownerName;const notifLog=JSON.parse(localStorage.getItem(notifLogKey)||"{}");cardIds.forEach(id=>{delete notifLog[id];});localStorage.setItem(notifLogKey,JSON.stringify(notifLog));};
 const fldLabel=f=>f.custom?f.label:(t[f.key]||f.key);
 const ocrNow=async f=>{setImportBusy(0);
 if(!window.Tesseract){try{await window.loadScriptOnce("lib/tesseract.js");}catch(e){setImportBusy(null);showToast("❌","danger");return;}}
@@ -604,6 +607,8 @@ const statusColor=syncStatus==="syncing"?theme.warn:syncStatus==="synced"?theme.
 const onlineNames=[...new Set(onlineUsers.map(u=>u.name))];
 const lateCount=liveCards.filter(c=>adjDays(c)>=LD).length;
 useEffect(()=>{const iv=setInterval(()=>{try{if(!("Notification" in window)||Notification.permission!=="granted")return;const late=liveCards.filter(c=>!c.delivered&&adjDays(c)>=LD);const notifLogKey="notifiedLate_"+ownerName;const notifLog=JSON.parse(localStorage.getItem(notifLogKey)||"{}");const now=Date.now();const oneDayMs=86400000;const fresh=late.filter(c=>{const lastNotif=notifLog[c.id]||0;return(now-lastNotif)>=oneDayMs;});if(!fresh.length)return;fresh.slice(0,3).forEach(c=>{try{new Notification("⏰ كرت متأخر — "+(c.stage||""),{body:(c.customer||"")+" · "+(c.code||"")+" · "+(c.color||"")});}catch(e){}});fresh.forEach(c=>{notifLog[c.id]=now;});localStorage.setItem(notifLogKey,JSON.stringify(notifLog));fx("danger");}catch(e){}},60000);return()=>clearInterval(iv);},[cards,ownerName]);
+useEffect(()=>{if(actionCard&&actionCard.id&&adjDays(actionCard)>=LD){clearLateNotif([actionCard.id]);}},[actionCard]);
+useEffect(()=>{if(showLateList){const late=liveCards.filter(c=>!c.delivered&&adjDays(c)>=LD);clearLateNotif(late.map(c=>c.id));}},[showLateList]);
 const lateAll=liveCards.filter(c=>adjDays(c)>=LD);
 const delAll=liveCards.filter(c=>c.delivered||(parseFloat(c.deliveredQty)||0)>0);
 const todayLogCount=log.filter(e=>localDate(new Date(toMs(e.time||e.timeLocal)))===localDate(new Date())).length;
@@ -721,6 +726,11 @@ return(
 <div style={{width:44,height:44,borderRadius:14,background:"linear-gradient(135deg,var(--blue),var(--vio))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>🗄️</div>
 <div><div style={{fontSize:13,fontWeight:800}}>{t.archive}</div><div style={{fontSize:10.5,color:theme.textDim,marginTop:2}}>{archivedCards.length} كرت مؤرشف</div></div>
 </div>)}
+{can&&(factory.customSections||[]).map(sec=>(<div key={sec.key} onClick={e=>{e.stopPropagation();}} style={{display:"flex",alignItems:"center",gap:8,background:"rgba(100,150,200,.10)",border:"1px solid rgba(100,150,200,.35)",borderRadius:14,padding:8,cursor:"pointer",position:"relative"}}>
+<div style={{width:44,height:44,borderRadius:14,background:"linear-gradient(135deg,#8B9DC3,#6A9FB5)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>{sec.emoji}</div>
+<div style={{flex:1}}><div style={{fontSize:13,fontWeight:800}}>{sec.name}</div><div style={{fontSize:10.5,color:theme.textDim,marginTop:2}}>خانة مخصصة</div></div>
+<button onClick={e=>{e.stopPropagation();deleteSection(sec.key);}} className="chip" style={{padding:"4px 8px",fontSize:12}}>✕</button>
+</div>))}
 </div>
 <div className="card anim" style={{animationDelay:"360ms",margin:"12px 0"}}>
 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><span style={{fontSize:20}}>🏆</span><b style={{fontSize:15}}>الانجازات</b></div>
@@ -1424,6 +1434,17 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <input type="checkbox" checked={!hid} onChange={e=>{const cur=factory.hiddenFeatures||[];const nx=e.target.checked?cur.filter(x=>x!==key):cur.concat([key]);saveFactory({hiddenFeatures:nx});}} style={{cursor:"pointer"}}/>
 <span style={{flex:1}}>{lbl} {hid&&<span style={{color:theme.textDim,fontSize:10}}>(مخفي)</span>}</span>
 </div>);})}
+</div>
+<div className="lbl">➕ خانات مخصصة (إضافة/حذف)</div>
+<div style={{marginBottom:10}}>
+{(factory.customSections||[]).length>0?(<div style={{display:"flex",flexDirection:"column",gap:6}}>
+{(factory.customSections||[]).map(sec=>(<div key={sec.key} style={{display:"flex",alignItems:"center",gap:6,padding:"8px 12px",background:theme.panelAlt,borderRadius:10,fontSize:12}}>
+<span style={{fontSize:16}}>{sec.emoji}</span>
+<span style={{flex:1}}>{sec.name}</span>
+<button onClick={()=>deleteSection(sec.key)} className="chip">🗑️ حذف</button>
+</div>))}
+</div>):(<p style={{fontSize:12,color:theme.textDim,padding:"8px"}}>لا توجد خانات مخصصة</p>)}
+<button onClick={addSection} className="chip on" style={{marginTop:6}}>➕ إضافة خانة جديدة</button>
 </div>
 </>)}
 <div className="lbl">🎨 {t.manageColors}</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{customColors.map(c=><button key={c} onClick={()=>saveColors(customColors.filter(x=>x!==c))} className="chip">{c} ✕</button>)}<button onClick={()=>{const n=prompt(t.add);if(n&&n.trim())saveColors(customColors.concat([n.trim()]));}} className="chip on">➕</button></div>
