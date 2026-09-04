@@ -481,7 +481,7 @@ const loadStats=ld=>{const linked=cards.filter(c=>c.loadId===ld.id);const pulled
 const saveLoad=async()=>{if(!can||!db||!loadDraft.customer||!loadDraft.total)return;await db.collection("loads").doc(uid()).set({customer:loadDraft.customer.trim(),total:parseFloat(loadDraft.total)||0,date:loadDraft.date||localDate(new Date()),notes:loadDraft.notes||"",category:loadDraft.category||"",color:loadDraft.color||"",barcode:loadDraft.barcode||"",machine:loadDraft.machine||""});setAddLoad(false);setLoadDraft({customer:"",total:"",date:"",notes:"",category:"",color:"",barcode:"",machine:""});showToast("📦 ✅");};
 const toggleDelivered=async c=>{if(!can||!db)return;await db.collection("cards").doc(c.id).set({delivered:!c.delivered},{merge:true});await addLog(!c.delivered?"تسليم":"إلغاء تسليم",c);setActionCard(null);};
 const toggleStored=async c=>{if(!can||!db)return;await db.collection("cards").doc(c.id).set({stored:!c.stored},{merge:true});await addLog(!c.stored?"📦 نقل للمخزن المجهز":"↩️ رجوع من المخزن",c);setActionCard(null);};
-const toggleOutsourced=async c=>{if(!can||!db)return;if(!c.outsourced){const f=prompt("🚚 اسم المصنع اللي هيتبعتله الشغل (اختياري):",c.outsourcedTo||"");if(f===null)return;await db.collection("cards").doc(c.id).set({outsourced:true,outsourcedTo:f.trim()},{merge:true});await addLog("🚚 اتبعت تكستير خارجي"+(f.trim()?" — "+f.trim():""),c);}else{await db.collection("cards").doc(c.id).set({outsourced:false,outsourcedTo:""},{merge:true});await addLog("↩️ رجع من التكستير الخارجي",c);}setActionCard(null);};
+const toggleOutsourced=async c=>{if(!can||!db)return;if(!c.outsourced){const f=prompt("🚚 اسم المصنع اللي هيتبعتله الشغل (اختياري):",c.outsourcedTo||"");if(f===null)return;await db.collection("cards").doc(c.id).set({outsourced:true,outsourcedTo:f.trim()},{merge:true});await addLog("🚚 اتبعت كسترة خارجي"+(f.trim()?" — "+f.trim():""),c);}else{await db.collection("cards").doc(c.id).set({outsourced:false,outsourcedTo:""},{merge:true});await addLog("↩️ رجع من كسترة خارجي",c);}setActionCard(null);};
 const partialDeliver=async(c,q)=>{if(!can||!db)return;const v=Math.min(parseFloat(q)||0,parseFloat(c.quantity)||0);await db.collection("cards").doc(c.id).set({deliveredQty:v,delivered:v>=(parseFloat(c.quantity)||0)},{merge:true});await addLog("تسليم جزئي",c,String(v));setActionCard(null);};
 const saveHero=()=>{if(!can||!db)return;saveFactory({heroT:heroTDraft.trim(),heroS:heroSDraft.trim()});setHeroEdit(false);showToast("🎨 ✅");};
 const saveAnnounce=()=>{if(!can||!db)return;const el=document.getElementById("annBox");const txt=el?el.value:"";db.collection("config").doc("announce").set({text:txt.trim(),by:ownerName||"",time:Date.now()});setShowAnnounce(false);showToast("📢 اتنشر");};
@@ -593,6 +593,7 @@ const isLate=c=>adjDays(c)>=1;
 const dueInfo=c=>{if(!c.due)return null;const today=localDate(new Date());if(c.due<today)return{txt:t.overdue,col:theme.danger};if((new Date(c.due).getTime()-new Date(today).getTime())/86400000<=1)return{txt:t.dueSoon,col:theme.warn};return null;};
 const liveCards=cards.filter(c=>!c.archived&&!c.stored);
 const storedCards=cards.filter(c=>!!c.stored&&!c.archived);const outsourcedCards=cards.filter(c=>!!c.outsourced&&!c.archived);
+const hiddenFeat=factory.hiddenFeatures||[];
 const stageAvgMemo=(()=>{const tot={},cnt={};cards.forEach(c=>{const h=c.history||[];for(let i=0;i<h.length;i++){const st=toMs(h[i].at);const end=i+1<h.length?toMs(h[i+1].at):0;if(st&&end){const d=end-st;if(d>0&&d<30*86400000){const s=h[i].stage;tot[s]=(tot[s]||0)+d;cnt[s]=(cnt[s]||0)+1;}}}});const a={};Object.keys(tot).forEach(s=>{a[s]=tot[s]/cnt[s];});return a;})();
 const etaOf=c=>{if(!c||c.delivered)return null;const idx=stages.indexOf(c.stage);if(idx===-1)return null;const h=c.history||[];const lastE=h[h.length-1];const elapsed=(lastE&&lastE.stage===c.stage)?Date.now()-toMs(lastE.at):0;const cur=stageAvgMemo[c.stage]||4*3600000;let ms=Math.max(0,cur-elapsed);for(let i=idx+1;i<stages.length;i++){ms+=stageAvgMemo[stages[i]]||cur;}return Date.now()+ms;};
 const queuePos=c=>{if(!c)return null;const list=liveCards.filter(x=>x.stage===c.stage).sort((a,b)=>toMs(a.updatedAt||a.createdAt)-toMs(b.updatedAt||b.createdAt));const i=list.findIndex(x=>x.id===c.id);if(i===-1)return null;return{pos:i+1,total:list.length};};
@@ -602,7 +603,7 @@ const statusMsg=syncStatus==="syncing"?t.syncing:syncStatus==="synced"?t.synced:
 const statusColor=syncStatus==="syncing"?theme.warn:syncStatus==="synced"?theme.accent2:(isOnline?theme.accent2:theme.danger);
 const onlineNames=[...new Set(onlineUsers.map(u=>u.name))];
 const lateCount=liveCards.filter(c=>adjDays(c)>=LD).length;
-useEffect(()=>{const iv=setInterval(()=>{try{if(!("Notification" in window)||Notification.permission!=="granted")return;const late=liveCards.filter(c=>!c.delivered&&adjDays(c)>=LD);const done=(localStorage.getItem("notifiedLate")||"").split(",").filter(Boolean);const fresh=late.filter(c=>!done.includes(c.id));if(!fresh.length)return;fresh.slice(0,3).forEach(c=>{try{new Notification("⏰ كرت متأخر — "+(c.stage||""),{body:(c.customer||"")+" · "+(c.code||"")+" · "+(c.color||"")});}catch(e){}});localStorage.setItem("notifiedLate",[...done,...fresh.map(c=>c.id)].join(","));fx("danger");}catch(e){}},60000);return()=>clearInterval(iv);},[cards]);
+useEffect(()=>{const iv=setInterval(()=>{try{if(!("Notification" in window)||Notification.permission!=="granted")return;const late=liveCards.filter(c=>!c.delivered&&adjDays(c)>=LD);const notifLogKey="notifiedLate_"+ownerName;const notifLog=JSON.parse(localStorage.getItem(notifLogKey)||"{}");const now=Date.now();const oneDayMs=86400000;const fresh=late.filter(c=>{const lastNotif=notifLog[c.id]||0;return(now-lastNotif)>=oneDayMs;});if(!fresh.length)return;fresh.slice(0,3).forEach(c=>{try{new Notification("⏰ كرت متأخر — "+(c.stage||""),{body:(c.customer||"")+" · "+(c.code||"")+" · "+(c.color||"")});}catch(e){}});fresh.forEach(c=>{notifLog[c.id]=now;});localStorage.setItem(notifLogKey,JSON.stringify(notifLog));fx("danger");}catch(e){}},60000);return()=>clearInterval(iv);},[cards,ownerName]);
 const lateAll=liveCards.filter(c=>adjDays(c)>=LD);
 const delAll=liveCards.filter(c=>c.delivered||(parseFloat(c.deliveredQty)||0)>0);
 const todayLogCount=log.filter(e=>localDate(new Date(toMs(e.time||e.timeLocal)))===localDate(new Date())).length;
@@ -700,26 +701,26 @@ return(
 </div>
 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",margin:"10px 0",fontSize:12,color:theme.textDim}}><span style={{display:"flex",alignItems:"center",gap:6}}>{logoSrc&&<img src={logoSrc} style={{width:26,height:26,borderRadius:8,objectFit:"cover"}}/>}🕌 {(()=>{try{return new Intl.DateTimeFormat("ar-SA-u-ca-islamic",{day:"numeric",month:"long",year:"numeric"}).format(new Date());}catch(e){return "";}})()}</span><span>{(()=>{const h=new Date().getHours();return h>=5&&h<12?"☀️ صباح الخير":h>=12&&h<17?"🌤️ مساء الخير":"🌙 مساء الخير";})()} · {ownerName}</span></div>
 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:8,width:"100%",alignItems:"center"}}>
-<div onClick={()=>setShowSched(true)} style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer"}}>
+{!hiddenFeat.includes("sched")&&(<div onClick={()=>setShowSched(true)} style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer"}}>
 <div style={{width:44,height:44,borderRadius:14,background:"linear-gradient(135deg,var(--teal),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,boxShadow:"0 6px 18px rgba(27,143,130,.35)"}}>📅</div>
 <div><div style={{fontSize:13,fontWeight:800}}>جدول الماكينات</div><div style={{fontSize:10.5,color:theme.textDim,marginTop:2}}>{schedCards().length} شغال · {machines.filter(m=>!schedCards().some(c=>String(c.machine)===String(m))).length} فاضية</div></div>
-</div>
-<div onClick={e=>{e.stopPropagation();setShowStored(true);}} style={{display:"flex",alignItems:"center",gap:8,background:"rgba(45,140,116,.10)",border:"1px solid rgba(45,140,116,.35)",borderRadius:14,padding:8,cursor:"pointer"}}>
+</div>)}
+{!hiddenFeat.includes("stored")&&(<div onClick={e=>{e.stopPropagation();setShowStored(true);}} style={{display:"flex",alignItems:"center",gap:8,background:"rgba(45,140,116,.10)",border:"1px solid rgba(45,140,116,.35)",borderRadius:14,padding:8,cursor:"pointer"}}>
 <div style={{width:44,height:44,borderRadius:14,background:"linear-gradient(135deg,var(--vio),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>📦</div>
 <div><div style={{fontSize:13,fontWeight:800}}>مخزن مجهز</div><div style={{fontSize:10.5,color:theme.textDim,marginTop:2}}>{storedCards.length} كرت جاهز</div></div>
-</div>
-<div onClick={e=>{e.stopPropagation();setShowOutsourced(true);}} style={{display:"flex",alignItems:"center",gap:8,background:"rgba(230,140,50,.10)",border:"1px solid rgba(230,140,50,.35)",borderRadius:14,padding:8,cursor:"pointer"}}>
+</div>)}
+{!hiddenFeat.includes("outsourced")&&(<div onClick={e=>{e.stopPropagation();setShowOutsourced(true);}} style={{display:"flex",alignItems:"center",gap:8,background:"rgba(230,140,50,.10)",border:"1px solid rgba(230,140,50,.35)",borderRadius:14,padding:8,cursor:"pointer"}}>
 <div style={{width:44,height:44,borderRadius:14,background:"linear-gradient(135deg,var(--warn),var(--red))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>🚚</div>
-<div><div style={{fontSize:13,fontWeight:800}}>تكستير خارجي</div><div style={{fontSize:10.5,color:theme.textDim,marginTop:2}}>{outsourcedCards.length} كرت برا</div></div>
-</div>
-<div onClick={e=>{e.stopPropagation();setShowDefects(true);}} style={{display:"flex",alignItems:"center",gap:8,background:"rgba(226,84,76,.10)",border:"1px solid rgba(226,84,76,.35)",borderRadius:14,padding:8,cursor:"pointer"}}>
+<div><div style={{fontSize:13,fontWeight:800}}>كسترة خارجي</div><div style={{fontSize:10.5,color:theme.textDim,marginTop:2}}>{outsourcedCards.length} كرت برا</div></div>
+</div>)}
+{!hiddenFeat.includes("defects")&&(<div onClick={e=>{e.stopPropagation();setShowDefects(true);}} style={{display:"flex",alignItems:"center",gap:8,background:"rgba(226,84,76,.10)",border:"1px solid rgba(226,84,76,.35)",borderRadius:14,padding:8,cursor:"pointer"}}>
 <div style={{width:44,height:44,borderRadius:14,background:"linear-gradient(135deg,var(--red),var(--warn))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>🧾</div>
 <div><div style={{fontSize:13,fontWeight:800}}>العيوب والمرتجعات</div><div style={{fontSize:10.5,color:theme.textDim,marginTop:2}}>{defects.length} مسجلة</div></div>
-</div>
-<div onClick={e=>{e.stopPropagation();setScreen("archive");}} style={{display:"flex",alignItems:"center",gap:8,background:"rgba(201,151,63,.10)",border:"1px solid rgba(201,151,63,.35)",borderRadius:14,padding:8,cursor:"pointer"}}>
+</div>)}
+{!hiddenFeat.includes("archive")&&(<div onClick={e=>{e.stopPropagation();setScreen("archive");}} style={{display:"flex",alignItems:"center",gap:8,background:"rgba(201,151,63,.10)",border:"1px solid rgba(201,151,63,.35)",borderRadius:14,padding:8,cursor:"pointer"}}>
 <div style={{width:44,height:44,borderRadius:14,background:"linear-gradient(135deg,var(--blue),var(--vio))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>🗄️</div>
 <div><div style={{fontSize:13,fontWeight:800}}>{t.archive}</div><div style={{fontSize:10.5,color:theme.textDim,marginTop:2}}>{archivedCards.length} كرت مؤرشف</div></div>
-</div>
+</div>)}
 </div>
 <div className="card anim" style={{animationDelay:"360ms",margin:"12px 0"}}>
 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><span style={{fontSize:20}}>🏆</span><b style={{fontSize:15}}>الانجازات</b></div>
@@ -934,7 +935,7 @@ return(<div style={{padding:"8mm",fontFamily:"Arial",color:"#000",direction:"rtl
 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:4}}>
 <MenuBtn onClick={()=>{setScreen("home");setShowMenu(false);}} active={screen==="home"}>🏠 {t.home}</MenuBtn>
 <MenuBtn onClick={()=>{setScreen("stages");setShowMenu(false);}} active={screen==="stages"}>🏭 {t.stagesLabel}</MenuBtn>
-<MenuBtn onClick={()=>{setScreen("archive");setShowMenu(false);}} active={screen==="archive"}>🗄️ {t.archive} ({archivedCards.length})</MenuBtn>
+{!hiddenFeat.includes("archive")&&<MenuBtn onClick={()=>{setScreen("archive");setShowMenu(false);}} active={screen==="archive"}>🗄️ {t.archive} ({archivedCards.length})</MenuBtn>}
 <MenuBtn onClick={()=>{setShowWarehouse(true);setShowMenu(false);}}>📦 المخزن الرئيسي</MenuBtn>
 <div style={{gridColumn:"1 / -1",height:1,background:theme.border,margin:"8px 0"}}/>
 <MenuBtn onClick={()=>{setReportText(buildReport());setShowMenu(false);}}>📊 {t.report}</MenuBtn>
@@ -1309,11 +1310,11 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 {icon:"👤",label:t.statement,fn:()=>{setStatementFor(actionCard.customer);setActionCard(null);}},
 ...(can?[{icon:actionCard.delivered?"↩️":"✅",label:actionCard.delivered?"إلغاء التسليم":"تم التسليم",fn:()=>toggleDelivered(actionCard)},
 {icon:"⚖️",label:"تسليم جزئي",fn:()=>{const q=prompt("الكمية المسلّمة من الكرت:",actionCard.quantity||"");if(q!==null)partialDeliver(actionCard,q);}}]:[]),
-...(can?[{icon:"📦",label:actionCard.stored?"↩️ رجوع من المخزن المجهز":"📦 نقل للمخزن المجهز",fn:()=>toggleStored(actionCard)}]:[]),
-...(can?[{icon:"🚚",label:actionCard.outsourced?"↩️ رجوع من التكستير الخارجي":"🚚 إرسال للتكستير الخارجي",fn:()=>toggleOutsourced(actionCard)}]:[]),
+...(can&&!hiddenFeat.includes("stored")?[{icon:"📦",label:actionCard.stored?"↩️ رجوع من المخزن المجهز":"📦 نقل للمخزن المجهز",fn:()=>toggleStored(actionCard)}]:[]),
+...(can&&!hiddenFeat.includes("outsourced")?[{icon:"🚚",label:actionCard.outsourced?"↩️ رجوع من كسترة خارجي":"🚚 إرسال لكسترة خارجي",fn:()=>toggleOutsourced(actionCard)}]:[]),
 {icon:"💬",label:t.shareCard,fn:()=>{window.open(waLink(shareCardText(actionCard)),"_blank");setActionCard(null);}},
 {icon:"📢",label:"بلّغ العميل بالحركة",fn:()=>{window.open(waLink("أهلاً "+(actionCard.customer||"")+" 👋\n📦 أمرك "+(actionCard.code||"")+" تحرّك لمرحلة: "+(actionCard.stage||"")+"\n🏭 "+(factory.fname||"")),"_blank");setActionCard(null);}},
-...(can?[{icon:"⚠️",label:"تسجيل عيب / مرتجع",fn:()=>{setDefectFor(actionCard);setActionCard(null);}}]:[]),
+...(can&&!hiddenFeat.includes("defects")?[{icon:"⚠️",label:"تسجيل عيب / مرتجع",fn:()=>{setDefectFor(actionCard);setActionCard(null);}}]:[]),
 ...(can?[{icon:"📋",label:t.copyCard,fn:()=>{setCopyCard(actionCard);setActionCard(null);}},
 {icon:"🔄",label:t.moveCard,fn:()=>{setMoveCard(actionCard);setActionCard(null);}},
 {icon:"⭐",label:actionCard.pinned?t.unpin:t.pinCard,fn:()=>togglePin(actionCard)}]:[]),
@@ -1321,8 +1322,8 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 {icon:"🔳",label:t.showBarcode,fn:()=>{setBcCard(actionCard);setActionCard(null);}},
 {icon:"📱",label:t.showQr,fn:()=>{setQrCard(actionCard);setActionCard(null);}},
 ...(actionCard.photo?[{icon:"🖼️",label:t.viewPhoto,fn:()=>{setPhotoView(actionCard);setActionCard(null);}}]:[]),
-...(can?[{icon:"🗄️",label:actionCard.archived?t.unarchive:t.archiveCard,fn:()=>toggleArchive(actionCard)},
-{icon:"🗑️",label:t.delete,fn:()=>undoDelete(actionCard),danger:true}]:[])
+...(can&&!hiddenFeat.includes("archive")?[{icon:"🗄️",label:actionCard.archived?t.unarchive:t.archiveCard,fn:()=>toggleArchive(actionCard)}]:[]),
+...(can?[{icon:"🗑️",label:t.delete,fn:()=>undoDelete(actionCard),danger:true}]:[]),
 ].map((it,i)=>(<button key={i} onClick={it.fn} className="anim" style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:"12px 10px",background:"transparent",border:"none",borderTop:"1px solid "+theme.border,color:it.danger?"var(--red)":theme.text,fontSize:14.5,textAlign:"start",animationDelay:(i*40)+"ms"}}>{it.icon} {it.label}</button>))}
 </div></div>)}
 {moveCard_&&(
@@ -1362,7 +1363,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 {showOutsourced&&(
 <div className="modal" onClick={()=>{setShowOutsourced(false);setOutsourcedSearch("");}}>
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:400}}>
-<div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}><h3 style={{flex:1,margin:0}}>🚚 تكستير خارجي ({outsourcedCards.length})</h3><button className="chip on" onClick={()=>exportSheet(outsourcedCards,"تكستير-خارجي")}>💾 تصدير</button></div>
+<div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}><h3 style={{flex:1,margin:0}}>🚚 كسترة خارجي ({outsourcedCards.length})</h3><button className="chip on" onClick={()=>exportSheet(outsourcedCards,"كسترة-خارجي")}>💾 تصدير</button></div>
 <input className="inp" placeholder="🔍 بحث بالاسم أو الكود..." value={outsourcedSearch} onChange={e=>setOutsourcedSearch(e.target.value)} style={{marginBottom:10}}/>
 {outsourcedCards.length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center",padding:16}}>فاضي — ابعت كروت للتكستير من زرار 🚚 في الكرت</p>}
 {(()=>{const q=outsourcedSearch.trim().toLowerCase();const list=outsourcedCards.slice().sort((a,b)=>toMs(b.updatedAt)-toMs(a.updatedAt)).filter(c=>!q||((c.customer||"")+(c.code||"")+(c.outsourcedTo||"")).toLowerCase().includes(q));if(outsourcedCards.length>0&&list.length===0)return<p style={{color:theme.textDim,fontSize:13,textAlign:"center",padding:16}}>مفيش نتايج مطابقة</p>;return list.map((c,i)=>(<div key={c.id} onClick={()=>{setShowOutsourced(false);setOutsourcedSearch("");setActionCard(c);}} className="card anim" style={{padding:"10px 12px",marginBottom:8,cursor:"pointer",animationDelay:(i*50)+"ms"}}><b style={{fontSize:13}}>{c.customer} · {c.code}</b><div style={{fontSize:11,color:theme.textDim}}>{c.color} — {c.quantity}{c.outsourcedTo?" · 🏭 "+c.outsourcedTo:""}</div></div>));})()}
@@ -1416,6 +1417,15 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div className="lbl">🎚️ {t.manageStages}</div><div style={{marginBottom:10}}>{stages.map(s=>(<div key={s} style={{display:"flex",gap:6,alignItems:"center",marginBottom:6}}><span style={{flex:1,fontSize:13}}>{s}</span><button onClick={()=>{const cur=(factory.stageLocks||{})[s];const nx={...(factory.stageLocks||{})};if(cur)delete nx[s];else nx[s]=1;saveFactory({stageLocks:nx});}} className={"chip"+((factory.stageLocks||{})[s]?" on":"")} title="قفل المرحلة">{(factory.stageLocks||{})[s]?"🔒":"🔓"}</button><button onClick={()=>{const n=prompt(t.rename,s);if(n&&n.trim()&&n!==s)renameStage(s,n.trim());}} className="chip">✏️</button><button onClick={()=>{if(confirm(t.delete+" "+s))saveStages(stages.filter(x=>x!==s));}} className="chip">🗑️</button></div>))}
 <button onClick={()=>{const n=prompt(t.addStage);if(n&&n.trim()&&!stages.includes(n.trim()))saveStages(stages.concat([n.trim()]));}} className="chip" style={{marginTop:4}}>➕</button></div>
 <div className="lbl">🔧 {t.manageMachines}</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{machines.map(m=><button key={m} onClick={()=>{if(confirm(t.delete+" "+m))saveMachines(machines.filter(x=>x!==m));}} className="chip">{m} ✕</button>)}<button onClick={()=>{const n=prompt(t.add);if(n&&n.trim()&&!machines.includes(n.trim()))saveMachines(machines.concat([n.trim()]));}} className="chip on">➕</button></div>
+{can&&(<>
+<div className="lbl">👁️ إدارة الخانات (للمالك فقط)</div>
+<div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:10}}>
+{[["sched","📅 جدول الماكينات"],["stored","📦 مخزن مجهز"],["outsourced","🚚 كسترة خارجي"],["defects","🧾 العيوب والمرتجعات"],["archive","🗄️ "+t.archive]].map(([key,lbl])=>{const hid=hiddenFeat.includes(key);return(<div key={key} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 12px",background:theme.panelAlt,borderRadius:10,fontSize:12}}>
+<input type="checkbox" checked={!hid} onChange={e=>{const cur=factory.hiddenFeatures||[];const nx=e.target.checked?cur.filter(x=>x!==key):cur.concat([key]);saveFactory({hiddenFeatures:nx});}} style={{cursor:"pointer"}}/>
+<span style={{flex:1}}>{lbl} {hid&&<span style={{color:theme.textDim,fontSize:10}}>(مخفي)</span>}</span>
+</div>);})}
+</div>
+</>)}
 <div className="lbl">🎨 {t.manageColors}</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{customColors.map(c=><button key={c} onClick={()=>saveColors(customColors.filter(x=>x!==c))} className="chip">{c} ✕</button>)}<button onClick={()=>{const n=prompt(t.add);if(n&&n.trim())saveColors(customColors.concat([n.trim()]));}} className="chip on">➕</button></div>
 {canEditFields&&(<>
 <div className="lbl">🎴 شكل الكرت (بيانات الكرت)</div>
@@ -1519,7 +1529,7 @@ return <div>
 function SearchModal({t,cards,onPick}){
 const [q,setQ]=useState("");
 const r=q.trim()?cards.filter(c=>FIELD_KEYS.some(k=>(c[k]||"").toString().toLowerCase().includes(q.toLowerCase()))).slice(0,30):[];
-const statusOf=c=>c.archived?"🗄️ مؤرشف":c.outsourced?"🚚 تكستير خارجي"+(c.outsourcedTo?" — "+c.outsourcedTo:""):c.stored?"📦 مخزن مجهز":c.delivered?"✅ مسلّم":("⚙️ "+(c.stage||"—"));
+const statusOf=c=>c.archived?"🗄️ مؤرشف":c.outsourced?"🚚 كسترة خارجي"+(c.outsourcedTo?" — "+c.outsourcedTo:""):c.stored?"📦 مخزن مجهز":c.delivered?"✅ مسلّم":("⚙️ "+(c.stage||"—"));
 return(<div><input autoFocus value={q} onChange={e=>setQ(e.target.value)} placeholder={t.search} className="inp"/>
 {q.trim()&&r.length===0&&<p style={{color:"var(--dim)",fontSize:13,textAlign:"center"}}>{t.noResults}</p>}
 <div>{r.map((c,i)=>(<div key={c.id} onClick={()=>onPick(c)} className="card anim" style={{cursor:"pointer",padding:"10px 12px",marginBottom:8,animationDelay:(i*40)+"ms"}}><b style={{fontSize:14}}>{c.customer} · {c.code}</b><div style={{fontSize:12,color:"var(--dim)"}}>{statusOf(c)} — {c.color}</div></div>))}</div></div>);
