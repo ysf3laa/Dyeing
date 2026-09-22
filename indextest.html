@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
 :root{--bg:#0A1015;--panel:#101A24;--panel2:#131F2B;--line:#223038;--txt:#EAF2EF;--dim:#7FA79E;--vio:#2D8C74;--vio2:#7FEEDD;--blue:#C9973F;--teal:#1B8F82;--red:#E2544C;--warn:#E0B84A}
+:root[data-theme="light"]{--bg:#F5F5F5;--panel:#FFFFFF;--panel2:#F9F9FB;--line:#E0E0E5;--txt:#1A1A1D;--dim:#6B7280;--vio:#059669;--vio2:#10B981;--blue:#D97706;--teal:#0891B2;--red:#DC2626;--warn:#F59E0B}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:'Tajawal',system-ui,sans-serif;background:radial-gradient(900px 480px at 85% -10%,rgba(45,140,116,.14),transparent),radial-gradient(700px 400px at -10% 30%,rgba(27,143,130,.07),transparent),var(--bg);color:var(--txt);min-height:100vh}
 input,select,textarea,button{font-family:inherit;color:var(--txt)}button{cursor:pointer}
@@ -59,6 +60,16 @@ fieldset{border:none;margin:0;padding:0;min-width:0}
 #bc-reader video{border-radius:12px}
 .modal{position:fixed;inset:0;background:rgba(10,16,21,.7);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:400;padding:16px;animation:pop .25s both}
 .mbox{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:24px;padding:20px;width:100%;max-width:460px;max-height:88vh;overflow-y:auto;animation:fadeUp .35s both}
+button{transition:transform .15s ease,opacity .15s ease}
+button:active:not(:disabled){transform:scale(.94)}
+.chip:active{transform:scale(.92)}
+.navi span{transition:transform .25s cubic-bezier(.34,1.56,.64,1)}
+.navi:active span{transform:scale(.85)}
+img,.badge,.chip.on{transition:transform .2s ease}
+select,.inp{transition:border .2s ease,box-shadow .2s ease}
+.inp:focus{box-shadow:0 0 0 3px rgba(45,140,116,.18)}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px}
 </style>
 </head>
 <body>
@@ -120,7 +131,7 @@ const SUPPORT_WA="201044836450";
 function touchLastSeen(){var u=localStorage.getItem("username");if(!u)return;try{db.collection("users").doc(u).set({lastSeen:Date.now()},{merge:true});}catch(e){}}
 setInterval(touchLastSeen,20000);setTimeout(touchLastSeen,2000);setTimeout(touchLastSeen,6000);
 function compressImg(file,maxW,cb){var r=new FileReader();r.onload=function(){var img=new Image();img.onload=function(){var sc=Math.min(1,(maxW||800)/img.width);var cv=document.createElement("canvas");cv.width=Math.round(img.width*sc);cv.height=Math.round(img.height*sc);cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);cb(cv.toDataURL("image/jpeg",0.7));};img.src=r.result;};r.readAsDataURL(file);}
-function LastSeen(props){var _s=React.useState(0),ls=_s[0],setLs=_s[1];React.useEffect(()=>{if(!props.name)return 0;var key=(props.name||"").trim().toLowerCase();try{return db.collection("presence").onSnapshot(sn=>{var best=0;sn.forEach(d=>{var p=d.data()||{};var pn=(p.name||"").trim().toLowerCase();if((pn===key||(d.id||"").toLowerCase()===key)&&(p.last||0)>best)best=p.last||0;});setLs(best);});}catch(e){return 0;}},[props.name]);if(!ls)return(<span style={{fontSize:10,color:"#7FA79E"}}>—</span>);var mins=Math.floor((Date.now()-ls)/60000);var txt=mins<1?"دلوقتي":mins<60?"من "+mins+" د":mins<1440?"من "+Math.floor(mins/60)+" س":"من "+Math.floor(mins/1440)+" يوم";return(<span style={{fontSize:10,color:mins<5?"#1B8F82":"#7FA79E"}}>{mins<5?"🟢":"🕐"} {txt}</span>);}
+function LastSeen(props){var _s=React.useState(0),ls=_s[0],setLs=_s[1];React.useEffect(()=>{if(!props.name)return function(){};var key=(props.name||"").trim().toLowerCase();try{return db.collection("presence").onSnapshot(sn=>{var best=0;sn.forEach(d=>{var p=d.data()||{};var pn=(p.name||"").trim().toLowerCase();if((pn===key||(d.id||"").toLowerCase()===key)&&(p.last||0)>best)best=p.last||0;});setLs(best);});}catch(e){return function(){};}},[props.name]);if(!ls)return(<span style={{fontSize:10,color:"#7FA79E"}}>—</span>);var mins=Math.floor((Date.now()-ls)/60000);var txt=mins<1?"دلوقتي":mins<60?"من "+mins+" د":mins<1440?"من "+Math.floor(mins/60)+" س":"من "+Math.floor(mins/1440)+" يوم";return(<span style={{fontSize:10,color:mins<5?"#1B8F82":"#7FA79E"}}>{mins<5?"🟢":"🕐"} {txt}</span>);}
 function fmtDur(ms){const m=Math.max(0,Math.floor(ms/60000));if(m<60)return m+"د";const h=Math.floor(m/60);if(h<24)return (m%60)?h+"س "+(m%60)+"د":h+"س";const d=Math.floor(h/24);return (h%24)?d+"ي "+(h%24)+"س":d+"ي";}
 function daysSince(v){const m=toMs(v);if(!m)return 0;return(Date.now()-m)/86400000;}
 function localDate(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
@@ -230,16 +241,77 @@ const [gemKeyDraft,setGemKeyDraft]=useState(localStorage.getItem("gemini_key")||
 const [showBlack,setShowBlack]=useState(false);const [blackIdx,setBlackIdx]=useState(0);const [blackPlay,setBlackPlay]=useState(0);
 const [printTarget,setPrintTarget]=useState(null);const [printSize,setPrintSize]=useState(localStorage.getItem("printSize")||"A5");const [printDesign,setPrintDesign]=useState(localStorage.getItem("printDesign")||"1");
 const blackList=()=>{const arr=[];(cards||[]).forEach(c=>{(c.history||[]).forEach(h=>arr.push({stage:h.stage,by:h.by,at:h.at,cust:c.customer}));});arr.sort((a,b)=>toMs(a.at)-toMs(b.at));return arr;};
-useEffect(()=>{if(!blackPlay)return 0;const iv=setInterval(()=>setBlackIdx(i=>i+1),400);return()=>clearInterval(iv);},[blackPlay]);
+useEffect(()=>{if(!blackPlay)return function(){};const iv=setInterval(()=>setBlackIdx(i=>i+1),400);return()=>clearInterval(iv);},[blackPlay]);
 useEffect(()=>{const L=blackList().length;if(blackIdx>L)setBlackIdx(L);if(blackPlay&&blackIdx>=L)setBlackPlay(0);},[blackIdx,blackPlay]);
 const askGemini=async()=>{const q=askQ.trim();if(!q||askBusy)return;setAskBusy(1);setAskA("");const key=String(factory.gkey||localStorage.getItem("gemini_key")||window.__masterGem||"").trim();if(!key){setAskA("❌ مفيش مفتاح Gemini");setAskBusy(0);return;}
-const cardsDump=liveCards.slice(0,300).map(c=>[c.customer,c.code,c.color,c.category,c.quantity,c.stage,c.delivered?"مسلّم":""].filter(Boolean).join("|")).join("\n");
+const cardsDump=liveCards.slice(0,300).map(c=>[c.id,c.customer,c.code,c.color,c.category,c.quantity,c.stage,c.delivered?"مسلّم":(c.stored?"في المخزن المجهز":"شغال"),c.urgent?"مستعجل":"",c.pinned?"مثبّت":""].filter(Boolean).join("|")).join("\n");
 const loadsDump=(loads||[]).map(l=>{const s=loadStats(l);return [l.name||l.category||l.title||"خامة","كلي:"+(l.total||0),"باقي:"+Math.max(0,Math.round(s.rem))].join("|");}).join("\n");
-const ctx="انت مساعد ذكي داخل تطبيق مصنع صباغة اسمه "+(factory.fname||"")+". عندك كل بيانات الموقع لحظياً — جاوب أي سؤال منها بالعامية المصرية وبأرقام حقيقية:\n\n🃏 كروت الشغل (عميل|كود|لون|خامة|وزن|مرحلة|حالة):\n"+cardsDump+"\n\n🧵 المخزن الرئيسي (خامة|إجمالي|باقي):\n"+loadsDump+"\n\n📊 ملخص: كروت حية="+liveCards.length+" · متأخرة="+lateCount+"\n🟢 المتصلين دلوقتي: "+(onlineUsers||[]).map(u=>u.name).join("، ")+"\n\n❓ سؤال صاحب المصنع: "+q;
-try{let models=["gemini-2.5-flash","gemini-2.0-flash"];try{const mj=await(await fetch("https://generativelanguage.googleapis.com/v1beta/models?key="+key)).json();if(mj&&mj.models){let av=mj.models.map(m=>String(m.name).replace("models/","")).filter(n=>/flash/.test(n)&&!/image|tts|embed|imagen|video/i.test(n));const nl=av.filter(n=>!n.includes("lite"));if(nl.length)av=nl;if(av.length)models=av.slice(0,3);}}catch(e){}let lastErr="";for(const md of models){try{const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+md+":generateContent?key="+key,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{parts:[{text:ctx}]}]})});const j=await r.json();if(j.error){lastErr=j.error.message||"err";continue;}const txt=j.candidates&&j.candidates[0]&&j.candidates[0].content.parts[0]&&j.candidates[0].content.parts[0].text;if(txt){setAskA(txt);setAskBusy(0);return;}}catch(e){}}setAskA("❌ معرفتش أوصل للنموذج"+(lastErr?" — "+lastErr:""));}catch(e){setAskA("❌ "+e.message);}setAskBusy(0);};
+const actionsHelp="لو رسالة المستخدم أمر تنفيذي رد بـ JSON صافي بس بدون أي كلام أو ```. الأوامر المتاحة:\n"
++"نقل مرحلة: {\"type\":\"action\",\"action\":\"move\",\"cardId\":\"<id>\",\"stage\":\"<مرحلة من: "+stages.join("، ")+">\"}\n"
++"تسليم كامل: {\"type\":\"action\",\"action\":\"deliver\",\"cardId\":\"<id>\"}\n"
++"تسليم جزئي: {\"type\":\"action\",\"action\":\"deliver_partial\",\"cardId\":\"<id>\",\"qty\":\"<رقم>\"}\n"
++"مخزن مجهز (نقل له أو رجوع منه): {\"type\":\"action\",\"action\":\"store\",\"cardId\":\"<id>\"}\n"
++"تسجيل عيب/مرتجع: {\"type\":\"action\",\"action\":\"defect\",\"cardId\":\"<id>\",\"reason\":\"<سبب>\",\"qty\":\"<كمية أو فاضي>\"}\n"
++"تثبيت/إلغاء تثبيت كرت: {\"type\":\"action\",\"action\":\"pin\",\"cardId\":\"<id>\"}\n"
++"أرشفة/رجوع من الأرشيف: {\"type\":\"action\",\"action\":\"archive\",\"cardId\":\"<id>\"}\n"
++"علامة مستعجل (تشغيل/إيقاف): {\"type\":\"action\",\"action\":\"urgent\",\"cardId\":\"<id>\"}\n"
++"إضافة ملاحظة لكرت: {\"type\":\"action\",\"action\":\"note\",\"cardId\":\"<id>\",\"text\":\"<الملاحظة>\"}\n"
++"حذف كرت: {\"type\":\"action\",\"action\":\"delete\",\"cardId\":\"<id>\"}\n"
++"إضافة كرت شغل جديد: {\"type\":\"action\",\"action\":\"add_card\",\"customer\":\"<اسم العميل>\",\"code\":\"<كود أو فاضي>\",\"color\":\"<لون أو فاضي>\",\"category\":\"<خامة أو فاضي>\",\"quantity\":\"<وزن أو فاضي>\",\"stage\":\"<مرحلة أو فاضي>\"}\n"
++"إضافة حمولة للمخزن الرئيسي: {\"type\":\"action\",\"action\":\"add_stock\",\"customer\":\"<اسم الخامة/المورد>\",\"total\":\"<رقم>\",\"category\":\"<فئة أو فاضي>\",\"color\":\"<لون أو فاضي>\"}\n"
++"لو مش قادر تحدد أي كرت بالظبط من كلام المستخدم أو ناقصك بيانات: {\"type\":\"clarify\",\"text\":\"<سؤال توضيح بالعامية>\"}\n"
++"لو الرسالة سؤال معلومة مش أمر تنفيذي: {\"type\":\"answer\",\"text\":\"<إجابة بالعامية المصرية بأرقام حقيقية>\"}\n"
++"لو الأمر يخص أكتر من كرت مرة واحدة (زي \"انقل كل كروت أحمد للمخزن\"): رد بمصفوفة JSON فيها أمر واحد لكل كرت، مثال: [{\"type\":\"action\",...},{\"type\":\"action\",...}]\n"
++"اختار cardId من أول عمود في كل سطر من ليستة الكروت تحت. رد JSON فقط من غير شرح.";
+const ctx="انت مساعد ذكي داخل تطبيق مصنع صباغة اسمه "+(factory.fname||"")+"، بيكلمك دلوقتي: "+(ownerName||"")+" ("+(localStorage.getItem("role")||"")+"). عندك كل بيانات الموقع لحظياً:\n\n🃏 كروت الشغل (id|عميل|كود|لون|خامة|وزن|مرحلة|حالة|أعلام):\n"+cardsDump+"\n\n🧵 المخزن الرئيسي (خامة|إجمالي|باقي):\n"+loadsDump+"\n\n📊 ملخص: كروت حية="+liveCards.length+" · متأخرة="+lateCount+"\n🟢 المتصلين دلوقتي: "+(onlineUsers||[]).map(u=>u.name).join("، ")+"\n\n"+actionsHelp+"\n\n❓ رسالة المستخدم: "+q;
+try{let models=["gemini-2.5-flash","gemini-2.0-flash","gemini-2.5-flash-lite"];try{const mj=await(await fetch("https://generativelanguage.googleapis.com/v1beta/models?key="+key)).json();if(mj&&mj.models){let av=mj.models.map(m=>String(m.name).replace("models/","")).filter(n=>/flash/.test(n)&&!/image|tts|embed|imagen|video/i.test(n));const nl=av.filter(n=>!n.includes("lite"));if(nl.length)av=nl;if(av.length)models=av.slice(0,4);}}catch(e){}
+let lastErr="",txt="";
+const isBusy=m=>/overloaded|high demand|503|UNAVAILABLE/i.test(String(m||""));
+for(const md of models){
+for(let attempt=0;attempt<2&&!txt;attempt++){
+try{const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+md+":generateContent?key="+key,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{parts:[{text:ctx}]}]})});const j=await r.json();if(j.error){lastErr=j.error.message||"err";if(isBusy(lastErr)&&attempt===0){await new Promise(res=>setTimeout(res,1200));continue;}break;}txt=(j.candidates&&j.candidates[0]&&j.candidates[0].content.parts[0]&&j.candidates[0].content.parts[0].text)||"";}catch(e){lastErr=e.message||"err";break;}
+}
+if(txt)break;
+}
+if(!txt){setAskA(isBusy(lastErr)?"⏳ خدمة الذكاء الاصطناعي مزحومة شوية دلوقتي — جرب تاني بعد كام ثانية":"❌ معرفتش أوصل للنموذج"+(lastErr?" — "+lastErr:""));setAskBusy(0);return;}
+let parsed=null;try{parsed=JSON.parse(txt.replace(/```json|```/g,"").trim());}catch(e){parsed=null;}
+if(!parsed){setAskA(txt);setAskBusy(0);return;}
+const execOne=async(p)=>{
+if(!p||typeof p!=="object")return "❌ أمر غير مفهوم";
+if(p.type==="answer")return p.text||"";
+if(p.type==="clarify")return "❓ "+(p.text||"محتاج توضيح أكتر");
+if(p.type!=="action")return "❌ أمر مش معروف";
+if(!can)return "🔒 مفيش عندك صلاحية تنفيذ أوامر دلوقتي";
+const cardless=["add_card","add_stock"];
+let card=null;
+if(!cardless.includes(p.action)){card=liveCards.find(c=>c.id===p.cardId);if(!card)return "❌ معرفتش ألاقي كرت بالـ id ده — "+(p.cardId||"");}
+try{
+if(p.action==="move"){const dst=stages.includes(p.stage)?p.stage:(stages.find(s=>s===p.stage)||p.stage);await moveCardTo(card,dst);return "✅ نقلت كرت "+(card.customer||card.code)+" لمرحلة "+dst;}
+if(p.action==="deliver"){await toggleDelivered(card);return "✅ اتعمل تسليم لكرت "+(card.customer||card.code);}
+if(p.action==="deliver_partial"){await partialDeliver(card,p.qty);return "✅ اتسجل تسليم جزئي "+(p.qty||"")+" لكرت "+(card.customer||card.code);}
+if(p.action==="store"){const wasStored=card.stored;await toggleStored(card);return "✅ كرت "+(card.customer||card.code)+(wasStored?" رجع من المخزن":" اتنقل للمخزن المجهز");}
+if(p.action==="defect"){await db.collection("defects").doc(uid()).set({cardId:card.id,customer:card.customer||"",code:card.code||"",stage:card.stage||"",reason:p.reason||"",qty:p.qty||"",notes:"عن طريق اسأل مصنعك",by:ownerName||"",time:Date.now(),date:localDate(new Date())});return "✅ اتسجل عيب على كرت "+(card.customer||card.code);}
+if(p.action==="pin"){const wasPinned=card.pinned;await togglePin(card);return "✅ "+(wasPinned?"شلت التثبيت من":"ثبّت")+" كرت "+(card.customer||card.code);}
+if(p.action==="archive"){const wasArchived=card.archived;await toggleArchive(card);return "✅ "+(wasArchived?"رجّعت":"أرشفت")+" كرت "+(card.customer||card.code);}
+if(p.action==="urgent"){const wasUrgent=card.urgent;await db.collection("cards").doc(card.id).set({urgent:!wasUrgent},{merge:true});return "✅ كرت "+(card.customer||card.code)+(wasUrgent?" مبقاش مستعجل":" اتعمله علامة مستعجل ⚠️");}
+if(p.action==="note"){await db.collection("cards").doc(card.id).set({notes:(card.notes?card.notes+" ":"")+(p.text||"")},{merge:true});return "✅ اتضافت ملاحظة لكرت "+(card.customer||card.code);}
+if(p.action==="delete"){if(confirm("متأكد تحذف كرت "+(card.customer||card.code)+"؟")){undoDelete(card);return "🗑️ اتحذف كرت "+(card.customer||card.code)+" — فيه زرار تراجع تحت لو غلط";}return "❌ اتلغى حذف "+(card.customer||card.code);}
+if(p.action==="add_card"){if(!p.customer)return "❓ محتاج اسم العميل عشان أضيف الكرت";const nc={id:uid(),stage:(stages.includes(p.stage)?p.stage:(activeStage||stages[0]||"")),code:p.code||"",customer:p.customer||"",category:p.category||"",color:p.color||"",quantity:p.quantity||"",machine:"",prepare:"",dye:"",time:"",notes:"",phone:"",address:"",urgent:false,pinned:false,due:"",photo:"",archived:false,loadId:"",delivered:false,deliveredQty:0};await saveCard(nc,true);return "✅ اتضاف كرت جديد لـ "+nc.customer+" في مرحلة "+nc.stage;}
+if(p.action==="add_stock"){if(!p.customer||!p.total)return "❓ محتاج اسم الخامة/المورد والكمية الكلية عشان أضيف حمولة";await db.collection("loads").doc(uid()).set({customer:String(p.customer).trim(),total:parseFloat(p.total)||0,date:localDate(new Date()),notes:"عن طريق اسأل مصنعك",category:p.category||"",color:p.color||"",barcode:"",machine:""});return "✅ اتضافت حمولة "+p.total+" "+(factory.unit||"")+" لـ "+p.customer;}
+return "❌ أمر مش معروف";
+}catch(e){return "❌ حصل خطأ أثناء التنفيذ: "+e.message;}
+};
+if(Array.isArray(parsed)){
+if(parsed.length===0){setAskA(txt);setAskBusy(0);return;}
+const results=[];
+for(const p of parsed){results.push(await execOne(p));}
+setAskA(results.join("\n"));setAskBusy(0);return;
+}
+setAskA(await execOne(parsed));setAskBusy(0);
+}catch(e){setAskA("❌ "+e.message);setAskBusy(0);}};
 const [companyMembers,setCompanyMembers]=useState([]);
 const [allUsersLive,setAllUsersLive]=useState([]);
-useEffect(()=>{if(!db)return 0;return db.collection("users").onSnapshot(s=>{const a=[];s.forEach(d=>a.push(d.data().name||d.id));a.sort();setAllUsersLive(a);});},[]);
+useEffect(()=>{if(!db)return function(){};return db.collection("users").onSnapshot(s=>{const a=[];s.forEach(d=>a.push(d.data().name||d.id));a.sort();setAllUsersLive(a);});},[]);
 {[ownerName].concat(allUsersLive||[]).filter((v,i,a)=>v&&a.indexOf(v)===i).map(w=><option key={w} value={w}>{w===ownerName?"👑 "+w:"👷 "+w}</option>)}
 const [factory,setFactory]=useState({fname:"متابعة المراحل",wa:"",unit:"كيلو",lateDays:2,printSize:"A5",heroT:"",heroS:""});
 const [fnameDraft,setFnameDraft]=useState("متابعة المراحل");const [waDraft,setWaDraft]=useState("");const [lateDraft,setLateDraft]=useState(2);
@@ -286,10 +358,12 @@ const stDel=s=>{const rest=stages.filter(x=>x!==s);const to=prompt("⚠️ كر�
 const [stageQ,setStageQ]=useState("");
 const [announce,setAnnounce]=useState(null);const [showAnnounce,setShowAnnounce]=useState(false);const [announceDraft,setAnnounceDraft]=useState("");const [annDismissed,setAnnDismissed]=useState(localStorage.getItem("ann_dismiss"));
 const [showAnnounceSeen,setShowAnnounceSeen]=useState(false);const annSeenMarked=useRef(null);
-const [showSettings,setShowSettings]=useState(false);const [showSearch,setShowSearch]=useState(false);const [showStagesExport,setShowStagesExport]=useState(false);const [selectedStagesExport,setSelectedStagesExport]=useState([]);
+const [theme,setTheme]=useState(()=>localStorage.getItem("theme")||"dark");
+React.useEffect(()=>{document.documentElement.setAttribute("data-theme",theme);localStorage.setItem("theme",theme);},[theme]);
+const [showSettings,setShowSettings]=useState(false);const [showSearch,setShowSearch]=useState(false);const [searchScope,setSearchScope]=useState("all");
 const [showMenu,setShowMenu]=useState(false);const [showScanner,setShowScanner]=useState(false);
 const [bcCard,setBcCard]=useState(null);const [nameDraft,setNameDraft]=useState("");
-const [editingCard,setEditingCard]=useState(null);const [actionCard,setActionCard]=useState(null);const [cardDetails,setCardDetails]=useState(null);
+const [editingCard,setEditingCard]=useState(null);const [actionCard,setActionCard]=useState(null);const [showDetails,setShowDetails]=useState(null);const [selectedStagesForExport,setSelectedStagesForExport]=useState(new Set());
 const [moveCard_,setMoveCard]=useState(null);const [copyCard_,setCopyCard]=useState(null);
 const [qrCard,setQrCard]=useState(null);const [toast,setToast]=useState(null);
 const modalRef=React.useRef(false);const screenRef=React.useRef("home");
@@ -306,7 +380,7 @@ useEffect(()=>{
     );
   }catch(e){}
 },[screen]);
-useEffect(()=>{const m=!!(photoView||showAsk||showBook||editingCard||showMenu||showFlags||showWorkers||showMyWork||qrCard||actionCard||showSettings||showSched||showStored||cardDetails||showStagesExport);if(m&&!modalRef.current){try{history.pushState({guard:1},"");}catch(e){}}modalRef.current=m;},[photoView,showAsk,showBook,editingCard,showMenu,showFlags,showWorkers,showMyWork,qrCard,actionCard,showSettings,showSched,showStored,cardDetails,showStagesExport]);
+useEffect(()=>{const m=!!(photoView||showAsk||showBook||editingCard||showMenu||showFlags||showWorkers||showMyWork||qrCard||actionCard||showSettings||showSched||showStored);if(m&&!modalRef.current){try{history.pushState({guard:1},"");}catch(e){}}modalRef.current=m;},[photoView,showAsk,showBook,editingCard,showMenu,showFlags,showWorkers,showMyWork,qrCard,actionCard,showSettings,showSched,showStored]);
 const [micOn,setMicOn]=useState(false);const [micText,setMicText]=useState("");const [showMic,setShowMic]=useState(false);const [micLang,setMicLang]=useState("ar-EG");
 const recRef=useRef(null);
 const photoInputRef=useRef(null);const photoGalRef=useRef(null);const scanFileRef=useRef(null);
@@ -315,7 +389,7 @@ const scannerRef=useRef(null);const restoreRef=useRef(null);const scanMode=useRe
 const gotoDone=useRef(false);
 const chatFirstLoad=useRef(true);const chatEndRef=useRef(null);
 const uiRef=useRef({});
-uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,showTopCust,photoView,appQr,importMenu,importDraft,showMic,showWarehouse,addLoad,loadDetail,showLateList,showDelivered,heroEdit,showDefects,defectFor,showAnnounce,linkedFrom,showAsk,showBook,showBlack,showFlags,showMyWork,showSched,showStored,showChat,cardDetails,showStagesExport};
+uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,showTopCust,photoView,appQr,importMenu,importDraft,showMic,showWarehouse,addLoad,loadDetail,showLateList,showDelivered,heroEdit,showDefects,defectFor,showAnnounce,linkedFrom,showAsk,showBook,showBlack,showFlags,showMyWork,showSched,showStored,showChat};
 const t=DICT[lang];const dir=lang==="ar"?"rtl":"ltr";
 useEffect(()=>{document.documentElement.lang=lang;document.documentElement.dir=dir;},[lang,dir]);
 const can=true;unlocked;
@@ -324,15 +398,14 @@ const [themeMode,setThemeMode]=useState(localStorage.getItem("themeMode")||"dark
 const [prefVib,setPrefVib]=useState(localStorage.getItem("prefVib")!=="0");
 const [prefSnd,setPrefSnd]=useState(localStorage.getItem("prefSnd")!=="0");
 const fx=(kind)=>{if(prefVib&&navigator.vibrate)navigator.vibrate(kind==="danger"?[60,40,60]:30);if(prefSnd){try{const AC=window.AudioContext||window.webkitAudioContext;const ac=new AC();const o=ac.createOscillator();const g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=kind==="danger"?320:880;g.gain.value=.06;o.start();o.stop(ac.currentTime+.12);}catch(e){}}};
-const logoSrc=factory.logo||localStorage.getItem("logo_local")||"";
-const theme=themeMode==="light"?{bg:"#F8FAFB",panel:"#FFFFFF",panelAlt:"#F0F5F7",border:"#E1E8EE",text:"#0F1419",textDim:"#5A6B7A",accent:"#16A085",accent2:"#139D7E",danger:"#E74C3C",warn:"#F39C12",input:"#FFFFFF"}:{bg:"#0A1015",panel:"#101A24",panelAlt:"#131F2B",border:"#223038",text:"#EAF2EF",textDim:"#7FA79E",accent:"#2D8C74",accent2:"#1B8F82",danger:"#E2544C",warn:"#E0B84A",input:"#131F2B"};
+const logoSrc=factory.logo||"";
+const theme=themeMode==="light"?{bg:"#F3F4FA",panel:"#FFFFFF",panelAlt:"#EEF0F8",border:"#D8DCEB",text:"#1A1E30",textDim:"#66708F",accent:"#2D8C74",accent2:"#1B8F82",danger:"#E2544C",warn:"#E0B84A",input:"#EEF0F8"}:{bg:"#0A1015",panel:"#101A24",panelAlt:"#131F2B",border:"#223038",text:"#EAF2EF",textDim:"#7FA79E",accent:"#2D8C74",accent2:"#1B8F82",danger:"#E2544C",warn:"#E0B84A",input:"#131F2B"};
 const hdrBtn={width:42,height:42,borderRadius:14,border:"1px solid "+theme.border,background:theme.panel,color:theme.text,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:17};
 const LD=+factory.lateDays||2;
 const allColors=PRESET_COLORS.concat(customColors);
 useEffect(()=>{setFnameDraft(factory.fname);setWaDraft(factory.wa);setLateDraft(factory.lateDays);setHeroTDraft(factory.heroT||"");setHeroSDraft(factory.heroS||"");},[factory.fname,factory.wa,factory.lateDays,factory.heroT,factory.heroS]);
-useEffect(()=>{if(factory.logo&&factory.logo.startsWith("http")){localStorage.setItem("logo_local",factory.logo);}},[factory.logo]);
 useEffect(()=>{history.pushState({guard:1},"");const iv=setInterval(()=>{try{if(!history.state||!history.state.guard)history.pushState({guard:1},"");}catch(e){}},800);const onPop=()=>{const u=uiRef.current;window.__navLock=Date.now();
-if(u.showChat)setShowChat(false);else if(u.showAsk)setShowAsk(false);else if(u.showBook)setShowBook(false);else if(u.cardDetails)setCardDetails(null);else if(u.showStagesExport)setShowStagesExport(false);else if(u.showBlack)setShowBlack(false);else if(u.showFlags)setShowFlags(false);else if(u.showMyWork)setShowMyWork(false);else if(u.showSched)setShowSched(false);else if(u.showStored)setShowStored(false);else if(u.showTopCust)setShowTopCust(false);else if(u.showLateList)setShowLateList(false);else if(u.showDelivered)setShowDelivered(false);else if(u.heroEdit)setHeroEdit(false);else if(u.showDefects)setShowDefects(false);else if(u.defectFor)setDefectFor(null);else if(u.showAnnounce)setShowAnnounce(false);else if(u.linkedFrom)setLinkedFrom(null);else if(u.addLoad)setAddLoad(false);else if(u.loadDetail)setLoadDetail(null);else if(u.showWarehouse)setShowWarehouse(false);else if(u.showMic)setShowMic(false);else if(u.importMenu)setImportMenu(false);else if(u.importDraft)setImportDraft(null);
+if(u.showChat)setShowChat(false);else if(u.showAsk)setShowAsk(false);else if(u.showBook)setShowBook(false);else if(u.showBlack)setShowBlack(false);else if(u.showFlags)setShowFlags(false);else if(u.showMyWork)setShowMyWork(false);else if(u.showSched)setShowSched(false);else if(u.showStored)setShowStored(false);else if(u.showTopCust)setShowTopCust(false);else if(u.showLateList)setShowLateList(false);else if(u.showDelivered)setShowDelivered(false);else if(u.heroEdit)setHeroEdit(false);else if(u.showDefects)setShowDefects(false);else if(u.defectFor)setDefectFor(null);else if(u.showAnnounce)setShowAnnounce(false);else if(u.linkedFrom)setLinkedFrom(null);else if(u.addLoad)setAddLoad(false);else if(u.loadDetail)setLoadDetail(null);else if(u.showWarehouse)setShowWarehouse(false);else if(u.showMic)setShowMic(false);else if(u.importMenu)setImportMenu(false);else if(u.importDraft)setImportDraft(null);
 else if(u.reportText)setReportText(null);else if(u.showScanner)setShowScanner(false);else if(u.bcCard)setBcCard(null);
 else if(u.statementFor)setStatementFor(null);else if(u.showWorkers)setShowWorkers(false);
 else if(u.photoView)setPhotoView(null);else if(u.appQr)setAppQr(false);else if(u.showMenu)setShowMenu(false);
@@ -494,8 +567,10 @@ const buildStatement=n=>{const cs=cards.filter(c=>c.customer===n);let s="👥 "+
 const workerStats=()=>{const today=localDate(new Date());const m={};log.forEach(e=>{if(localDate(new Date(toMs(e.time||e.timeLocal)))===today)m[e.person]=(m[e.person]||0)+1;});return Object.entries(m).sort((a,b)=>b[1]-a[1]);};
 const shareCardText=c=>{let s="🏭 "+factory.fname+"\n👤 "+(c.customer||"—")+"\n🔢 "+(c.code||"—")+"\n🎨 "+(c.color||"—")+"\n⚖️ "+(c.quantity||"—")+" "+factory.unit+"\n📍 "+(c.stage||"—")+"\n";if(c.due)s+="📅 "+c.due+"\n";if(c.barcode)s+="🔳 "+c.barcode+"\n";return s;};
 const exportSheet=(list,fname)=>{const h=["المرحلة","اسم العميل","الكود","الرسالة","اللون","الصنف","الكمية","الباركود","تجهيز","الملاحظات"];const rows=list.map(c=>[c.stage||"",c.customer||"",c.code||"",c.message||"",c.color||"",c.category||"",c.quantity||"",c.barcode||"",c.prepare||"",c.notes||(c.stage==="موقوف"?"موقوف":"")]);const csv="\uFEFF"+[h].concat(rows).map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(",")).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download=(fname||"sheet")+".csv";a.click();showToast("💾 ✅");};
-const exportStagesCSV=()=>{if(selectedStagesExport.length===0){showToast("⚠️ اختر مراحل");return;}const filtered=cards.filter(c=>selectedStagesExport.includes(c.stage||""));if(filtered.length===0){showToast("⚠️ لا توجد كروت في المراحل المحددة");return;}exportSheet(filtered,"مراحل_"+selectedStagesExport.join("_"));setShowStagesExport(false);setSelectedStagesExport([]);};
 const exportCSV=()=>{const h=["code","customer","message","category","color","quantity","barcode","machine","prepare","dye","time","notes","phone","address","stage","due"];const r=cards.map(c=>h.map(x=>'"'+String(c[x]??"" ).replace(/"/g,'""')+'"').join(","));const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\uFEFF"+h.join(",")+"\n"+r.join("\n")],{type:"text/csv"}));a.download="dyeing.csv";a.click();showToast("💾 ✅");};
+const exportSelectedStages=()=>{if(selectedStagesForExport.size===0){showToast("❌ اختار مراحل أولاً","danger");return;}const h=["code","customer","message","category","color","quantity","barcode","machine","prepare","dye","time","notes","phone","address","stage","due"];const r=cards.filter(c=>selectedStagesForExport.has(c.stage)).map(c=>h.map(x=>'"'"+String(c[x]??"").replace(/"/g,'""')+'"'").join(","));const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["﻿"+h.join(",")+"
+"+r.join("
+")],{type:"text/csv"}));a.download="مراحل-"+Array.from(selectedStagesForExport).join("-")+".csv";a.click();showToast("💾 ✅ "+r.length+" كرت");setSelectedStagesForExport(new Set());};
 const backupJSON=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify({cards,logs:log,loads})],{type:"application/json"}));a.download="dyeing-backup.json";a.click();showToast("💾 ✅");};
 const restoreJSON=e=>{const f=e.target.files?.[0];if(!f||!can)return;const r=new FileReader();r.onload=async()=>{try{const d=JSON.parse(r.result);if(Array.isArray(d.cards))for(const c of d.cards)await db.collection("cards").doc(c.id).set(c,{merge:true});if(Array.isArray(d.loads))for(const l of d.loads)await db.collection("loads").doc(l.id).set(l,{merge:true});showToast("♻️ ✅");}catch(x){showToast("❌","danger");}};r.readAsText(f);e.target.value="";};
 const wipeAll=async()=>{for(const c of cards)await db.collection("cards").doc(c.id).delete();for(const l of log)await db.collection("logs").doc(l.id).delete();for(const l of loads)await db.collection("loads").doc(l.id).delete();setWipeConfirm(false);showToast("🗑️ ✅");};
@@ -552,7 +627,7 @@ const liveID=(()=>{try{return new URLSearchParams(window.location.search).get("l
 const liveCID=(()=>{try{return new URLSearchParams(window.location.search).get("c");}catch(e){return null;}})();
 const [liveCard,setLiveCard]=useState(null);
 const [liveErr,setLiveErr]=useState("");
-useEffect(()=>{if(!liveID||!db)return 0;const base=(liveCID&&liveCID!=="DEFAULT")?"companies/"+liveCID+"/cards":"cards";try{return db._raw(base).doc(liveID).onSnapshot(d=>{if(d.exists)setLiveCard(d.data());else setLiveErr("nf");},()=>setLiveErr("er"));}catch(e){setLiveErr("er");}return 0;},[liveID,liveCID]);
+useEffect(()=>{if(!liveID||!db)return function(){};const base=(liveCID&&liveCID!=="DEFAULT")?"companies/"+liveCID+"/cards":"cards";try{return db._raw(base).doc(liveID).onSnapshot(d=>{if(d.exists)setLiveCard(d.data());else setLiveErr("nf");},()=>setLiveErr("er"));}catch(e){setLiveErr("er");}return function(){};},[liveID,liveCID]);
 if(pubData&&!new URLSearchParams(window.location.search).get("goto")&&!liveID)return(<div dir="rtl" style={{minHeight:"100vh",background:"#fff",color:"#232016",display:"flex",alignItems:"center",justifyContent:"center",padding:20,fontFamily:"system-ui,sans-serif"}}>
 <div style={{width:"100%",maxWidth:380,border:"4px solid #2D8C74",borderRadius:20,padding:24}}>
 <div style={{fontSize:22,fontWeight:900,textAlign:"center",marginBottom:4}}>🏭 متابعة الصباغة</div>
@@ -610,7 +685,7 @@ return(
 <div className="anim" style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
 <div style={{width:44,height:44,borderRadius:50,background:"linear-gradient(135deg,var(--vio),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,boxShadow:"0 6px 18px rgba(45,140,116,.4)"}}>{(ownerName||"؟")[0]}</div>
 <div style={{flex:1}}><div style={{fontSize:12,color:theme.textDim}}>👋 مرحباً يا {ownerName}</div><div style={{fontSize:20,fontWeight:900}}>{factory.fname}</div></div>
-<button onClick={()=>setShowSearch(true)} style={hdrBtn}>🔍</button>
+<button onClick={()=>{setSearchScope("all");setShowSearch(true);}} style={hdrBtn}>🔍</button>
 <button onClick={()=>setShowLateList(true)} style={{...hdrBtn,position:"relative"}}>🔔{(()=>{const n=liveCards.filter(c=>!c.delivered&&(c.urgent||adjDays(c)>=(factory.lateDays||2))).length;return n>0?<span style={{position:"absolute",top:4,left:4,background:"var(--red)",color:"#fff",borderRadius:10,fontSize:9,fontWeight:800,padding:"1px 5px",minWidth:16,textAlign:"center"}}>{n}</span>:null;})()}</button>
 <button onClick={()=>setShowChat(true)} style={{...hdrBtn,position:"relative"}}>💬{chatUnread>0?<span style={{position:"absolute",top:4,left:4,background:"var(--red)",color:"#fff",borderRadius:10,fontSize:9,fontWeight:800,padding:"1px 5px",minWidth:16,textAlign:"center"}}>{chatUnread}</span>:null}</button>
 <button onClick={()=>setShowMenu(true)} style={hdrBtn}>⋯</button>
@@ -641,6 +716,10 @@ return(
 <div onClick={e=>{e.stopPropagation();setShowDefects(true);}} style={{display:"flex",alignItems:"center",gap:8,background:"rgba(226,84,76,.10)",border:"1px solid rgba(226,84,76,.35)",borderRadius:14,padding:8,cursor:"pointer"}}>
 <div style={{width:44,height:44,borderRadius:14,background:"linear-gradient(135deg,var(--red),var(--warn))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>🧾</div>
 <div><div style={{fontSize:13,fontWeight:800}}>العيوب والمرتجعات</div><div style={{fontSize:10.5,color:theme.textDim,marginTop:2}}>{defects.length} مسجلة</div></div>
+</div>
+<div onClick={e=>{e.stopPropagation();setScreen("archive");}} style={{display:"flex",alignItems:"center",gap:8,background:"rgba(201,151,63,.10)",border:"1px solid rgba(201,151,63,.35)",borderRadius:14,padding:8,cursor:"pointer"}}>
+<div style={{width:44,height:44,borderRadius:14,background:"linear-gradient(135deg,var(--blue),var(--vio))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>🗄️</div>
+<div><div style={{fontSize:13,fontWeight:800}}>{t.archive}</div><div style={{fontSize:10.5,color:theme.textDim,marginTop:2}}>{archivedCards.length} كرت مؤرشف</div></div>
 </div>
 </div>
 <div className="card anim" style={{animationDelay:"360ms",margin:"12px 0"}}>
@@ -682,7 +761,7 @@ return(<div style={{marginBottom:12}}>
 <Ring pct={liveCards.length?Math.round((liveCards.filter(c=>c.delivered).length/liveCards.length)*100):0} size={110} color="var(--teal)"><b style={{fontSize:20}}>{liveCards.length?Math.round((liveCards.filter(c=>c.delivered).length/liveCards.length)*100):0}%</b><span style={{fontSize:10,color:theme.textDim}}>إنجاز تسليم</span></Ring>
 <div style={{flex:1}}><div className="lbl">نظرة عامة على المراحل</div>
 {stages.map((s,i)=>{const n=liveCards.filter(c=>c.stage===s).length;const p=liveCards.length?Math.round(n/liveCards.length*100):0;const col=STAGE_COLORS[i%8];
-return(<div key={s} style={{marginBottom:8}}><div style={{display:"flex",justifyContent:"space-between",fontSize:11,color:theme.textDim,marginBottom:3}}><span>{s}</span><span>{n}</span></div><div className="bar"><i style={{width:p+"%",background:col}}/></div></div>);})}
+return(<div key={s} style={{marginBottom:8,display:"flex",alignItems:"center",gap:6}}><input type="checkbox" checked={selectedStagesForExport.has(s)} onChange={e=>{const ns=new Set(selectedStagesForExport);if(e.target.checked)ns.add(s);else ns.delete(s);setSelectedStagesForExport(ns);}} style={{cursor:"pointer"}}/><div style={{flex:1}}><div style={{display:"flex",justifyContent:"space-between",fontSize:11,color:theme.textDim,marginBottom:3}}><span>{s}</span><span>{n}</span></div><div className="bar"><i style={{width:p+"%",background:col}}/></div></div></div>);})}
 </div></div>
 {lateAll.length>0&&(<div className="card anim" style={{animationDelay:"440ms",marginBottom:12}}><div className="lbl">⚠️ تنبيهات سريعة</div>
 {lateAll.slice(0,4).map((c,i)=>(<div key={c.id} onClick={()=>jumpToCard(c)} style={{cursor:"pointer",display:"flex",alignItems:"center",gap:10,padding:"10px 0",borderTop:"1px solid "+theme.border,animation:"fadeUp .5s both",animationDelay:(i*80)+"ms"}}>
@@ -701,9 +780,10 @@ return(<div key={c.id} className="card" onClick={()=>jumpToCard(c)} style={{curs
 <div className="anim" style={{display:"flex",alignItems:"center",gap:10,marginBottom:18}}>
 <button onClick={()=>setScreen("home")} style={hdrBtn}>→</button>
 <div style={{flex:1}}><div style={{fontSize:19,fontWeight:900}}>مراحل العمل</div><div style={{fontSize:11,color:theme.textDim}}>تابع جميع مراحل الإنتاج</div></div>
-<button onClick={()=>setShowSearch(true)} style={hdrBtn}>🔍</button>
-<button onClick={()=>setShowStagesExport(true)} style={hdrBtn}>📊</button>
+<button onClick={()=>{setSearchScope("stage");setShowSearch(true);}} style={hdrBtn}>🔍</button>
 {can&&<button onClick={()=>setShowStageMgr(true)} style={hdrBtn}>⚙️</button>}
+<button onClick={()=>{setSelectedStagesForExport(selectedStagesForExport.size===0?new Set(stages):new Set());}} title={selectedStagesForExport.size>0?"إلغاء التحديد":"تحديد الكل"} style={{...hdrBtn,background:selectedStagesForExport.size>0?"var(--warn)":"transparent"}}>✓ {selectedStagesForExport.size||stages.length}</button>
+{selectedStagesForExport.size>0&&<button onClick={exportSelectedStages} style={{...hdrBtn,background:"var(--vio)"}}>💾</button>}
 <button onClick={()=>setShowSched(true)} style={hdrBtn}>📅</button>
 </div>
 {(()=>{const orph=liveCards.filter(c=>!stages.includes(c.stage));return orph.length>0?(<div onClick={()=>setEditingCard(orph[0])} className="card" style={{marginBottom:14,borderColor:"var(--red)",cursor:"pointer"}}>⚠️ عندك {orph.length} كرت في مرحلة مش موجودة — دوس تصلّح</div>):null;})()}
@@ -787,7 +867,6 @@ return(<div key={c.id} className="card" onClick={()=>selectMode?toggleSelect(c.i
 <button className="chip" style={{borderColor:"var(--red)",color:"var(--red)"}} onClick={()=>{if(confirm("⚠️ حذف المرحلة وكل كروتها نهائياً؟")){cards.filter(c=>c.stage===delStagePick).forEach(c=>db.collection("cards").doc(c.id).delete());saveStages(stages.filter(x=>x!==delStagePick));setDelStagePick(null);setShowStageMgr(false);}}}>🗑️ حذف المرحلة وكروتها</button>
 </div>
 </div></div>)}
-{showStagesExport&&(<div className="modal" onClick={()=>setShowStagesExport(false)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:420}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}><h3 style={{margin:0}}>📊 استخراج مراحل</h3><button onClick={()=>setShowStagesExport(false)} style={{background:"none",border:"none",color:theme.textDim,fontSize:20}}>✕</button></div><div style={{marginBottom:12}}><div className="lbl">اختر المراحل المراد استخراجها:</div><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{stages.map(s=><button key={s} onClick={()=>{setSelectedStagesExport(selectedStagesExport.includes(s)?selectedStagesExport.filter(x=>x!==s):[...selectedStagesExport,s]);}} className={"chip"+(selectedStagesExport.includes(s)?" on":"")}>{s}</button>)}</div></div><div style={{display:"flex",gap:8}}><button onClick={()=>{setShowStagesExport(false);setSelectedStagesExport([]);}} className="btnO" style={{flex:1}}>إلغاء</button><button onClick={exportStagesCSV} className="btnG" style={{flex:1}}>💾 استخراج CSV</button></div></div></div>)}
 {showSched&&(<div className="modal" onClick={()=>setShowSched(false)}><div className="mbox" onClick={e=>e.stopPropagation()}>
 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><h3 style={{flex:1,margin:0}}>📅 جدول الماكينات</h3><button className="chip on" onClick={()=>exportSheet(schedCards(),"machines-"+schedDate)}>💾 تصدير</button></div>
 <input type="date" className="inp" style={{width:170}} value={schedDate} onChange={e=>setSchedDate(e.target.value)}/>
@@ -798,7 +877,7 @@ return(<div key={c.id} className="card" onClick={()=>selectMode?toggleSelect(c.i
 </div>
 {machines.map((m,i)=>{const list=schedCards().filter(c=>String(c.machine)===String(m));return(<div key={m} className="card anim" style={{padding:10,marginBottom:8,animationDelay:(i*60)+"ms"}}>
 <b>🔧 ماكينة {m}</b>{!list.length&&<span style={{color:theme.textDim,fontSize:11}}> · فاضية</span>}
-{list.map(c=><div key={c.id} style={{fontSize:12,marginTop:6,borderTop:"1px dashed "+theme.border,paddingTop:6}}>{c.customer} · {c.code} · {c.color} · {c.quantity} {factory.unit} {c.prepare&&<span style={{color:"var(--warn)"}}>· {c.prepare}</span>}</div>)}
+{list.map(c=><div key={c.id} onClick={()=>{setShowSched(false);setActionCard(c);}} style={{fontSize:12,marginTop:6,borderTop:"1px dashed "+theme.border,paddingTop:6,cursor:"pointer"}}>{c.customer} · {c.code} · {c.color} · {c.quantity} {factory.unit} {c.prepare&&<span style={{color:"var(--warn)"}}>· {c.prepare}</span>}</div>)}
 </div>);})}
 </div></div>)}
 {undoInfo&&(<div style={{position:"fixed",bottom:96,left:"50%",transform:"translateX(-50%)",background:"var(--red)",color:"#fff",fontWeight:800,padding:"10px 16px",borderRadius:30,zIndex:999,display:"flex",gap:10,alignItems:"center",boxShadow:"0 8px 24px rgba(0,0,0,.5)"}}>🗑️ حذف {(undoInfo.code||undoInfo.customer)||""}<button onClick={undoRestore} style={{background:"rgba(255,255,255,.2)",border:"none",color:"#fff",borderRadius:12,padding:"6px 12px",fontWeight:800}}>↩️ تراجع</button><button onClick={()=>setUndoInfo(null)} style={{background:"none",border:"none",color:"#fff"}}>✕</button></div>)}
@@ -808,7 +887,7 @@ return(<div key={c.id} className="card" onClick={()=>selectMode?toggleSelect(c.i
 <div className="anim" style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}><button onClick={()=>setScreen("home")} style={hdrBtn}>→</button><div style={{fontSize:19,fontWeight:900,flex:1}}>{t.dailyLog}</div></div>
 {(()=>{const g={};log.forEach(e=>{(g[e.date]=g[e.date]||[]).push(e)});const ds=Object.keys(g).sort((a,b)=>b.localeCompare(a));
 return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noResults}</p>:ds.map((d,i)=>(<div key={d} className="anim" style={{marginBottom:18,animationDelay:(i*80)+"ms"}}><div style={{fontSize:13,fontWeight:800,color:"var(--vio2)",marginBottom:8}}>{d}</div>
-{g[d].map(e=>(<div key={e.id} className="card" style={{marginBottom:6,padding:"10px 12px"}}><div style={{display:"flex",justifyContent:"space-between"}}><b>{e.action}</b><span style={{color:theme.textDim,fontSize:11}}>{fmtTime(e.time||e.timeLocal,lang)}</span></div><div style={{color:theme.textDim,fontSize:12}}>👤 {e.person} {e.cardCode?" · "+e.cardCode:""}</div></div>))}</div>));})()}
+{g[d].map(e=>{const match=e.cardCode?cards.find(c=>c.code===e.cardCode):null;return(<div key={e.id} onClick={()=>{if(match)setActionCard(match);else if(e.cardCode)showToast("❌ الكرت ده مش موجود دلوقتي (اتمسح)","danger");}} className="card" style={{marginBottom:6,padding:"10px 12px",cursor:match?"pointer":"default"}}><div style={{display:"flex",justifyContent:"space-between"}}><b>{e.action}</b><span style={{color:theme.textDim,fontSize:11}}>{fmtTime(e.time||e.timeLocal,lang)}</span></div><div style={{color:theme.textDim,fontSize:12}}>👤 {e.person} {e.cardCode?" · "+e.cardCode:""}</div></div>);})}</div>));})()}
 </div>)}
 {screen==="archive"&&(
 <div style={{maxWidth:640,margin:"0 auto",padding:"40px 16px 20px"}}>
@@ -858,6 +937,7 @@ return(<div style={{padding:"8mm",fontFamily:"Arial",color:"#000",direction:"rtl
 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:4}}>
 <MenuBtn onClick={()=>{setScreen("home");setShowMenu(false);}} active={screen==="home"}>🏠 {t.home}</MenuBtn>
 <MenuBtn onClick={()=>{setScreen("stages");setShowMenu(false);}} active={screen==="stages"}>🏭 {t.stagesLabel}</MenuBtn>
+<MenuBtn onClick={()=>{setScreen("archive");setShowMenu(false);}} active={screen==="archive"}>🗄️ {t.archive} ({archivedCards.length})</MenuBtn>
 <MenuBtn onClick={()=>{setShowWarehouse(true);setShowMenu(false);}}>📦 المخزن الرئيسي</MenuBtn>
 <div style={{gridColumn:"1 / -1",height:1,background:theme.border,margin:"8px 0"}}/>
 <MenuBtn onClick={()=>{setReportText(buildReport());setShowMenu(false);}}>📊 {t.report}</MenuBtn>
@@ -868,10 +948,9 @@ return(<div style={{padding:"8mm",fontFamily:"Arial",color:"#000",direction:"rtl
 {can&&<MenuBtn onClick={()=>{setAnnounceDraft((announce&&announce.text)||"");setShowAnnounce(true);setShowMenu(false);}}>📢 إعلان للعمال</MenuBtn>}
 {(localStorage.getItem("role")==="worker"||localStorage.getItem("role")==="assistant")&&<MenuBtn onClick={()=>{setShowMyWork(true);setShowMenu(false);}}>👷 شغلي أنا</MenuBtn>}
 <MenuBtn onClick={()=>{exportCSV();setShowMenu(false);}}>💾 {t.backup}</MenuBtn>
-<MenuBtn onClick={()=>{setScreen("archive");setShowMenu(false);}}>🗄️ {t.archive}</MenuBtn>
 <MenuBtn onClick={()=>{setScreen("log");setShowMenu(false);}}>📋 {t.dailyLog}</MenuBtn>
 <MenuBtn onClick={()=>{setShowAsk(true);setShowMenu(false);}}>🤖 اسأل مصنعك</MenuBtn>
-<MenuBtn onClick={()=>{setShowBlack(true);setShowMenu(false);}}>⚫ الصندوق الأسود</MenuBtn>
+{canEditFields&&<MenuBtn onClick={()=>{setShowBlack(true);setShowMenu(false);}}>⚫ الصندوق الأسود</MenuBtn>}
 <MenuBtn onClick={()=>{setShowBook(true);setShowMenu(false);}}>📚 بوكيمون الألوان</MenuBtn>
 <MenuBtn onClick={()=>{setShowFlags(true);setShowMenu(false);}}>🚩 أعلام الكروت</MenuBtn>
 <MenuBtn onClick={()=>{setNameDraft(ownerName);openSettingsGuard();setShowMenu(false);}}>⚙️ {t.settings}</MenuBtn>
@@ -1037,8 +1116,8 @@ return top?(<div className="card grad" style={{padding:12,marginBottom:12,textAl
 <div ref={chatEndRef}/>
 </div>
 <div style={{display:"flex",gap:8,padding:"10px 12px",borderTop:"1px solid "+theme.border,flexShrink:0}}>
-<input className="inp" style={{flex:1,margin:0}} placeholder="اكتب رسالة..." value={chatInput} onChange={e=>setChatInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChat();}}}/>
-<button onClick={sendChat} className="btnG" style={{padding:"0 18px",flexShrink:0}}>➤</button>
+<input className="inp" style={{flex:"1 1 auto",minWidth:0,margin:0}} placeholder="اكتب رسالة..." value={chatInput} onChange={e=>setChatInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChat();}}}/>
+<button onClick={sendChat} className="btnG" style={{width:46,height:46,padding:0,flex:"0 0 auto",borderRadius:"50%",fontSize:17,display:"flex",alignItems:"center",justifyContent:"center"}}>➤</button>
 </div>
 </div></div>)}
 {showMic&&(
@@ -1169,10 +1248,10 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div style={{padding:14,textAlign:"center"}}><button onClick={()=>scanFileRef.current&&scanFileRef.current.click()} className="btnG" style={{width:"auto",padding:"12px 22px"}}>📁 صورة من الجهاز</button></div>
 <input ref={scanFileRef} type="file" accept="image/*" style={{display:"none"}} onChange={scanFromFile}/>
 </div>)}
-{showAsk&&(<div className="modal" onClick={()=>setShowAsk(false)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:420}}><h3 style={{margin:"0 0 12px"}}>🤖 اسأل مصنعك</h3><textarea rows={2} className="inp" placeholder="مثال: إيه أهدأ مرحلة دلوقتي؟ مين أكبر عميل متأخر؟" value={askQ} onChange={e=>setAskQ(e.target.value)}/><button className="btnG" style={{marginTop:8}} onClick={askGemini}>{askBusy?"⏳ بيفكر...":"🤖 اسأل"}</button>{askA&&<div style={{marginTop:10,padding:"10px 12px",borderRadius:12,background:theme.panelAlt,fontSize:13,whiteSpace:"pre-wrap",lineHeight:1.8}}>{askA}</div>}</div></div>)}
+{showAsk&&(<div className="modal" onClick={()=>setShowAsk(false)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:420}}><h3 style={{margin:"0 0 6px"}}>🤖 اسأل مصنعك</h3><p style={{fontSize:11.5,color:theme.textDim,margin:"0 0 10px"}}>اسأل عن أي حاجة أو مُر بأمر تنفيذي: نقل مرحلة، تسليم كامل/جزئي، مخزن مجهز، تسجيل عيب، تثبيت، أرشفة، علامة مستعجل، ملاحظة، حذف، إضافة كرت جديد، أو إضافة حمولة مخزن</p><div style={{display:"flex",gap:6}}><textarea rows={2} className="inp" style={{flex:"1 1 auto",minWidth:0,marginBottom:0}} placeholder="مثال: إيه أهدأ مرحلة دلوقتي؟ / انقل كرت محمد للتجفيف" value={askQ} onChange={e=>setAskQ(e.target.value)}/><button onClick={()=>{if(micOn){stopMic();return;}const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){showToast("المتصفح مش داعم الإملاء","danger");return;}try{const rec=new SR();rec.lang=micLang;rec.interimResults=false;rec.onresult=e=>{let s="";for(let i=0;i<e.results.length;i++)s+=e.results[i][0].transcript;setAskQ(qv=>(qv?qv+" ":"")+s);};rec.onend=()=>setMicOn(false);rec.onerror=()=>setMicOn(false);rec.start();recRef.current=rec;setMicOn(true);}catch(e){}}} className={"chip"+(micOn?" on":"")} style={{flexShrink:0,height:"fit-content"}}>{micOn?"⏹️":"🎙️"}</button></div><button className="btnG" style={{marginTop:8}} onClick={askGemini}>{askBusy?"⏳ بيفكر...":"🤖 اسأل / نفّذ"}</button>{askA&&<div style={{marginTop:10,padding:"10px 12px",borderRadius:12,background:theme.panelAlt,fontSize:13,whiteSpace:"pre-wrap",lineHeight:1.8}}>{askA}</div>}</div></div>)}
 {showBook&&(<div className="modal" onClick={()=>setShowBook(false)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:380}}><h3 style={{margin:"0 0 12px"}}>📚 بوكيمون الألوان</h3>{(factory.colorBook||[]).length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center"}}>لسه مفيش ألوان متسجلة — المالك يضيفها</p>}{(factory.colorBook||[]).map((b,i)=>(<div key={i} style={{padding:"8px 10px",borderRadius:10,background:theme.panelAlt,marginBottom:6,fontSize:13}}><div style={{display:"flex",justifyContent:"space-between"}}><b>🎨 {b.n}</b>{can&&<button onClick={()=>{if(confirm("حذف "+b.n+"؟"))saveFactory({colorBook:(factory.colorBook||[]).filter((x,j)=>j!==i)});}} className="chip">✕</button>}</div>{b.note&&<div style={{fontSize:11,color:theme.textDim,marginTop:2}}>{b.note}</div>}</div>))}{can&&<button className="chip on" onClick={()=>{const n=prompt("اسم اللون:");if(!n||!n.trim())return;const note=prompt("وصفة/ملاحظات اللون (اختياري):","")||"";saveFactory({colorBook:[...(factory.colorBook||[]),{n:n.trim(),note:note.trim()}]});}}>➕ لون جديد</button>}</div></div>)}
-{ownerName&&!showAsk&&(<button onClick={()=>setShowAsk(true)} aria-label="اسأل مصنعك" style={{position:"fixed",bottom:96,right:14,zIndex:400,width:56,height:56,borderRadius:"50%",border:"none",background:"linear-gradient(135deg,var(--vio),var(--blue))",color:"#fff",fontSize:26,cursor:"pointer",boxShadow:"0 8px 24px rgba(45,140,116,.55)",display:"flex",alignItems:"center",justifyContent:"center",animation:"floaty 2.5s infinite"}}>🤖</button>)}
-{showBlack&&(<div className="modal" onClick={()=>setShowBlack(false)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:420}}><h3 style={{margin:"0 0 10px"}}>⚫ الصندوق الأسود</h3><p style={{fontSize:11,color:theme.textDim,marginBottom:8}}>🎬 إعادة تشغيل اليوم حركة بحركة — كل نقله مين عملها وإمتى</p><div style={{display:"flex",gap:6,alignItems:"center",marginBottom:10}}><button className="btnG" style={{flex:1}} onClick={()=>{if(blackPlay){setBlackPlay(0);}else{setBlackIdx(0);setBlackPlay(1);}}}>{blackPlay?"⏸️ إيقاف":"▶️ تشغيل اليوم"}</button><span style={{fontSize:11,color:theme.textDim}}>{Math.min(blackIdx,blackList().length)}/{blackList().length}</span></div><div style={{maxHeight:320,overflow:"auto"}}>{blackList().slice(0,blackIdx).map((h,i)=>(<div key={i} className="anim" style={{padding:"6px 10px",marginBottom:4,borderInlineStart:"2px solid var(--vio)",background:theme.panelAlt,borderRadius:8,fontSize:12,color:theme.textDim}}><b style={{color:theme.text}}>{h.cust||"—"}</b> · 📍 {h.stage} · {h.by} · {fmtTime(h.at,lang)}</div>))}{blackIdx===0&&<p style={{textAlign:"center",color:theme.textDim,fontSize:12,padding:20}}>دوس ▶️ وشوف اليوم بيتفك قدامك</p>}</div></div></div>)}
+{ownerName&&!showAsk&&!showChat&&(<button onClick={()=>setShowAsk(true)} aria-label="اسأل مصنعك" style={{position:"fixed",bottom:96,right:14,zIndex:400,width:56,height:56,borderRadius:"50%",border:"none",background:"linear-gradient(135deg,var(--vio),var(--blue))",color:"#fff",fontSize:26,cursor:"pointer",boxShadow:"0 8px 24px rgba(45,140,116,.55)",display:"flex",alignItems:"center",justifyContent:"center",animation:"floaty 2.5s infinite"}}>🤖</button>)}
+{showBlack&&canEditFields&&(<div className="modal" onClick={()=>setShowBlack(false)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:420}}><h3 style={{margin:"0 0 10px"}}>⚫ الصندوق الأسود</h3><p style={{fontSize:11,color:theme.textDim,marginBottom:8}}>🎬 إعادة تشغيل اليوم حركة بحركة — كل نقله مين عملها وإمتى</p><div style={{display:"flex",gap:6,alignItems:"center",marginBottom:10}}><button className="btnG" style={{flex:1}} onClick={()=>{if(blackPlay){setBlackPlay(0);}else{setBlackIdx(0);setBlackPlay(1);}}}>{blackPlay?"⏸️ إيقاف":"▶️ تشغيل اليوم"}</button><span style={{fontSize:11,color:theme.textDim}}>{Math.min(blackIdx,blackList().length)}/{blackList().length}</span></div><div style={{maxHeight:320,overflow:"auto"}}>{blackList().slice(0,blackIdx).map((h,i)=>(<div key={i} className="anim" style={{padding:"6px 10px",marginBottom:4,borderInlineStart:"2px solid var(--vio)",background:theme.panelAlt,borderRadius:8,fontSize:12,color:theme.textDim}}><b style={{color:theme.text}}>{h.cust||"—"}</b> · 📍 {h.stage} · {h.by} · {fmtTime(h.at,lang)}</div>))}{blackIdx===0&&<p style={{textAlign:"center",color:theme.textDim,fontSize:12,padding:20}}>دوس ▶️ وشوف اليوم بيتفك قدامك</p>}</div></div></div>)}
 {photoView&&(
 <div className="modal" onClick={()=>setPhotoView(null)}>
 <div onClick={e=>e.stopPropagation()} style={{maxWidth:520,width:"100%",textAlign:"center"}}><img src={photoView.photo} style={{width:"100%",borderRadius:16}}/><p style={{color:"#fff",fontSize:13,marginTop:10}}>{photoView.customer} · {photoView.code}</p></div>
@@ -1187,7 +1266,14 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 {editingCard&&(
 <div className="modal" onClick={()=>setEditingCard(null)}>
 <div className="mbox" onClick={e=>e.stopPropagation()}>
-<div style={{display:"flex",justifyContent:"space-between",marginBottom:14}}><h3 style={{margin:0,fontSize:17}}>{cards.some(c=>c.id===editingCard.id)?t.edit:t.newCard}{!can?" 👁️":""}</h3><button onClick={()=>setEditingCard(null)} style={{background:"none",border:"none",color:theme.textDim,fontSize:20}}>✕</button></div>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:8,marginBottom:14,position:"sticky",top:-20,zIndex:5,background:theme.panel,paddingTop:20,marginTop:-20,paddingBottom:10}}>
+<h3 style={{margin:0,fontSize:17}}>{cards.some(c=>c.id===editingCard.id)?t.edit:t.newCard}{!can?" 👁️":""}</h3>
+<div style={{display:"flex",gap:6,alignItems:"center",flexShrink:0}}>
+{can&&<button onClick={()=>saveCard({...editingCard,__dupWarning:undefined},!!editingCard.__dupWarning)} className="btnG" style={{padding:"8px 14px",fontSize:13}}>{editingCard.__dupWarning?t.saveAnyway:t.save}</button>}
+{can&&<button onClick={()=>setEditingCard(null)} className="btnO" style={{padding:"8px 14px",fontSize:13}}>{t.cancel}</button>}
+<button onClick={()=>setEditingCard(null)} style={{background:"none",border:"none",color:theme.textDim,fontSize:20}}>✕</button>
+</div>
+</div>
 <fieldset disabled={!can}>
 {editingCard.__dupWarning&&<div className="card" style={{borderColor:"var(--red)",padding:12,marginBottom:12,fontSize:13.5}}>⚠️ {t.duplicateWarning}</div>}
 {can&&cards.some(c=>c.id===editingCard.id)&&(<>
@@ -1213,7 +1299,6 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 {(()=>{const qp=queuePos(editingCard);if(!qp||editingCard.delivered)return null;return(<div style={{padding:"8px 12px",marginBottom:10,background:"rgba(27,143,130,.08)",border:"1px solid rgba(27,143,130,.35)",borderRadius:12,fontSize:12,color:theme.textDim}}>📍 ترتيبك في مرحلة <b>{editingCard.stage}</b>: <b style={{color:"var(--teal)"}}>{qp.pos} من {qp.total}</b> — الأقدم بيتشتغل الأول</div>);})()}
 {(()=>{if(!editingCard||editingCard.delivered)return null;const eta=etaOf(editingCard);if(!eta)return null;const d=Math.max(0,Math.round((eta-Date.now())/86400000));return(<div style={{padding:"8px 12px",marginBottom:12,background:"rgba(201,151,63,.10)",border:"1px solid rgba(201,151,63,.35)",borderRadius:12,fontSize:12,color:theme.textDim}}>🗓️ الجاهزية المتوقعة: <b style={{color:"var(--blue)"}}>{new Date(eta).toLocaleDateString(lang==="ar"?"ar-EG":"en-GB",{weekday:"long",day:"numeric",month:"long"})}</b> (بعد ~{d} يوم)</div>);})()}
 {Array.isArray(editingCard.history)&&editingCard.history.length>0&&(<div style={{marginBottom:14}}><div className="lbl">📜 {t.history}</div>{editingCard.history.slice().reverse().map((h,i)=>{const arr=editingCard.history;const idx=arr.indexOf(h);const nxt=arr[idx+1];const ms=(nxt?toMs(nxt.at):Date.now())-toMs(h.at);return(<div key={i} style={{display:"flex",gap:8,flexWrap:"wrap",fontSize:12,color:theme.textDim,padding:"6px 10px",marginBottom:4,borderInlineStart:"2px solid var(--vio)",background:theme.panelAlt,borderRadius:8}}><span>📍 {h.stage}</span><span>· {h.by}</span><span>· {fmtTime(h.at,lang)}</span><span style={{color:"var(--warn)",fontWeight:800}}>⏱️ {fmtDur(ms)}</span></div>);})}</div>)}
-{can&&<div style={{display:"flex",gap:8}}><button onClick={()=>saveCard({...editingCard,__dupWarning:undefined},!!editingCard.__dupWarning)} className="btnG">{editingCard.__dupWarning?t.saveAnyway:t.save}</button><button onClick={()=>setEditingCard(null)} className="btnO">{t.cancel}</button></div>}
 {can&&cards.some(c=>c.id===editingCard.id)&&nextStageOf(editingCard.stage)&&(<button onClick={()=>{const n=nextStageOf(editingCard.stage);const c=editingCard;setEditingCard(null);moveCardTo(c,n);}} className="btnO" style={{marginTop:8}}>⏭️ → {nextStageOf(editingCard.stage)}</button>)}
 </fieldset>
 </div></div>)}
@@ -1222,6 +1307,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:340,padding:10}}>
 <div style={{padding:"8px 10px 12px",fontWeight:800}}>{actionCard.customer} · {actionCard.code}</div>
 {[
+{icon:"📋",label:"تفاصيل",fn:()=>setShowDetails(actionCard)},
 ...(can?[{icon:"✏️",label:t.edit,fn:()=>{setEditingCard(actionCard);setActionCard(null);}}]:[]),
 ...(can&&nextStageOf(actionCard.stage)?[{icon:"⏭️",label:t.nextStage,fn:()=>moveCardTo(actionCard,nextStageOf(actionCard.stage))}]:[]),
 {icon:"👤",label:t.statement,fn:()=>{setStatementFor(actionCard.customer);setActionCard(null);}},
@@ -1237,14 +1323,11 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 {icon:"🖨️",label:t.printCard,fn:()=>{setPrintTarget(actionCard);setActionCard(null);}},
 {icon:"🔳",label:t.showBarcode,fn:()=>{setBcCard(actionCard);setActionCard(null);}},
 {icon:"📱",label:t.showQr,fn:()=>{setQrCard(actionCard);setActionCard(null);}},
-{icon:"📊",label:"تفاصيل",fn:()=>{setCardDetails(actionCard);setActionCard(null);}},
 ...(actionCard.photo?[{icon:"🖼️",label:t.viewPhoto,fn:()=>{setPhotoView(actionCard);setActionCard(null);}}]:[]),
 ...(can?[{icon:"🗄️",label:actionCard.archived?t.unarchive:t.archiveCard,fn:()=>toggleArchive(actionCard)},
 {icon:"🗑️",label:t.delete,fn:()=>undoDelete(actionCard),danger:true}]:[])
 ].map((it,i)=>(<button key={i} onClick={it.fn} className="anim" style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:"12px 10px",background:"transparent",border:"none",borderTop:"1px solid "+theme.border,color:it.danger?"var(--red)":theme.text,fontSize:14.5,textAlign:"start",animationDelay:(i*40)+"ms"}}>{it.icon} {it.label}</button>))}
 </div></div>)}
-{cardDetails&&(<div className="modal" onClick={()=>setCardDetails(null)}><div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:500}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}><h3 style={{margin:0,fontSize:18}}>📊 تفاصيل الكرت</h3><button onClick={()=>setCardDetails(null)} style={{background:"none",border:"none",color:theme.textDim,fontSize:20}}>✕</button></div><div style={{fontSize:13,color:theme.textDim,lineHeight:"1.8"}}><div style={{padding:"10px 12px",background:theme.panelAlt,borderRadius:10,marginBottom:12}}><b>الكود:</b> {cardDetails.code}<br/><b>العميل:</b> {cardDetails.customer}<br/><b>المرحلة الحالية:</b> {cardDetails.stage}<br/><b>تاريخ الإضافة:</b> {new Date(cardDetails.createdAt).toLocaleString(lang==="ar"?"ar-EG":"en-GB")}</div>{Array.isArray(cardDetails.history)&&cardDetails.history.length>0&&<div><div style={{fontWeight:700,marginBottom:8,fontSize:14}}>📋 سجل الحركة:</div>{cardDetails.history.slice().reverse().map((h,i)=>{const arr=cardDetails.history;const idx=arr.indexOf(h);const nxt=arr[idx+1];const ms=(nxt?toMs(nxt.at):Date.now())-toMs(h.at);const dur=Math.floor(ms/3600000)+"س "+(Math.floor((ms%3600000)/60000))+"د";return(<div key={i} style={{padding:"8px 10px",background:theme.panelAlt,borderRadius:8,marginBottom:6,borderLeft:"3px solid var(--teal)"}}><div><b>📍 {h.stage}</b> — <span style={{fontSize:12,color:theme.textDim}}>بواسطة {h.by}</span></div><div style={{fontSize:12,color:theme.textDim,marginTop:4}}>🕐 {fmtTime(h.at,lang)} ({dur})</div></div>);})}</div>}</div></div></div>)}
-
 {moveCard_&&(
 <div className="modal" onClick={()=>setMoveCard(null)}>
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:340}}>
@@ -1264,11 +1347,30 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div style={{display:"flex",justifyContent:"center",margin:"10px 0"}}><QrView value={pubUrl(qrCard)+(pubUrl(qrCard).indexOf("?")>=0?"&":"?")+"live="+qrCard.id+"&c="+(localStorage.getItem("companyID")||"DEFAULT")} size={200}/></div>
 <p style={{fontSize:13,color:theme.textDim}}>{qrCard.customer} · {qrCard.barcode||qrCard.code}</p>
 </div></div>)}
+{showDetails&&(
+<div className="modal" onClick={()=>setShowDetails(null)}>
+<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:480}}>
+<h3 style={{margin:"0 0 12px"}}>📋 تفاصيل الكرت — {showDetails.customer} · {showDetails.code}</h3>
+<div style={{fontSize:12,color:"var(--dim)",lineHeight:1.8,marginBottom:12}}>
+<div><b>📅 تاريخ الإنشاء:</b> {showDetails.createdAt?fmtTime(showDetails.createdAt,lang):"—"}</div>
+<div><b>📊 العمر الكلي:</b> {showDetails.createdAt?Math.floor((Date.now()-toMs(showDetails.createdAt))/3600000)+"س":"—"}</div>
+</div>
+{allLogs.filter(l=>l.cardCode===showDetails.code).length>0&&(<div>
+<b style={{fontSize:13}}>🔄 سجل الانتقالات:</b>
+<div style={{marginTop:8}}>
+{allLogs.filter(l=>l.cardCode===showDetails.code).reverse().slice(0,50).map((log,i)=>(<div key={log.id||i} style={{fontSize:11,padding:"8px",background:"var(--panel2)",borderRadius:8,marginBottom:4}}>
+<div style={{color:"var(--txt)",fontWeight:700}}>{log.action}</div>
+<div style={{color:"var(--dim)",fontSize:10}}>{fmtTime(log.time||log.timeLocal,lang)} — {log.person}</div>
+</div>))}
+</div>
+</div>)}
+</div></div>)}
 {showSearch&&(
 <div className="modal" onClick={()=>setShowSearch(false)}>
 <div className="mbox" onClick={e=>e.stopPropagation()}>
-<h3 style={{margin:"0 0 14px"}}>{t.search}</h3>
-<SearchModal t={t} cards={liveCards} onPick={c=>{setShowSearch(false);jumpToCard(c);}}/>
+<h3 style={{margin:"0 0 4px"}}>🔍 {t.search}</h3>
+<p style={{fontSize:11.5,color:theme.textDim,margin:"0 0 10px"}}>{searchScope==="stage"?"بيدور بس في الكروت الشغالة في المراحل":"بيدور في كل مكان: الشغل الحالي، المخزن المجهز، الأرشيف، المسلّم"}</p>
+<SearchModal t={t} cards={searchScope==="stage"?liveCards:cards} onPick={c=>{setShowSearch(false);jumpToCard(c);}}/>
 </div></div>)}
 {showStored&&(
 <div className="modal" onClick={()=>{setShowStored(false);setStoredSearch("");}}>
@@ -1287,6 +1389,13 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div style={{flex:1}}>
 <div style={{fontSize:11,fontWeight:800,color:"var(--dim)"}}>الدور الحالي</div>
 <div style={{fontSize:14,fontWeight:900}}>{localStorage.getItem("role")==="master"?"ماستر النظام":localStorage.getItem("role")==="manager"?"مالك الشركة":localStorage.getItem("role")==="assistant"?"مساعد مدير":"عامل"} — {localStorage.getItem("username")}</div>
+</div>
+</div>
+<div style={{display:"flex",alignItems:"center",gap:8,padding:"10px 12px",background:"rgba(201,151,63,.08)",border:"1px solid var(--line)",borderRadius:12,marginBottom:12,cursor:"pointer"}} onClick={()=>setTheme(t=>t==="dark"?"light":"dark")}>
+<div style={{fontSize:22}}>{theme==="dark"?"🌙":"☀️"}</div>
+<div style={{flex:1}}>
+<div style={{fontSize:11,fontWeight:800,color:"var(--dim)"}}>{theme==="dark"?"الوضع الليلي":"الوضع النهاري"}</div>
+<div style={{fontSize:14,fontWeight:900}}>{theme==="dark"?"اضغط للنهاري":"اضغط للليلي"}</div>
 </div>
 </div>
 {(localStorage.getItem("role")==="manager"||localStorage.getItem("role")==="assistant")&&<WorkersPanel/>}
@@ -1329,7 +1438,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div className="lbl">🔧 {t.manageMachines}</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{machines.map(m=><button key={m} onClick={()=>{if(confirm(t.delete+" "+m))saveMachines(machines.filter(x=>x!==m));}} className="chip">{m} ✕</button>)}<button onClick={()=>{const n=prompt(t.add);if(n&&n.trim()&&!machines.includes(n.trim()))saveMachines(machines.concat([n.trim()]));}} className="chip on">➕</button></div>
 <div className="lbl">🎨 {t.manageColors}</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{customColors.map(c=><button key={c} onClick={()=>saveColors(customColors.filter(x=>x!==c))} className="chip">{c} ✕</button>)}<button onClick={()=>{const n=prompt(t.add);if(n&&n.trim())saveColors(customColors.concat([n.trim()]));}} className="chip on">➕</button></div>
 {canEditFields&&(<>
-<div className="lbl" style={{marginTop:14}}>🎴 إدارة الخانات (للمالك فقط)</div>
+<div className="lbl">🎴 شكل الكرت (بيانات الكرت)</div>
 <div style={{marginBottom:10}}>{cardFields.map((f,i)=>(<div key={f.key} style={{display:"flex",gap:6,alignItems:"center",marginBottom:6}}>
 <span style={{flex:1,fontSize:13,opacity:f.visible===false?.45:1}}>{fldLabel(f)}</span>
 <button onClick={()=>fldOrder(f.key,-1)} className="chip" disabled={i===0}>⬆️</button>
@@ -1337,7 +1446,6 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <button onClick={()=>fldToggle(f.key)} className={"chip"+(f.visible===false?"":" on")}>{f.visible===false?"🙈":"👁️"}</button>
 {f.custom&&<button onClick={()=>fldDel(f.key)} className="chip">🗑️</button>}
 </div>))}</div>
-<div style={{marginBottom:10,padding:"12px",background:theme.panelAlt,borderRadius:10,fontSize:12,color:theme.textDim}}>لا توجد خانات مخصصة</div>
 <button onClick={fldAdd} className="chip on" style={{marginBottom:10}}>➕ إضافة خانة مخصصة</button>
 </>)}
 <div className="lbl">🚩 أعلام الكروت</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{(factory.flags||[]).map(f=><button key={f} onClick={()=>{if(confirm("حذف العلم: "+f)){setFactory(ff=>({...ff,flags:(ff.flags||[]).filter(x=>x!==f)}));db.collection("config").doc("factory").set({flags:firebase.firestore.FieldValue.arrayRemove(f)},{merge:true});}}} className="chip">{f} ✕</button>)}<button onClick={()=>{const n=prompt("اسم العلم الجديد (مثال: 🖨️ طباعة قماش)");if(n&&n.trim()){setFactory(f=>({...f,flags:[...(f.flags||[]),n.trim()]}));db.collection("config").doc("factory").set({flags:firebase.firestore.FieldValue.arrayUnion(n.trim())},{merge:true});}}} className="chip on">➕</button></div>
@@ -1430,10 +1538,11 @@ return <div>
 }
 function SearchModal({t,cards,onPick}){
 const [q,setQ]=useState("");
-const r=q.trim()?cards.filter(c=>FIELD_KEYS.some(k=>(c[k]||"").toString().toLowerCase().includes(q.toLowerCase()))).slice(0,20):[];
+const r=q.trim()?cards.filter(c=>FIELD_KEYS.some(k=>(c[k]||"").toString().toLowerCase().includes(q.toLowerCase()))).slice(0,30):[];
+const statusOf=c=>c.archived?"🗄️ مؤرشف":c.stored?"📦 مخزن مجهز":c.delivered?"✅ مسلّم":("⚙️ "+(c.stage||"—"));
 return(<div><input autoFocus value={q} onChange={e=>setQ(e.target.value)} placeholder={t.search} className="inp"/>
 {q.trim()&&r.length===0&&<p style={{color:"var(--dim)",fontSize:13,textAlign:"center"}}>{t.noResults}</p>}
-<div>{r.map((c,i)=>(<div key={c.id} onClick={()=>onPick(c)} className="card anim" style={{cursor:"pointer",padding:"10px 12px",marginBottom:8,animationDelay:(i*40)+"ms"}}><b style={{fontSize:14}}>{c.customer} · {c.code}</b><div style={{fontSize:12,color:"var(--dim)"}}>{c.stage} — {c.color}</div></div>))}</div></div>);
+<div>{r.map((c,i)=>(<div key={c.id} onClick={()=>onPick(c)} className="card anim" style={{cursor:"pointer",padding:"10px 12px",marginBottom:8,animationDelay:(i*40)+"ms"}}><b style={{fontSize:14}}>{c.customer} · {c.code}</b><div style={{fontSize:12,color:"var(--dim)"}}>{statusOf(c)} — {c.color}</div></div>))}</div></div>);
 }
 const LP_DICT={
 ar:{},
