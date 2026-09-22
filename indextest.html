@@ -358,8 +358,8 @@ const stDel=s=>{const rest=stages.filter(x=>x!==s);const to=prompt("⚠️ كر�
 const [stageQ,setStageQ]=useState("");
 const [announce,setAnnounce]=useState(null);const [showAnnounce,setShowAnnounce]=useState(false);const [announceDraft,setAnnounceDraft]=useState("");const [annDismissed,setAnnDismissed]=useState(localStorage.getItem("ann_dismiss"));
 const [showAnnounceSeen,setShowAnnounceSeen]=useState(false);const annSeenMarked=useRef(null);
-const [theme,setTheme]=useState(()=>localStorage.getItem("theme")||"dark");
-React.useEffect(()=>{document.documentElement.setAttribute("data-theme",theme);localStorage.setItem("theme",theme);},[theme]);
+const [themeMode,setThemeMode]=useState(()=>localStorage.getItem("theme")||"dark");
+React.useEffect(()=>{document.documentElement.setAttribute("data-theme",themeMode);localStorage.setItem("theme",themeMode);},[themeMode]);
 const [showSettings,setShowSettings]=useState(false);const [showSearch,setShowSearch]=useState(false);const [searchScope,setSearchScope]=useState("all");
 const [showMenu,setShowMenu]=useState(false);const [showScanner,setShowScanner]=useState(false);
 const [bcCard,setBcCard]=useState(null);const [nameDraft,setNameDraft]=useState("");
@@ -1391,11 +1391,11 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div style={{fontSize:14,fontWeight:900}}>{localStorage.getItem("role")==="master"?"ماستر النظام":localStorage.getItem("role")==="manager"?"مالك الشركة":localStorage.getItem("role")==="assistant"?"مساعد مدير":"عامل"} — {localStorage.getItem("username")}</div>
 </div>
 </div>
-<div style={{display:"flex",alignItems:"center",gap:8,padding:"10px 12px",background:"rgba(201,151,63,.08)",border:"1px solid var(--line)",borderRadius:12,marginBottom:12,cursor:"pointer"}} onClick={()=>setTheme(t=>t==="dark"?"light":"dark")}>
-<div style={{fontSize:22}}>{theme==="dark"?"🌙":"☀️"}</div>
+<div style={{display:"flex",alignItems:"center",gap:8,padding:"10px 12px",background:"rgba(201,151,63,.08)",border:"1px solid var(--line)",borderRadius:12,marginBottom:12,cursor:"pointer"}} onClick={()=>setThemeMode(t=>t==="dark"?"light":"dark")}>
+<div style={{fontSize:22}}>{themeMode==="dark"?"🌙":"☀️"}</div>
 <div style={{flex:1}}>
-<div style={{fontSize:11,fontWeight:800,color:"var(--dim)"}}>{theme==="dark"?"الوضع الليلي":"الوضع النهاري"}</div>
-<div style={{fontSize:14,fontWeight:900}}>{theme==="dark"?"اضغط للنهاري":"اضغط للليلي"}</div>
+<div style={{fontSize:11,fontWeight:800,color:"var(--dim)"}}>{themeMode==="dark"?"الوضع الليلي":"الوضع النهاري"}</div>
+<div style={{fontSize:14,fontWeight:900}}>{themeMode==="dark"?"اضغط للنهاري":"اضغط للليلي"}</div>
 </div>
 </div>
 {(localStorage.getItem("role")==="manager"||localStorage.getItem("role")==="assistant")&&<WorkersPanel/>}
