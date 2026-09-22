@@ -358,8 +358,6 @@ const stDel=s=>{const rest=stages.filter(x=>x!==s);const to=prompt("⚠️ كر�
 const [stageQ,setStageQ]=useState("");
 const [announce,setAnnounce]=useState(null);const [showAnnounce,setShowAnnounce]=useState(false);const [announceDraft,setAnnounceDraft]=useState("");const [annDismissed,setAnnDismissed]=useState(localStorage.getItem("ann_dismiss"));
 const [showAnnounceSeen,setShowAnnounceSeen]=useState(false);const annSeenMarked=useRef(null);
-const [themeMode,setThemeMode]=useState(()=>localStorage.getItem("theme")||"dark");
-React.useEffect(()=>{document.documentElement.setAttribute("data-theme",themeMode);localStorage.setItem("theme",themeMode);},[themeMode]);
 const [showSettings,setShowSettings]=useState(false);const [showSearch,setShowSearch]=useState(false);const [searchScope,setSearchScope]=useState("all");
 const [showMenu,setShowMenu]=useState(false);const [showScanner,setShowScanner]=useState(false);
 const [bcCard,setBcCard]=useState(null);const [nameDraft,setNameDraft]=useState("");
@@ -395,6 +393,7 @@ useEffect(()=>{document.documentElement.lang=lang;document.documentElement.dir=d
 const can=true;unlocked;
 const canEditFields=["manager","assistant","master"].includes(localStorage.getItem("role")||"");
 const [themeMode,setThemeMode]=useState(localStorage.getItem("themeMode")||"dark");
+React.useEffect(()=>{document.documentElement.setAttribute("data-theme",themeMode);localStorage.setItem("themeMode",themeMode);},[themeMode]);
 const [prefVib,setPrefVib]=useState(localStorage.getItem("prefVib")!=="0");
 const [prefSnd,setPrefSnd]=useState(localStorage.getItem("prefSnd")!=="0");
 const fx=(kind)=>{if(prefVib&&navigator.vibrate)navigator.vibrate(kind==="danger"?[60,40,60]:30);if(prefSnd){try{const AC=window.AudioContext||window.webkitAudioContext;const ac=new AC();const o=ac.createOscillator();const g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=kind==="danger"?320:880;g.gain.value=.06;o.start();o.stop(ac.currentTime+.12);}catch(e){}}};
