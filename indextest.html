@@ -642,10 +642,6 @@ return(
 <div style={{width:44,height:44,borderRadius:14,background:"linear-gradient(135deg,var(--red),var(--warn))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>🧾</div>
 <div><div style={{fontSize:13,fontWeight:800}}>العيوب والمرتجعات</div><div style={{fontSize:10.5,color:theme.textDim,marginTop:2}}>{defects.length} مسجلة</div></div>
 </div>
-<div onClick={e=>{e.stopPropagation();setShowStagesExport(true);}} style={{display:"flex",alignItems:"center",gap:8,background:"rgba(201,151,63,.10)",border:"1px solid rgba(201,151,63,.35)",borderRadius:14,padding:8,cursor:"pointer"}}>
-<div style={{width:44,height:44,borderRadius:14,background:"linear-gradient(135deg,var(--warn),var(--teal))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>📊</div>
-<div><div style={{fontSize:13,fontWeight:800}}>استخراج مراحل</div><div style={{fontSize:10.5,color:theme.textDim,marginTop:2}}>تنزيل ملف CSV</div></div>
-</div>
 </div>
 <div className="card anim" style={{animationDelay:"360ms",margin:"12px 0"}}>
 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><span style={{fontSize:20}}>🏆</span><b style={{fontSize:15}}>الانجازات</b></div>
@@ -706,6 +702,7 @@ return(<div key={c.id} className="card" onClick={()=>jumpToCard(c)} style={{curs
 <button onClick={()=>setScreen("home")} style={hdrBtn}>→</button>
 <div style={{flex:1}}><div style={{fontSize:19,fontWeight:900}}>مراحل العمل</div><div style={{fontSize:11,color:theme.textDim}}>تابع جميع مراحل الإنتاج</div></div>
 <button onClick={()=>setShowSearch(true)} style={hdrBtn}>🔍</button>
+<button onClick={()=>setShowStagesExport(true)} style={hdrBtn}>📊</button>
 {can&&<button onClick={()=>setShowStageMgr(true)} style={hdrBtn}>⚙️</button>}
 <button onClick={()=>setShowSched(true)} style={hdrBtn}>📅</button>
 </div>
