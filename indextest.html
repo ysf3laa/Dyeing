@@ -1329,7 +1329,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div className="lbl">🔧 {t.manageMachines}</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{machines.map(m=><button key={m} onClick={()=>{if(confirm(t.delete+" "+m))saveMachines(machines.filter(x=>x!==m));}} className="chip">{m} ✕</button>)}<button onClick={()=>{const n=prompt(t.add);if(n&&n.trim()&&!machines.includes(n.trim()))saveMachines(machines.concat([n.trim()]));}} className="chip on">➕</button></div>
 <div className="lbl">🎨 {t.manageColors}</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{customColors.map(c=><button key={c} onClick={()=>saveColors(customColors.filter(x=>x!==c))} className="chip">{c} ✕</button>)}<button onClick={()=>{const n=prompt(t.add);if(n&&n.trim())saveColors(customColors.concat([n.trim()]));}} className="chip on">➕</button></div>
 {canEditFields&&(<>
-<div className="lbl">🎴 شكل الكرت (بيانات الكرت)</div>
+<div className="lbl" style={{marginTop:14}}>🎴 إدارة الخانات (للمالك فقط)</div>
 <div style={{marginBottom:10}}>{cardFields.map((f,i)=>(<div key={f.key} style={{display:"flex",gap:6,alignItems:"center",marginBottom:6}}>
 <span style={{flex:1,fontSize:13,opacity:f.visible===false?.45:1}}>{fldLabel(f)}</span>
 <button onClick={()=>fldOrder(f.key,-1)} className="chip" disabled={i===0}>⬆️</button>
@@ -1337,6 +1337,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <button onClick={()=>fldToggle(f.key)} className={"chip"+(f.visible===false?"":" on")}>{f.visible===false?"🙈":"👁️"}</button>
 {f.custom&&<button onClick={()=>fldDel(f.key)} className="chip">🗑️</button>}
 </div>))}</div>
+<div style={{marginBottom:10,padding:"12px",background:theme.panelAlt,borderRadius:10,fontSize:12,color:theme.textDim}}>لا توجد خانات مخصصة</div>
 <button onClick={fldAdd} className="chip on" style={{marginBottom:10}}>➕ إضافة خانة مخصصة</button>
 </>)}
 <div className="lbl">🚩 أعلام الكروت</div><div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>{(factory.flags||[]).map(f=><button key={f} onClick={()=>{if(confirm("حذف العلم: "+f)){setFactory(ff=>({...ff,flags:(ff.flags||[]).filter(x=>x!==f)}));db.collection("config").doc("factory").set({flags:firebase.firestore.FieldValue.arrayRemove(f)},{merge:true});}}} className="chip">{f} ✕</button>)}<button onClick={()=>{const n=prompt("اسم العلم الجديد (مثال: 🖨️ طباعة قماش)");if(n&&n.trim()){setFactory(f=>({...f,flags:[...(f.flags||[]),n.trim()]}));db.collection("config").doc("factory").set({flags:firebase.firestore.FieldValue.arrayUnion(n.trim())},{merge:true});}}} className="chip on">➕</button></div>
