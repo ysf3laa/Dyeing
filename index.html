@@ -8,11 +8,16 @@
 <link rel="icon" href="icon.svg">
 <meta name="mobile-web-app-capable" content="yes">
 <title>متابعة المراحل</title>
+<script>try{document.documentElement.setAttribute("data-theme",localStorage.getItem("themeMode")||"dark");}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=Cairo:wght@400;600;700;800;900&family=Cinzel:wght@500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
 :root{--bg:#0A1015;--panel:#101A24;--panel2:#131F2B;--line:#223038;--txt:#EAF2EF;--dim:#7FA79E;--vio:#2D8C74;--vio2:#7FEEDD;--blue:#C9973F;--teal:#1B8F82;--red:#E2544C;--warn:#E0B84A}
+[data-theme="light"]{--bg:#F3F4FA;--panel:#EDF1F8;--panel2:#FFFFFF;--line:#DCE1EA;--txt:#16202A;--dim:#5B6B78;--vio:#1F7A63;--vio2:#0E7A66;--blue:#9C7228;--teal:#136F63;--red:#D6443C;--warn:#A5790F}
+[data-theme="light"] body{background:radial-gradient(900px 480px at 85% -10%,rgba(31,122,99,.08),transparent),radial-gradient(700px 400px at -10% 30%,rgba(19,111,99,.05),transparent),var(--bg)}
+[data-theme="light"] .navbar{background:rgba(243,244,250,.85)}
+[data-theme="light"] .modal{background:rgba(22,32,42,.35)}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:'Tajawal',system-ui,sans-serif;background:radial-gradient(900px 480px at 85% -10%,rgba(45,140,116,.14),transparent),radial-gradient(700px 400px at -10% 30%,rgba(27,143,130,.07),transparent),var(--bg);color:var(--txt);min-height:100vh}
 input,select,textarea,button{font-family:inherit;color:var(--txt)}button{cursor:pointer}
@@ -27,8 +32,8 @@ fieldset{border:none;margin:0;padding:0;min-width:0}
 @keyframes growH{from{height:0}}
 @keyframes ping{0%{transform:scale(1);opacity:.7}100%{transform:scale(2.4);opacity:0}}
 @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
-.anim{animation:fadeUp .55s both}
-.card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:20px;padding:16px;animation:fadeUp .55s both}
+.anim{animation:fadeUp .28s both}
+.card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:20px;padding:16px;animation:fadeUp .28s both}
 .card:active{transform:scale(.985)}
 .grad{background:linear-gradient(135deg,var(--vio),var(--blue));box-shadow:0 10px 30px rgba(45,140,116,.35)}
 .btnG{background:linear-gradient(135deg,var(--vio),var(--blue));border:none;color:#fff;border-radius:14px;padding:13px 18px;font-weight:800;font-size:14px;box-shadow:0 8px 24px rgba(45,140,116,.35);transition:transform .15s;width:100%}
@@ -39,10 +44,10 @@ fieldset{border:none;margin:0;padding:0;min-width:0}
 .inp:focus{border-color:var(--vio)}
 .chip{padding:7px 12px;border-radius:20px;border:1px solid var(--line);background:transparent;color:var(--dim);font-size:12px;font-weight:700;transition:all .2s}
 .chip.on{background:linear-gradient(135deg,var(--vio),var(--blue));border-color:transparent;color:#fff;box-shadow:0 4px 14px rgba(45,140,116,.4)}
-.badge{font-size:10.5px;font-weight:800;color:#fff;border-radius:20px;padding:4px 10px;display:inline-block;animation:pop .4s both}
+.badge{font-size:10.5px;font-weight:800;color:#fff;border-radius:20px;padding:4px 10px;display:inline-block;animation:pop .22s both}
 .lbl{font-size:12px;font-weight:800;margin-bottom:6px;color:var(--dim)}
 .tldot{width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;animation:glow 2.8s infinite;position:relative;z-index:2}
-.tlline{width:3px;background:linear-gradient(180deg,var(--vio),var(--teal));animation:growH 1s both}
+.tlline{width:3px;background:linear-gradient(180deg,var(--vio),var(--teal));animation:growH .5s both}
 .navbar{position:fixed;bottom:0;left:0;right:0;background:rgba(10,16,21,.85);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);display:flex;justify-content:space-around;align-items:center;padding:8px 6px calc(10px + env(safe-area-inset-bottom));z-index:300;animation:fadeUp .5s both}
 .navi{background:none;border:none;color:var(--dim);font-size:10px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 10px;border-radius:12px;transition:color .2s}
 .navi span{font-size:19px;transition:transform .25s}
@@ -52,13 +57,13 @@ fieldset{border:none;margin:0;padding:0;min-width:0}
 .navplus:active{transform:scale(.9)}
 .ring{position:relative;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column}
 .bar{height:8px;border-radius:8px;background:var(--line);overflow:hidden}
-.bar i{display:block;height:8px;border-radius:8px;animation:growW 1s both}
+.bar i{display:block;height:8px;border-radius:8px;animation:growW .5s both}
 .shimmer{background:linear-gradient(90deg,var(--panel) 25%,var(--panel2) 50%,var(--panel) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite}
 .syncing-bar{position:fixed;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--vio),var(--teal),var(--vio));background-size:200% 100%;animation:shimmer 1.5s linear infinite;z-index:9999;display:none}
 .syncing-bar.active{display:block}
 #bc-reader video{border-radius:12px}
-.modal{position:fixed;inset:0;background:rgba(10,16,21,.7);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:400;padding:16px;animation:pop .25s both}
-.mbox{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:24px;padding:20px;width:100%;max-width:460px;max-height:88vh;overflow-y:auto;animation:fadeUp .35s both}
+.modal{position:fixed;inset:0;background:rgba(10,16,21,.7);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:400;padding:16px;animation:pop .15s both}
+.mbox{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:24px;padding:20px;width:100%;max-width:460px;max-height:88vh;overflow-y:auto;animation:fadeUp .2s both}
 button{transition:transform .15s ease,opacity .15s ease}
 button:active:not(:disabled){transform:scale(.94)}
 .chip:active{transform:scale(.92)}
@@ -329,7 +334,16 @@ const [showFlags,setShowFlags]=useState(false);
 const [screen,setScreen]=useState("home");const [activeStage,setActiveStage]=useState(null);
 const [lateOnly,setLateOnly]=useState(false);
 const [selectMode,setSelectMode]=useState(false);const [selected,setSelected]=useState([]);const [bulkMoveTo,setBulkMoveTo]=useState("");
+const [detailsCard,setDetailsCard]=useState(null);
 const toggleSelect=id=>{setSelected(s=>s.includes(id)?s.filter(x=>x!==id):s.concat([id]));};
+const [stageSelectMode,setStageSelectMode]=useState(false);const [selectedStages,setSelectedStages]=useState([]);const [showStageBulkMove,setShowStageBulkMove]=useState(false);
+const toggleStageSelect=s=>{setSelectedStages(x=>x.includes(s)?x.filter(y=>y!==s):x.concat([s]));};
+const exitStageSelect=()=>{setStageSelectMode(false);setSelectedStages([]);};
+const bulkDeleteStages=()=>{if(!selectedStages.length)return;const withCards=confirm("⚠️ تحذف كروت المراحل دي كمان؟\n(إلغاء = حذف أسماء المراحل بس والكروت تفضل موجودة)");if(withCards){cards.filter(c=>selectedStages.includes(c.stage)).forEach(c=>db.collection("cards").doc(c.id).delete());}saveStages(stages.filter(s=>!selectedStages.includes(s)));exitStageSelect();};
+const bulkArchiveStages=()=>{if(!selectedStages.length)return;cards.filter(c=>selectedStages.includes(c.stage)).forEach(c=>db.collection("cards").doc(c.id).set({archived:true},{merge:true}));showToast("🗄️ ✅");exitStageSelect();};
+const bulkDeliverStages=()=>{if(!selectedStages.length)return;cards.filter(c=>selectedStages.includes(c.stage)).forEach(c=>db.collection("cards").doc(c.id).set({delivered:true,deliveredAt:Date.now()},{merge:true}));showToast("✅ ✅");exitStageSelect();};
+const bulkExportStages=()=>{if(!selectedStages.length)return;exportSheet(liveCards.filter(c=>selectedStages.includes(c.stage)),selectedStages.join("_"));};
+const bulkMoveStagesCards=to=>{if(!selectedStages.length||!to)return;cards.filter(c=>selectedStages.includes(c.stage)).forEach(c=>db.collection("cards").doc(c.id).set({stage:to,updatedAt:Date.now()},{merge:true}));setShowStageBulkMove(false);showToast("🔀 ✅");exitStageSelect();};
 const bulkPatch=o=>{selected.forEach(id=>{db.collection("cards").doc(id).set({...o,updatedAt:Date.now()},{merge:true});});setSelected([]);setSelectMode(false);};
 const bulkDel=()=>{if(!confirm("حذف "+selected.length+" كرت؟"))return;selected.forEach(id=>db.collection("cards").doc(id).delete());setSelected([]);setSelectMode(false);};
 const [showBulkMove,setShowBulkMove]=useState(false);const [showStageMgr,setShowStageMgr]=useState(false);const [delStagePick,setDelStagePick]=useState(null);
@@ -377,7 +391,7 @@ useEffect(()=>{
     );
   }catch(e){}
 },[screen]);
-useEffect(()=>{const m=!!(photoView||showAsk||showBook||editingCard||showMenu||showFlags||showWorkers||showMyWork||qrCard||actionCard||showSettings||showSched||showStored||showOutsourced);if(m&&!modalRef.current){try{history.pushState({guard:1},"");}catch(e){}}modalRef.current=m;},[photoView,showAsk,showBook,editingCard,showMenu,showFlags,showWorkers,showMyWork,qrCard,actionCard,showSettings,showSched,showStored,showOutsourced]);
+useEffect(()=>{const m=!!(photoView||showAsk||showBook||editingCard||showMenu||showFlags||showWorkers||showMyWork||qrCard||actionCard||detailsCard||showSettings||showSched||showStored||showOutsourced);if(m&&!modalRef.current){try{history.pushState({guard:1},"");}catch(e){}}modalRef.current=m;},[photoView,showAsk,showBook,editingCard,showMenu,showFlags,showWorkers,showMyWork,qrCard,actionCard,detailsCard,showSettings,showSched,showStored,showOutsourced]);
 const [micOn,setMicOn]=useState(false);const [micText,setMicText]=useState("");const [showMic,setShowMic]=useState(false);const [micLang,setMicLang]=useState("ar-EG");
 const recRef=useRef(null);
 const photoInputRef=useRef(null);const photoGalRef=useRef(null);const scanFileRef=useRef(null);
@@ -386,12 +400,13 @@ const scannerRef=useRef(null);const restoreRef=useRef(null);const scanMode=useRe
 const gotoDone=useRef(false);
 const chatFirstLoad=useRef(true);const chatEndRef=useRef(null);
 const uiRef=useRef({});
-uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,showSearch,showSettings,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,showTopCust,photoView,appQr,importMenu,importDraft,showMic,showWarehouse,addLoad,loadDetail,showLateList,showDelivered,heroEdit,showDefects,defectFor,showAnnounce,linkedFrom,showAsk,showBook,showBlack,showFlags,showMyWork,showSched,showStored,showOutsourced,showChat};
+uiRef.current={screen,editingCard,actionCard,moveCard_,copyCard_,qrCard,detailsCard,showSearch,showSettings,showMenu,reportText,showScanner,bcCard,statementFor,showWorkers,showTopCust,photoView,appQr,importMenu,importDraft,showMic,showWarehouse,addLoad,loadDetail,showLateList,showDelivered,heroEdit,showDefects,defectFor,showAnnounce,linkedFrom,showAsk,showBook,showBlack,showFlags,showMyWork,showSched,showStored,showOutsourced,showChat};
 const t=DICT[lang];const dir=lang==="ar"?"rtl":"ltr";
 useEffect(()=>{document.documentElement.lang=lang;document.documentElement.dir=dir;},[lang,dir]);
 const can=true;unlocked;
 const canEditFields=["manager","assistant","master"].includes(localStorage.getItem("role")||"");
 const [themeMode,setThemeMode]=useState(localStorage.getItem("themeMode")||"dark");
+useEffect(()=>{document.documentElement.setAttribute("data-theme",themeMode);},[themeMode]);
 const [prefVib,setPrefVib]=useState(localStorage.getItem("prefVib")!=="0");
 const [prefSnd,setPrefSnd]=useState(localStorage.getItem("prefSnd")!=="0");
 const fx=(kind)=>{if(prefVib&&navigator.vibrate)navigator.vibrate(kind==="danger"?[60,40,60]:30);if(prefSnd){try{const AC=window.AudioContext||window.webkitAudioContext;const ac=new AC();const o=ac.createOscillator();const g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=kind==="danger"?320:880;g.gain.value=.06;o.start();o.stop(ac.currentTime+.12);}catch(e){}}};
@@ -407,7 +422,7 @@ else if(u.reportText)setReportText(null);else if(u.showScanner)setShowScanner(fa
 else if(u.statementFor)setStatementFor(null);else if(u.showWorkers)setShowWorkers(false);
 else if(u.photoView)setPhotoView(null);else if(u.appQr)setAppQr(false);else if(u.showMenu)setShowMenu(false);
 else if(u.editingCard)setEditingCard(null);else if(u.actionCard)setActionCard(null);
-else if(u.moveCard_)setMoveCard(null);else if(u.copyCard_)setCopyCard(null);else if(u.qrCard)setQrCard(null);
+else if(u.moveCard_)setMoveCard(null);else if(u.copyCard_)setCopyCard(null);else if(u.qrCard)setQrCard(null);else if(u.detailsCard)setDetailsCard(null);
 else if(u.showSearch)setShowSearch(false);else if(u.showSettings)setShowSettings(false);
 else if(u.screen==="stage")setScreen("stages");else if(u.screen==="stages")setScreen("home");else if(u.screen==="log")setScreen("home");
 else if(u.screen==="archive")setScreen("home");else if(u.screen!=="home"){setScreen("home");}else{const n=Date.now();if(window.__lastExit&&n-window.__lastExit<900)return;window.__lastExit=n;history.back();return;}};
@@ -582,7 +597,12 @@ const addLog=async(a,c,d="")=>{if(!db)return;try{await db.collection("logs").doc
 const saveCard=async(card,skip=false)=>{if(!can)return;card={...card};delete card.__dupWarning;card.stage=String(card.stage||"").trim();if(stages.length&&!stages.includes(card.stage))card.stage=activeStage||stages[0];if(!db)return;
 if(!skip){const d=cards.find(c=>c.id!==card.id&&String(c.code||"")===String(card.code||"")&&String(c.barcode||"")===String(card.barcode||"")&&String(c.customer||"")===String(card.customer||"")&&String(c.color||"")===String(card.color||"")&&String(c.category||"")===String(card.category||"")&&String(c.quantity||"")===String(card.quantity||""));if(d){setEditingCard({...card,__dupWarning:true});return;}}
 const ex=cards.some(c=>c.id===card.id);
-try{if(ex){await db.collection("cards").doc(card.id).set({...card,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedBy:ownerName,updatedLocal:Date.now()},{merge:true});await addLog("تعديل",card);}
+const oldCard=ex?cards.find(c=>c.id===card.id):null;
+let editDiff="";
+if(ex&&oldCard){const changes=FIELD_KEYS.filter(k=>String(oldCard[k]||"")!==String(card[k]||"")).map(k=>(t[k]||k)+": "+(oldCard[k]||"—")+" ← "+(card[k]||"—"));
+if(String(oldCard.stage||"")!==String(card.stage||""))changes.unshift((lang==="ar"?"المرحلة":"Stage")+": "+(oldCard.stage||"—")+" ← "+(card.stage||"—"));
+editDiff=changes.join(" · ");}
+try{if(ex){await db.collection("cards").doc(card.id).set({...card,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedBy:ownerName,updatedLocal:Date.now()},{merge:true});await addLog("تعديل",card,editDiff||"مفيش تغيير في البيانات");}
 else{const id=card.id||uid();await db.collection("cards").doc(id).set({...card,id,createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp(),createdBy:ownerName,history:[{stage:card.stage,by:ownerName,at:nowISO()}]});await addLog("إضافة",card);}
 setEditingCard(null);showToast(isOnline?"✅":"📱");}catch(e){showToast("خطأ: "+(e.code||e.message),"danger");}};
 const deleteCard=async c=>{if(!can||!db)return;try{await db.collection("cards").doc(c.id).delete();await addLog("حذف",c);setActionCard(null);showToast("🗑️","danger");}catch(e){}};
@@ -774,39 +794,55 @@ return(<div style={{marginBottom:12}}>
 return(<div key={s} style={{marginBottom:8}}><div style={{display:"flex",justifyContent:"space-between",fontSize:11,color:theme.textDim,marginBottom:3}}><span>{s}</span><span>{n}</span></div><div className="bar"><i style={{width:p+"%",background:col}}/></div></div>);})}
 </div></div>
 {lateAll.length>0&&(<div className="card anim" style={{animationDelay:"440ms",marginBottom:12}}><div className="lbl">⚠️ تنبيهات سريعة</div>
-{lateAll.slice(0,4).map((c,i)=>(<div key={c.id} onClick={()=>jumpToCard(c)} style={{cursor:"pointer",display:"flex",alignItems:"center",gap:10,padding:"10px 0",borderTop:"1px solid "+theme.border,animation:"fadeUp .5s both",animationDelay:(i*80)+"ms"}}>
+{lateAll.slice(0,4).map((c,i)=>(<div key={c.id} onClick={()=>jumpToCard(c)} style={{cursor:"pointer",display:"flex",alignItems:"center",gap:10,padding:"10px 0",borderTop:"1px solid "+theme.border,animation:"fadeUp .5s both",animationDelay:(i*40)+"ms"}}>
 <div style={{width:36,height:36,borderRadius:12,background:"rgba(226,84,76,.15)",display:"flex",alignItems:"center",justifyContent:"center"}}>⚠️</div>
 <div style={{flex:1}}><b style={{fontSize:13}}>{c.customer} · {c.code}</b><div style={{fontSize:11,color:theme.textDim}}>متأخر في {c.stage}</div></div>
 </div>))}</div>)}
 {recent3.length>0&&(<div className="anim" style={{animationDelay:"500ms"}}><div className="lbl">🕐 آخر الكروت المعدّلة</div>
 {recent3.map((c,i)=>{const si=stages.indexOf(c.stage);const sc=STAGE_COLORS[(si>=0?si:0)%8];
-return(<div key={c.id} className="card" onClick={()=>jumpToCard(c)} style={{cursor:"pointer",marginBottom:8,borderInlineStart:"4px solid "+sc,animationDelay:(i*90)+"ms"}}>
+return(<div key={c.id} className="card" onClick={()=>jumpToCard(c)} style={{cursor:"pointer",marginBottom:8,borderInlineStart:"4px solid "+sc,animationDelay:(i*45)+"ms"}}>
 <div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:14}}>{c.customer||"—"} · {c.code||"—"}</b><span className="badge" style={{background:sc}}>{c.stage}</span></div>
 <div style={{fontSize:12,color:theme.textDim,marginTop:4}}>{c.color} — {c.quantity} {factory.unit}{c.delivered?" · ✅":""}</div>
 </div>);})}</div>)}
 </div>)}
 {screen==="stages"&&(
-<div style={{maxWidth:640,margin:"0 auto",padding:"40px 16px 20px"}}>
+<div style={{maxWidth:640,margin:"0 auto",padding:"40px 16px 80px"}}>
 <div className="anim" style={{display:"flex",alignItems:"center",gap:10,marginBottom:18}}>
 <button onClick={()=>setScreen("home")} style={hdrBtn}>→</button>
 <div style={{flex:1}}><div style={{fontSize:19,fontWeight:900}}>مراحل العمل</div><div style={{fontSize:11,color:theme.textDim}}>تابع جميع مراحل الإنتاج</div></div>
 <button onClick={()=>{setSearchScope("stage");setShowSearch(true);}} style={hdrBtn}>🔍</button>
+{can&&<button onClick={()=>{setStageSelectMode(!stageSelectMode);setSelectedStages([]);}} className={"chip"+(stageSelectMode?" on":"")} style={{height:42,padding:"0 12px"}}>☑️</button>}
 {can&&<button onClick={()=>setShowStageMgr(true)} style={hdrBtn}>⚙️</button>}
 <button onClick={()=>setShowSched(true)} style={hdrBtn}>📅</button>
 </div>
 {(()=>{const orph=liveCards.filter(c=>!stages.includes(c.stage));return orph.length>0?(<div onClick={()=>setEditingCard(orph[0])} className="card" style={{marginBottom:14,borderColor:"var(--red)",cursor:"pointer"}}>⚠️ عندك {orph.length} كرت في مرحلة مش موجودة — دوس تصلّح</div>):null;})()}
-{stages.map((s,i)=>{const l=liveCards.filter(c=>c.stage===s);const late=l.filter(c=>daysSince(c.updatedAt||c.createdAt)>=LD).length;const q=qtySum(l);const col=STAGE_COLORS[i%8];
-return(<div key={s} className="anim" style={{display:"flex",gap:12,marginBottom:4,animationDelay:(i*100)+"ms"}}>
+{stages.map((s,i)=>{const l=liveCards.filter(c=>c.stage===s);const late=l.filter(c=>daysSince(c.updatedAt||c.createdAt)>=LD).length;const q=qtySum(l);const col=STAGE_COLORS[i%8];const isSel=selectedStages.includes(s);
+const rowClick=()=>{if(stageSelectMode)toggleStageSelect(s);else{setActiveStage(s);setScreen("stage");}};
+return(<div key={s} className="anim" style={{display:"flex",gap:12,marginBottom:4,animationDelay:(i*50)+"ms"}}>
 <div style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
-<div className="tldot" onClick={()=>{setActiveStage(s);setScreen("stage");}} style={{background:col+"22",border:"2px solid "+col,"--g":col+"66",cursor:"pointer"}}>{S_ICONS[i%8]}</div>
+<div className="tldot" onClick={rowClick} style={{background:col+"22",border:"2px solid "+col,"--g":col+"66",cursor:"pointer"}}>{stageSelectMode?(isSel?"☑️":"⬜"):S_ICONS[i%8]}</div>
 {i<stages.length-1&&<div className="tlline" style={{flex:1,minHeight:30,background:"linear-gradient(180deg,"+col+","+STAGE_COLORS[(i+1)%8]+")"}}/>}
 </div>
-<div className="card" onClick={()=>{setActiveStage(s);setScreen("stage");}} style={{flex:1,cursor:"pointer",marginBottom:10}}>
+<div className="card" onClick={rowClick} style={{flex:1,cursor:"pointer",marginBottom:10,borderInlineStart:isSel?"4px solid var(--teal)":"none",boxShadow:isSel?"0 0 0 2px var(--teal)":"none"}}>
 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><div><span className="badge" style={{background:col}}>0{i+1}</span> <b style={{fontSize:15,marginInlineStart:6}}>{s}</b></div>{late>0&&<span className="badge" style={{background:"var(--red)"}}>⚠️ {late}</span>}</div>
 <div style={{fontSize:12,color:theme.textDim,marginTop:6}}>{l.length} {t.cardsPlural}{q?" · "+q+" "+factory.unit:""}</div>
 </div></div>);})}
-{can&&<button onClick={()=>{const n=prompt(t.addStage);if(n&&n.trim()&&!stages.includes(n.trim()))saveStages(stages.concat([n.trim()]));}} className="btnO" style={{marginTop:8}}>➕ {t.addStage}</button>}
+{can&&!stageSelectMode&&<button onClick={()=>{const n=prompt(t.addStage);if(n&&n.trim()&&!stages.includes(n.trim()))saveStages(stages.concat([n.trim()]));}} className="btnO" style={{marginTop:8}}>➕ {t.addStage}</button>}
 </div>)}
+{screen==="stages"&&stageSelectMode&&selectedStages.length>0&&(<div style={{position:"fixed",bottom:70,left:0,right:0,zIndex:400,display:"flex",justifyContent:"center",pointerEvents:"none"}}>
+<div className="card" style={{display:"flex",gap:6,flexWrap:"wrap",padding:10,pointerEvents:"auto",maxWidth:"92%",justifyContent:"center"}}>
+<span style={{fontSize:12,color:theme.textDim,alignSelf:"center",padding:"0 4px"}}>{selectedStages.length} محددة</span>
+<button className="chip" onClick={bulkDeliverStages}>✅ تسليم</button>
+<button className="chip" onClick={bulkArchiveStages}>🗄️ أرشفة</button>
+<button className="chip" onClick={()=>setShowStageBulkMove(true)}>🔀 نقل الكروت</button>
+<button className="chip" onClick={bulkExportStages}>💾 تصدير</button>
+<button className="chip" style={{borderColor:"var(--red)",color:"var(--red)"}} onClick={bulkDeleteStages}>🗑️ حذف</button>
+<button className="chip" onClick={exitStageSelect}>✕</button>
+</div></div>)}
+{screen==="stages"&&showStageBulkMove&&(<div className="modal" onClick={()=>setShowStageBulkMove(false)}><div className="mbox" style={{maxWidth:360}} onClick={e=>e.stopPropagation()}>
+<h3 style={{margin:"0 0 10px"}}>🔀 نقل كروت {selectedStages.length} مرحلة لفين؟</h3>
+{stages.filter(s=>!selectedStages.includes(s)).map(s=><button key={s} className="chip" style={{margin:4}} onClick={()=>bulkMoveStagesCards(s)}>{s}</button>)}
+</div></div>)}
 {screen==="stage"&&(
 <div style={{maxWidth:640,margin:"0 auto",padding:"40px 16px 20px"}}>
 <div className="anim" style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
@@ -829,7 +865,7 @@ return(<div key={s} className="anim" style={{display:"flex",gap:12,marginBottom:
 </div>
 {cardsToShow.length===0&&<p style={{textAlign:"center",padding:"50px 10px",color:theme.textDim}}>{t.noCardsHere}</p>}
 {cardsToShow.map((c,i)=>{const d=daysSince(c.updatedAt||c.createdAt);const l1=d>=1&&d<LD;const l2=d>=LD;const lk=liveCards.filter(x=>x.message&&x.message===c.message&&x.id!==c.id).length;const di=dueInfo(c);const bc=c.urgent?"var(--red)":l2?"var(--red)":l1?"var(--warn)":di?di.col:STAGE_COLORS[(stages.indexOf(c.stage)>=0?stages.indexOf(c.stage):0)%8];
-return(<div key={c.id} className="card" onClick={()=>selectMode?toggleSelect(c.id):setEditingCard(c)} onContextMenu={e=>{e.preventDefault();setActionCard(c);}} style={{userSelect:"none",cursor:"pointer",marginBottom:10,borderInlineStart:"4px solid "+(selected.includes(c.id)?"var(--teal)":bc),boxShadow:selected.includes(c.id)?"0 0 0 2px var(--teal)":"none",animationDelay:(i*70)+"ms"}}>
+return(<div key={c.id} className="card" onClick={()=>selectMode?toggleSelect(c.id):setEditingCard(c)} onContextMenu={e=>{e.preventDefault();setActionCard(c);}} style={{userSelect:"none",cursor:"pointer",marginBottom:10,borderInlineStart:"4px solid "+(selected.includes(c.id)?"var(--teal)":bc),boxShadow:selected.includes(c.id)?"0 0 0 2px var(--teal)":"none",animationDelay:(i*35)+"ms"}}>
 <div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:15}}>{selectMode&&(selected.includes(c.id)?"☑️ ":" ")}{c.customer||"—"} {c.pinned&&"📌"}</b><span style={{display:"flex",alignItems:"center",gap:6}}>{((c.photos||[]).length>0)?<span onClick={(e)=>{e.stopPropagation();setPhotoView(c.photos[0]);}} style={{display:"inline-flex",gap:2,alignItems:"center",cursor:"zoom-in"}}><img src={c.photos[0]} style={{width:34,height:34,borderRadius:8,objectFit:"cover"}}/><span style={{fontSize:11,color:"var(--teal)",fontWeight:800}}>📸{c.photos.length}</span></span>:((c.photo||c.img)?<img src={c.photo||c.img} onClick={(e)=>{e.stopPropagation();setPhotoView(c.photo||c.img);}} style={{width:34,height:34,borderRadius:8,objectFit:"cover",cursor:"zoom-in"}}/>:null)}<span style={{fontSize:11,color:theme.textDim}}>{c.time||fmtTime(c.updatedAt,lang)}</span></span></div>
 <div style={{display:"flex",flexWrap:"wrap",gap:"4px 12px",fontSize:12.5,color:theme.textDim,marginTop:5}}>
 <span>{t.code}: <b style={{color:theme.text}}>{c.code||"—"}</b></span>
@@ -883,7 +919,7 @@ return(<div key={c.id} className="card" onClick={()=>selectMode?toggleSelect(c.i
 <button className={"chip"+(schedShift==="day"?" on":"")} onClick={()=>setSchedShift("day")}>☀️ صبح</button>
 <button className={"chip"+(schedShift==="night"?" on":"")} onClick={()=>setSchedShift("night")}>🌙 ليل</button>
 </div>
-{machines.map((m,i)=>{const list=schedCards().filter(c=>String(c.machine)===String(m));return(<div key={m} className="card anim" style={{padding:10,marginBottom:8,animationDelay:(i*60)+"ms"}}>
+{machines.map((m,i)=>{const list=schedCards().filter(c=>String(c.machine)===String(m));return(<div key={m} className="card anim" style={{padding:10,marginBottom:8,animationDelay:(i*30)+"ms"}}>
 <b>🔧 ماكينة {m}</b>{!list.length&&<span style={{color:theme.textDim,fontSize:11}}> · فاضية</span>}
 {list.map(c=><div key={c.id} onClick={()=>{setShowSched(false);setActionCard(c);}} style={{fontSize:12,marginTop:6,borderTop:"1px dashed "+theme.border,paddingTop:6,cursor:"pointer"}}>{c.customer} · {c.code} · {c.color} · {c.quantity} {factory.unit} {c.prepare&&<span style={{color:"var(--warn)"}}>· {c.prepare}</span>}</div>)}
 </div>);})}
@@ -894,14 +930,14 @@ return(<div key={c.id} className="card" onClick={()=>selectMode?toggleSelect(c.i
 <div style={{maxWidth:640,margin:"0 auto",padding:"40px 16px 20px"}}>
 <div className="anim" style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}><button onClick={()=>setScreen("home")} style={hdrBtn}>→</button><div style={{fontSize:19,fontWeight:900,flex:1}}>{t.dailyLog}</div></div>
 {(()=>{const g={};log.forEach(e=>{(g[e.date]=g[e.date]||[]).push(e)});const ds=Object.keys(g).sort((a,b)=>b.localeCompare(a));
-return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noResults}</p>:ds.map((d,i)=>(<div key={d} className="anim" style={{marginBottom:18,animationDelay:(i*80)+"ms"}}><div style={{fontSize:13,fontWeight:800,color:"var(--vio2)",marginBottom:8}}>{d}</div>
+return ds.length===0?<p style={{color:theme.textDim,textAlign:"center"}}>{t.noResults}</p>:ds.map((d,i)=>(<div key={d} className="anim" style={{marginBottom:18,animationDelay:(i*40)+"ms"}}><div style={{fontSize:13,fontWeight:800,color:"var(--vio2)",marginBottom:8}}>{d}</div>
 {g[d].map(e=>{const match=e.cardCode?cards.find(c=>c.code===e.cardCode):null;return(<div key={e.id} onClick={()=>{if(match)setActionCard(match);else if(e.cardCode)showToast("❌ الكرت ده مش موجود دلوقتي (اتمسح)","danger");}} className="card" style={{marginBottom:6,padding:"10px 12px",cursor:match?"pointer":"default"}}><div style={{display:"flex",justifyContent:"space-between"}}><b>{e.action}</b><span style={{color:theme.textDim,fontSize:11}}>{fmtTime(e.time||e.timeLocal,lang)}</span></div><div style={{color:theme.textDim,fontSize:12}}>👤 {e.person} {e.cardCode?" · "+e.cardCode:""}</div></div>);})}</div>));})()}
 </div>)}
 {screen==="archive"&&(
 <div style={{maxWidth:640,margin:"0 auto",padding:"40px 16px 20px"}}>
 <div className="anim" style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}><button onClick={()=>setScreen("home")} style={hdrBtn}>→</button><div style={{fontSize:19,fontWeight:900,flex:1}}>🗄️ {t.archive} ({archivedCards.length})</div></div>
 {archivedCards.length===0&&<p style={{color:theme.textDim,textAlign:"center"}}>{t.noResults}</p>}
-{archivedCards.map((c,i)=>(<div key={c.id} className="card" style={{display:"flex",alignItems:"center",gap:8,marginBottom:8,animationDelay:(i*60)+"ms"}}>
+{archivedCards.map((c,i)=>(<div key={c.id} className="card" style={{display:"flex",alignItems:"center",gap:8,marginBottom:8,animationDelay:(i*30)+"ms"}}>
 <div style={{flex:1,cursor:"pointer"}} onClick={()=>setEditingCard(c)}><b>{c.customer||"—"} · {c.code||"—"}</b><div style={{fontSize:12,color:theme.textDim}}>{c.stage}</div></div>
 {can&&<button onClick={()=>toggleArchive(c)} className="chip">♻️</button>}</div>))}
 </div>)}
@@ -973,7 +1009,7 @@ return(<div style={{padding:"8mm",fontFamily:"Arial",color:"#000",direction:"rtl
 <h3 style={{margin:"0 0 12px"}}>⏰ الكروت المتأخرة ({lateAll.length})</h3>
 {lateAll.length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center"}}>مفيش متأخر — كله ماشي تمام 🎉</p>}
 {lateAll.map((c,i)=>{const si=stages.indexOf(c.stage);const sc=STAGE_COLORS[(si>=0?si:0)%8];
-return(<div key={c.id} className="card anim" onClick={()=>{setShowLateList(false);jumpToCard(c);}} style={{cursor:"pointer",padding:"10px 12px",marginBottom:8,borderInlineStart:"4px solid var(--red)",animationDelay:(i*60)+"ms"}}>
+return(<div key={c.id} className="card anim" onClick={()=>{setShowLateList(false);jumpToCard(c);}} style={{cursor:"pointer",padding:"10px 12px",marginBottom:8,borderInlineStart:"4px solid var(--red)",animationDelay:(i*30)+"ms"}}>
 <div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:14}}>{c.customer||"—"} · {c.code||"—"}</b><span className="badge" style={{background:sc}}>{c.stage}</span></div>
 <div style={{fontSize:12,color:theme.textDim,marginTop:4}}>متأخر {Math.floor(daysSince(c.updatedAt||c.createdAt))} يوم · {c.color} — {c.quantity}</div>
 </div>);})}
@@ -984,7 +1020,7 @@ return(<div key={c.id} className="card anim" onClick={()=>{setShowLateList(false
 <h3 style={{margin:"0 0 12px"}}>✅ المسلّمات ({delAll.length})</h3>
 {delAll.length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center"}}>لسه مفيش تسليمات</p>}
 {delAll.map((c,i)=>{const si=stages.indexOf(c.stage);const sc=STAGE_COLORS[(si>=0?si:0)%8];
-return(<div key={c.id} className="card anim" onClick={()=>{setShowDelivered(false);jumpToCard(c);}} style={{cursor:"pointer",padding:"10px 12px",marginBottom:8,borderInlineStart:"4px solid var(--teal)",animationDelay:(i*60)+"ms"}}>
+return(<div key={c.id} className="card anim" onClick={()=>{setShowDelivered(false);jumpToCard(c);}} style={{cursor:"pointer",padding:"10px 12px",marginBottom:8,borderInlineStart:"4px solid var(--teal)",animationDelay:(i*30)+"ms"}}>
 <div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:14}}>{c.customer||"—"} · {c.code||"—"}</b><span className="badge" style={{background:sc}}>{c.stage}</span></div>
 <div style={{fontSize:12,color:theme.textDim,marginTop:4}}>{c.delivered?"مسلّم كلي "+(c.quantity||""):"مسلّم جزئي "+(c.deliveredQty||"")} · {c.color}</div>
 </div>);})}
@@ -1029,7 +1065,7 @@ return(<div key={c.id} className="card anim" onClick={()=>{setShowDelivered(fals
 </div>
 {loads.length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center"}}>لا توجد حمولات مسجلة</p>}
 {loads.slice().sort((a,b)=>(b.date||"").localeCompare(a.date||"")).map((ld,i)=>{const s=loadStats(ld);const pct=Math.max(0,Math.min(100,(s.rem/(parseFloat(ld.total)||1))*100));
-return(<div key={ld.id} className="card" onClick={()=>setLoadDetail(ld.id)} style={{cursor:"pointer",marginBottom:10,animationDelay:(i*80)+"ms"}}>
+return(<div key={ld.id} className="card" onClick={()=>setLoadDetail(ld.id)} style={{cursor:"pointer",marginBottom:10,animationDelay:(i*40)+"ms"}}>
 <div style={{display:"flex",justifyContent:"space-between"}}><b>{ld.customer}</b><span style={{fontSize:11,color:theme.textDim}}>{ld.date}</span></div>
 {(ld.category||ld.color||ld.barcode)&&<div style={{fontSize:12,color:theme.textDim,marginTop:4}}>{ld.category||""} {ld.color?"· "+ld.color:""} {ld.barcode?"· 🔳 "+ld.barcode:""}</div>}
 <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:6}}>
@@ -1075,7 +1111,7 @@ return(<div><h3 style={{margin:"0 0 8px"}}>🚛 {ld.customer} — {ld.total} {fa
 <div style={{fontSize:12,marginTop:4}}>{linkedFrom.color} — {linkedFrom.quantity} · {linkedFrom.stage}</div>
 </div>
 {lk.map((c,i)=>{const si=stages.indexOf(c.stage);const sc=STAGE_COLORS[(si>=0?si:0)%8];
-return(<div key={c.id} className="card anim" onClick={()=>{setLinkedFrom(null);jumpToCard(c);}} style={{cursor:"pointer",padding:"10px 12px",marginBottom:8,borderInlineStart:"4px solid "+sc,animationDelay:(i*50)+"ms"}}>
+return(<div key={c.id} className="card anim" onClick={()=>{setLinkedFrom(null);jumpToCard(c);}} style={{cursor:"pointer",padding:"10px 12px",marginBottom:8,borderInlineStart:"4px solid "+sc,animationDelay:(i*25)+"ms"}}>
 <div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:14}}>{c.customer||"—"} · {c.code||"—"}</b><span className="badge" style={{background:sc}}>{c.stage}</span></div>
 <div style={{fontSize:12,color:theme.textDim,marginTop:4}}>{c.color} — {c.quantity} {factory.unit} · {fmtTime(c.updatedAt||c.createdAt,lang)}{c.delivered?" · ✅":""}</div>
 </div>);})}
@@ -1100,7 +1136,7 @@ return(<div key={c.id} className="card anim" onClick={()=>{setLinkedFrom(null);j
 return top?(<div className="card grad" style={{padding:12,marginBottom:12,textAlign:"center"}}><div style={{fontSize:12,color:"#DFF7F2"}}>أكثر عيب متكرر</div><div style={{fontSize:18,fontWeight:900}}>{top[0]} ({top[1]})</div></div>):null;})()}
 {defects.length>0&&<input className="inp" placeholder="🔍 بحث بالاسم أو الكود أو نوع العيب..." value={defectSearch} onChange={e=>setDefectSearch(e.target.value)} style={{marginBottom:10}}/>}
 {defects.length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center"}}>مفيش عيوب مسجلة — شغل نضيف 🎉</p>}
-{(()=>{const q=defectSearch.trim().toLowerCase();const list=defects.filter(d=>!q||((d.customer||"")+(d.code||"")+(d.reason||"")).toLowerCase().includes(q));if(defects.length>0&&list.length===0)return<p style={{color:theme.textDim,fontSize:13,textAlign:"center",padding:16}}>مفيش نتايج مطابقة</p>;return list.map((d,i)=>(<div key={d.id} onClick={()=>{const c=cards.find(x=>x.id===d.cardId);if(c){setShowDefects(false);setDefectSearch("");jumpToCard(c);}else{showToast("❌ الكرت الأصلي محذوف","danger");}}} className="card anim" style={{padding:"10px 12px",marginBottom:8,borderInlineStart:"4px solid var(--red)",animationDelay:(i*50)+"ms",cursor:"pointer"}}>
+{(()=>{const q=defectSearch.trim().toLowerCase();const list=defects.filter(d=>!q||((d.customer||"")+(d.code||"")+(d.reason||"")).toLowerCase().includes(q));if(defects.length>0&&list.length===0)return<p style={{color:theme.textDim,fontSize:13,textAlign:"center",padding:16}}>مفيش نتايج مطابقة</p>;return list.map((d,i)=>(<div key={d.id} onClick={()=>{const c=cards.find(x=>x.id===d.cardId);if(c){setShowDefects(false);setDefectSearch("");jumpToCard(c);}else{showToast("❌ الكرت الأصلي محذوف","danger");}}} className="card anim" style={{padding:"10px 12px",marginBottom:8,borderInlineStart:"4px solid var(--red)",animationDelay:(i*25)+"ms",cursor:"pointer"}}>
 <div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:14}}>{d.customer} · {d.code}</b><span className="badge" style={{background:"var(--red)"}}>{d.reason}</span></div>
 <div style={{fontSize:12,color:theme.textDim,marginTop:4}}>{d.qty?"كمية "+d.qty+" · ":""}{d.stage} · {d.date} · 👤 {d.by}</div>
 {d.notes&&<div style={{fontSize:12,marginTop:4}}>{d.notes}</div>}
@@ -1230,7 +1266,7 @@ const m={};cards.forEach(c=>{if(c.customer&&localDate(new Date(toMs(c.createdAt|
 const arr=Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,10);
 if(!arr.length)return <p style={{color:theme.textDim,fontSize:13,textAlign:"center"}}>{t.noResults}</p>;
 const mx=arr[0][1]||1;
-return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10,cursor:"pointer",animationDelay:(i*70)+"ms"}} onClick={()=>{setShowTopCust(false);setStatementFor(n);}}>
+return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10,cursor:"pointer",animationDelay:(i*35)+"ms"}} onClick={()=>{setShowTopCust(false);setStatementFor(n);}}>
 <div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:4}}><span>{i===0?"🥇":i===1?"🥈":i===2?"🥉":(i+1)+"."} {n}</span><b style={{color:"var(--vio2)"}}>{q} {factory.unit}</b></div>
 <div className="bar"><i style={{width:(q/mx)*100+"%",background:STAGE_COLORS[i%8]}}/></div>
 </div>));})()}
@@ -1240,7 +1276,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:340}}>
 <h3 style={{margin:"0 0 12px"}}>🏆 {t.workers}</h3>
 {workerStats().length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center"}}>{t.noResults}</p>}
-{workerStats().map(([n,c],i)=>(<div key={n} className="card" style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 12px",marginBottom:8,animationDelay:(i*70)+"ms"}}><span>{i===0?"🥇":i===1?"🥈":i===2?"🥉":""} {n}</span><span style={{display:"flex",gap:8,alignItems:"center"}}><LastSeen name={n}/><b style={{color:"var(--vio2)"}}>{c}</b></span></div>))}
+{workerStats().map(([n,c],i)=>(<div key={n} className="card" style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 12px",marginBottom:8,animationDelay:(i*35)+"ms"}}><span>{i===0?"🥇":i===1?"🥈":i===2?"🥉":""} {n}</span><span style={{display:"flex",gap:8,alignItems:"center"}}><LastSeen name={n}/><b style={{color:"var(--vio2)"}}>{c}</b></span></div>))}
 </div></div>)}
 {appQr&&(
 <div className="modal" onClick={()=>setAppQr(false)}>
@@ -1325,6 +1361,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 {icon:"💬",label:t.shareCard,fn:()=>{window.open(waLink(shareCardText(actionCard)),"_blank");setActionCard(null);}},
 {icon:"📢",label:"بلّغ العميل بالحركة",fn:()=>{window.open(waLink("أهلاً "+(actionCard.customer||"")+" 👋\n📦 أمرك "+(actionCard.code||"")+" تحرّك لمرحلة: "+(actionCard.stage||"")+"\n🏭 "+(factory.fname||"")),"_blank");setActionCard(null);}},
 ...(can&&!hiddenFeat.includes("defects")?[{icon:"⚠️",label:"تسجيل عيب / مرتجع",fn:()=>{setDefectFor(actionCard);setActionCard(null);}}]:[]),
+{icon:"🕐",label:"تفاصيل",fn:()=>{setDetailsCard(actionCard);setActionCard(null);}},
 ...(can?[{icon:"📋",label:t.copyCard,fn:()=>{setCopyCard(actionCard);setActionCard(null);}},
 {icon:"🔄",label:t.moveCard,fn:()=>{setMoveCard(actionCard);setActionCard(null);}},
 {icon:"⭐",label:actionCard.pinned?t.unpin:t.pinCard,fn:()=>togglePin(actionCard)}]:[]),
@@ -1334,19 +1371,39 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 ...(actionCard.photo?[{icon:"🖼️",label:t.viewPhoto,fn:()=>{setPhotoView(actionCard);setActionCard(null);}}]:[]),
 ...(can&&!hiddenFeat.includes("archive")?[{icon:"🗄️",label:actionCard.archived?t.unarchive:t.archiveCard,fn:()=>toggleArchive(actionCard)}]:[]),
 ...(can?[{icon:"🗑️",label:t.delete,fn:()=>undoDelete(actionCard),danger:true}]:[]),
-].map((it,i)=>(<button key={i} onClick={it.fn} className="anim" style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:"12px 10px",background:"transparent",border:"none",borderTop:"1px solid "+theme.border,color:it.danger?"var(--red)":theme.text,fontSize:14.5,textAlign:"start",animationDelay:(i*40)+"ms"}}>{it.icon} {it.label}</button>))}
+].map((it,i)=>(<button key={i} onClick={it.fn} className="anim" style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:"12px 10px",background:"transparent",border:"none",borderTop:"1px solid "+theme.border,color:it.danger?"var(--red)":theme.text,fontSize:14.5,textAlign:"start",animationDelay:(i*20)+"ms"}}>{it.icon} {it.label}</button>))}
 </div></div>)}
+{detailsCard&&(()=>{const hist=(detailsCard.history||[]).slice().sort((a,b)=>toMs(a.at)-toMs(b.at));
+const cardLogs=log.filter(e=>e.cardCode&&detailsCard.code&&e.cardCode===detailsCard.code).slice().sort((a,b)=>toMs(a.time||a.timeLocal)-toMs(b.time||b.timeLocal));
+return(<div className="modal" onClick={()=>setDetailsCard(null)}>
+<div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:420}}>
+<h3 style={{margin:"0 0 6px"}}>🕐 تفاصيل — {detailsCard.customer} · {detailsCard.code}</h3>
+<div style={{fontSize:12,color:theme.textDim,marginBottom:12}}>➕ اتضاف: {fmtTime(detailsCard.createdAt,lang)||"—"}</div>
+<div className="lbl">⏱️ الوقت في كل مرحلة</div>
+{hist.length===0&&<p style={{fontSize:12,color:theme.textDim,marginBottom:10}}>مفيش سجل مراحل مسجل</p>}
+{hist.map((h,i)=>{const enter=toMs(h.at);const exit=i+1<hist.length?toMs(hist[i+1].at):null;const dur=exit?exit-enter:Date.now()-enter;
+return(<div key={i} className="card" style={{padding:"8px 10px",marginBottom:6}}>
+<div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:13}}>{h.stage}</b><span style={{fontSize:11.5,color:"var(--teal)",fontWeight:800}}>{fmtDur(dur)}{!exit?" (لسه هنا)":""}</span></div>
+<div style={{fontSize:11,color:theme.textDim,marginTop:3}}>دخل: {fmtTime(h.at,lang)}{exit?" · خرج: "+fmtTime(hist[i+1].at,lang):""}{h.by?" · 👤 "+h.by:""}</div>
+</div>);})}
+<div className="lbl" style={{marginTop:10}}>📝 سجل الحركة والتعديلات</div>
+{cardLogs.length===0&&<p style={{fontSize:12,color:theme.textDim}}>مفيش حركات مسجلة</p>}
+{cardLogs.map(e=>(<div key={e.id} className="card" style={{padding:"8px 10px",marginBottom:6}}>
+<div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:13}}>{e.action}{e.details?" "+e.details:""}</b><span style={{fontSize:11,color:theme.textDim}}>{fmtTime(e.time||e.timeLocal,lang)}</span></div>
+<div style={{fontSize:11,color:theme.textDim,marginTop:2}}>👤 {e.person}</div>
+</div>))}
+</div></div>);})()}
 {moveCard_&&(
 <div className="modal" onClick={()=>setMoveCard(null)}>
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:340}}>
 <h3 style={{margin:"0 0 14px"}}>{t.moveCard}</h3>
-{stages.filter((v,i,a)=>a.indexOf(v)===i).map((s,i)=>(<button key={s} onClick={()=>moveCardTo(moveCard_,s)} className="card anim" style={{width:"100%",padding:"12px 10px",textAlign:"start",marginBottom:8,animationDelay:(i*50)+"ms"}}>{s}</button>))}
+{stages.filter((v,i,a)=>a.indexOf(v)===i).map((s,i)=>(<button key={s} onClick={()=>moveCardTo(moveCard_,s)} className="card anim" style={{width:"100%",padding:"12px 10px",textAlign:"start",marginBottom:8,animationDelay:(i*25)+"ms"}}>{s}</button>))}
 </div></div>)}
 {copyCard_&&(
 <div className="modal" onClick={()=>setCopyCard(null)}>
 <div className="mbox" onClick={e=>e.stopPropagation()} style={{maxWidth:340}}>
 <h3 style={{margin:"0 0 14px"}}>{t.copyCard}</h3>
-{stages.map((s,i)=>(<button key={s} onClick={()=>copyCardTo(copyCard_,s)} className="card anim" style={{width:"100%",padding:"12px 10px",textAlign:"start",marginBottom:8,animationDelay:(i*50)+"ms"}}>{s}</button>))}
+{stages.map((s,i)=>(<button key={s} onClick={()=>copyCardTo(copyCard_,s)} className="card anim" style={{width:"100%",padding:"12px 10px",textAlign:"start",marginBottom:8,animationDelay:(i*25)+"ms"}}>{s}</button>))}
 </div></div>)}
 {qrCard&&(
 <div className="modal" onClick={()=>setQrCard(null)}>
@@ -1368,7 +1425,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}><h3 style={{flex:1,margin:0}}>📦 المخزن المجهز ({storedCards.length})</h3><button className="chip on" onClick={()=>exportSheet(storedCards,"مخزن-مجهز")}>💾 تصدير</button></div>
 <input className="inp" placeholder="🔍 بحث بالاسم أو الكود..." value={storedSearch} onChange={e=>setStoredSearch(e.target.value)} style={{marginBottom:10}}/>
 {storedCards.length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center",padding:16}}>فاضي — انقل كروت له من زرار 📦</p>}
-{(()=>{const q=storedSearch.trim().toLowerCase();const list=storedCards.slice().sort((a,b)=>toMs(b.updatedAt)-toMs(a.updatedAt)).filter(c=>!q||((c.customer||"")+(c.code||"")).toLowerCase().includes(q));if(storedCards.length>0&&list.length===0)return<p style={{color:theme.textDim,fontSize:13,textAlign:"center",padding:16}}>مفيش نتايج مطابقة</p>;return list.map((c,i)=>(<div key={c.id} onClick={()=>{setShowStored(false);setStoredSearch("");setActionCard(c);}} className="card anim" style={{padding:"10px 12px",marginBottom:8,cursor:"pointer",animationDelay:(i*50)+"ms"}}><b style={{fontSize:13}}>{c.customer} · {c.code}</b><div style={{fontSize:11,color:theme.textDim}}>{c.color} — {c.quantity}</div></div>));})()}
+{(()=>{const q=storedSearch.trim().toLowerCase();const list=storedCards.slice().sort((a,b)=>toMs(b.updatedAt)-toMs(a.updatedAt)).filter(c=>!q||((c.customer||"")+(c.code||"")).toLowerCase().includes(q));if(storedCards.length>0&&list.length===0)return<p style={{color:theme.textDim,fontSize:13,textAlign:"center",padding:16}}>مفيش نتايج مطابقة</p>;return list.map((c,i)=>(<div key={c.id} onClick={()=>{setShowStored(false);setStoredSearch("");setActionCard(c);}} className="card anim" style={{padding:"10px 12px",marginBottom:8,cursor:"pointer",animationDelay:(i*25)+"ms"}}><b style={{fontSize:13}}>{c.customer} · {c.code}</b><div style={{fontSize:11,color:theme.textDim}}>{c.color} — {c.quantity}</div></div>));})()}
 </div></div>)}
 {showOutsourced&&(
 <div className="modal" onClick={()=>{setShowOutsourced(false);setOutsourcedSearch("");}}>
@@ -1376,7 +1433,7 @@ return arr.map(([n,q],i)=>(<div key={n} className="anim" style={{marginBottom:10
 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}><h3 style={{flex:1,margin:0}}>🚚 كسترة خارجي ({outsourcedCards.length})</h3><button className="chip on" onClick={()=>exportSheet(outsourcedCards,"كسترة-خارجي")}>💾 تصدير</button></div>
 <input className="inp" placeholder="🔍 بحث بالاسم أو الكود..." value={outsourcedSearch} onChange={e=>setOutsourcedSearch(e.target.value)} style={{marginBottom:10}}/>
 {outsourcedCards.length===0&&<p style={{color:theme.textDim,fontSize:13,textAlign:"center",padding:16}}>فاضي — ابعت كروت للتكستير من زرار 🚚 في الكرت</p>}
-{(()=>{const q=outsourcedSearch.trim().toLowerCase();const list=outsourcedCards.slice().sort((a,b)=>toMs(b.updatedAt)-toMs(a.updatedAt)).filter(c=>!q||((c.customer||"")+(c.code||"")+(c.outsourcedTo||"")).toLowerCase().includes(q));if(outsourcedCards.length>0&&list.length===0)return<p style={{color:theme.textDim,fontSize:13,textAlign:"center",padding:16}}>مفيش نتايج مطابقة</p>;return list.map((c,i)=>(<div key={c.id} onClick={()=>{setShowOutsourced(false);setOutsourcedSearch("");setActionCard(c);}} className="card anim" style={{padding:"10px 12px",marginBottom:8,cursor:"pointer",animationDelay:(i*50)+"ms"}}><b style={{fontSize:13}}>{c.customer} · {c.code}</b><div style={{fontSize:11,color:theme.textDim}}>{c.color} — {c.quantity}{c.outsourcedTo?" · 🏭 "+c.outsourcedTo:""}</div></div>));})()}
+{(()=>{const q=outsourcedSearch.trim().toLowerCase();const list=outsourcedCards.slice().sort((a,b)=>toMs(b.updatedAt)-toMs(a.updatedAt)).filter(c=>!q||((c.customer||"")+(c.code||"")+(c.outsourcedTo||"")).toLowerCase().includes(q));if(outsourcedCards.length>0&&list.length===0)return<p style={{color:theme.textDim,fontSize:13,textAlign:"center",padding:16}}>مفيش نتايج مطابقة</p>;return list.map((c,i)=>(<div key={c.id} onClick={()=>{setShowOutsourced(false);setOutsourcedSearch("");setActionCard(c);}} className="card anim" style={{padding:"10px 12px",marginBottom:8,cursor:"pointer",animationDelay:(i*25)+"ms"}}><b style={{fontSize:13}}>{c.customer} · {c.code}</b><div style={{fontSize:11,color:theme.textDim}}>{c.color} — {c.quantity}{c.outsourcedTo?" · 🏭 "+c.outsourcedTo:""}</div></div>));})()}
 </div></div>)}
 {showSettings&&(
 <div className="modal" onClick={()=>setShowSettings(false)}>
@@ -1553,7 +1610,7 @@ const r=q.trim()?cards.filter(c=>FIELD_KEYS.some(k=>(c[k]||"").toString().toLowe
 const statusOf=c=>c.archived?"🗄️ مؤرشف":c.outsourced?"🚚 كسترة خارجي"+(c.outsourcedTo?" — "+c.outsourcedTo:""):c.stored?"📦 مخزن مجهز":c.delivered?"✅ مسلّم":("⚙️ "+(c.stage||"—"));
 return(<div><input autoFocus value={q} onChange={e=>setQ(e.target.value)} placeholder={t.search} className="inp"/>
 {q.trim()&&r.length===0&&<p style={{color:"var(--dim)",fontSize:13,textAlign:"center"}}>{t.noResults}</p>}
-<div>{r.map((c,i)=>(<div key={c.id} onClick={()=>onPick(c)} className="card anim" style={{cursor:"pointer",padding:"10px 12px",marginBottom:8,animationDelay:(i*40)+"ms"}}><b style={{fontSize:14}}>{c.customer} · {c.code}</b><div style={{fontSize:12,color:"var(--dim)"}}>{statusOf(c)} — {c.color}</div></div>))}</div></div>);
+<div>{r.map((c,i)=>(<div key={c.id} onClick={()=>onPick(c)} className="card anim" style={{cursor:"pointer",padding:"10px 12px",marginBottom:8,animationDelay:(i*20)+"ms"}}><b style={{fontSize:14}}>{c.customer} · {c.code}</b><div style={{fontSize:12,color:"var(--dim)"}}>{statusOf(c)} — {c.color}</div></div>))}</div></div>);
 }
 const LP_DICT={
 ar:{},
